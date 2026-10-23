@@ -76,6 +76,9 @@ export function ExpertListPage({ navigate, profile }) {
                     <div class="pustaka-card-header">
                       <span class="badge-pg">${ws.mapel}</span>
                       <span class="badge-muted">${ws.kelas}</span>
+                      <span class="badge-muted" style="background: var(--primary-light); color: var(--primary);">
+                        ${(ws.tipe_fokus || 'campur').toUpperCase()}
+                      </span>
                     </div>
                     
                     <div class="pustaka-card-body">
