@@ -54,12 +54,14 @@ export function ExportPage({ navigate, profile }) {
     const soal = paket.soal.map((s, i) => ({ ...s, id: `s${i + 1}` }));
     return {
       ...paket,
-      version: '1.0', // <-- PASTIKAN SELALU ADA
+      version: '1.1', // <-- Ubah ke 1.1
       id,
       judul: judul.trim() || paket.judul,
       durasiMenit: Math.max(1, Math.round(durasi)),
       acakMode,
       latihanMandiri,
+      wacana: paket.wacana || null,
+      wacana_judul: paket.wacana_judul || null,
       soal,
     };
   };
