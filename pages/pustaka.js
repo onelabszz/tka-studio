@@ -1,9 +1,9 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Search, Loader2, BookOpen, User, ShoppingCart, Check,
-  Eye, X, Download, MessageCircle, SlidersHorizontal
+  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getPustakaItems, addToKotak, getKotak, incrementDownload } from '../lib/pustaka.js';
 
@@ -14,34 +14,74 @@ export function PustakaPage({ navigate, profile }) {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
-  // State Filter
-  const [search, setSearch] = useState('');
+  const [error, setError] = useState(null);
+
+  // State Filter & Search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [mapel, setMapel] = useState('');
   const [kelas, setKelas] = useState('');
   const [tipe, setTipe] = useState('');
   const [showFilter, setShowFilter] = useState(false);
 
-  const [cartCount, setCartCount] = useState(getKotak().length);
+  // State Keranjang & Modal
+  const [cartCount, setCartCount] = useState(0);
   const [added, setAdded] = useState({});
   const [previewItem, setPreviewItem] = useState(null);
 
+  // 1. DEBOUNCE SEARCH (Mencegah spam API Supabase)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // 2. SINKRONISASI KERANJANG SAAT HALAMAN DIBUKA
+  useEffect(() => {
+    const kotak = getKotak();
+    setCartCount(kotak.length);
+    
+    // Tandai soal yang sudah ada di keranjang
+    const addedMap = {};
+    kotak.forEach(item => { addedMap[item.id] = true; });
+    setAdded(addedMap);
+  }, []);
+
+  // 3. FETCH DATA
   useEffect(() => {
     loadData(true);
-  }, [search, mapel, kelas, tipe]);
+  }, [debouncedSearch, mapel, kelas, tipe]);
 
   const loadData = async (reset) => {
-    if (reset) { setLoading(true); setPage(1); } else { setLoadingMore(true); }
+    if (reset) { setLoading(true); setPage(1); } 
+    else { setLoadingMore(true); }
+    setError(null);
+
     try {
       const currentPage = reset ? 1 : page + 1;
-      const res = await getPustakaItems({ search, mapel, kelas, tipe }, currentPage, LIMIT);
+      const res = await getPustakaItems({ 
+        search: debouncedSearch, 
+        mapel, 
+        kelas, 
+        tipe 
+      }, currentPage, LIMIT);
       
-      if (reset) { setItems(res.data); setPage(1); } 
-      else { setItems([...items, ...res.data]); setPage(currentPage); }
+      if (reset) { 
+        setItems(res.data); 
+        setPage(1); 
+      } else { 
+        // Hindari duplikasi jika user klik "Muat Lebih Banyak" dua kali
+        const newItems = res.data.filter(n => !items.some(o => o.id === n.id));
+        setItems([...items, ...newItems]); 
+        setPage(currentPage); 
+      }
       setTotal(res.total);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setError('Gagal memuat data dari server. Periksa koneksi internet Anda.');
+    }
     setLoading(false);
     setLoadingMore(false);
   };
@@ -52,7 +92,8 @@ export function PustakaPage({ navigate, profile }) {
     if (success) {
       setCartCount(getKotak().length);
       setAdded({ ...added, [item.id]: true });
-      await incrementDownload(item.id);
+      // Jangan blokir UI jika increment gagal
+      incrementDownload(item.id).catch(console.error);
     }
   };
 
@@ -77,8 +118,8 @@ export function PustakaPage({ navigate, profile }) {
         <div class="search-wrapper mb-3">
           <${Search} size=${16} class="search-icon" />
           <input type="text" class="search-input" placeholder="Cari soal (contoh: pecahan, fotosintesis)..." 
-                 value=${search} onInput=${(e) => setSearch(e.target.value)} />
-          <button class="search-clear" onClick=${() => setShowFilter(!showFilter)} style="right: 12px; color: ${showFilter ? 'var(--primary)' : 'inherit'};">
+                 value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
+          <button class="search-clear" onClick=${() => setShowFilter(!showFilter)} style="right: 12px; color: ${showFilter || mapel || kelas || tipe ? 'var(--primary)' : 'inherit'};">
             <${SlidersHorizontal} size=${16} />
           </button>
         </div>
@@ -107,16 +148,30 @@ export function PustakaPage({ navigate, profile }) {
                 </select>
               </div>
             </div>
+            ${(mapel || kelas || tipe) && html`
+              <button class="btn-secondary btn-sm mt-2 w-full" onClick=${() => { setMapel(''); setKelas(''); setTipe(''); }}>
+                Reset Filter
+              </button>
+            `}
           </div>
         `}
 
-        ${loading ? html`<div class="text-center mt-4"><${Loader2} class="spin" /></div>` : html`
-          ${items.length === 0 && html`
+        ${error && html`
+          <div class="result-card result-error mb-4" style="text-align: center;">
+            <${AlertTriangle} size=${24} color="var(--danger)" style="margin-bottom: 8px;" />
+            <p style="margin: 0; color: var(--danger); font-weight: 500;">${error}</p>
+            <button class="btn-primary mt-3" onClick=${() => loadData(true)}>Coba Lagi</button>
+          </div>
+        `}
+
+        ${loading ? html`<div class="text-center mt-4"><${Loader2} class="spin" size=${32} color="var(--primary)" /></div>` : html`
+          ${items.length === 0 && !error && html`
             <div class="empty-state">
               <${BookOpen} size=${32} color="var(--text-subtle)" />
               <p>Tidak ada soal ditemukan. Coba ubah kata kunci atau filter.</p>
             </div>
           `}
+          
           <div class="pustaka-grid">
             ${items.map(item => html`
               <div class="pustaka-card">
@@ -139,10 +194,88 @@ export function PustakaPage({ navigate, profile }) {
               </div>
             `)}
           </div>
-          ${hasMore && html`<div class="text-center mt-4"><button class="btn-secondary" onClick=${() => loadData(false)} disabled=${loadingMore}>Muat Lebih Banyak</button></div>`}
+          
+          ${hasMore && html`
+            <div class="text-center mt-4">
+              <button class="btn-secondary" onClick=${() => loadData(false)} disabled=${loadingMore}>
+                ${loadingMore ? html`<${Loader2} class="spin" size=${16}/> Memuat...` : 'Muat Lebih Banyak'}
+              </button>
+            </div>
+          `}
         `}
       </div>
-      ${previewItem && html`... (Modal Preview sama seperti sebelumnya, tidak perlu diubah) ...`}
+
+      <!-- BUG FIX: Modal Preview yang sebelumnya hilang -->
+      ${previewItem && html`
+        <div class="modal-backdrop" onClick=${() => setPreviewItem(null)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()}>
+            <div class="modal-header">
+              <div class="modal-title"><${Eye} size=${18} /> Detail Soal</div>
+              <button class="modal-close" onClick=${() => setPreviewItem(null)}><${X} size=${18} /></button>
+            </div>
+            <div class="modal-body">
+              <div class="pustaka-preview-meta">
+                <span class="badge-pg">${previewItem.mapel}</span>
+                ${previewItem.kelas && html`<span class="badge-muted">${previewItem.kelas}</span>`}
+                <span class=${'soal-badge badge-' + previewItem.tipe}>${previewItem.tipe.toUpperCase()}</span>
+              </div>
+
+              <div class="soal-question" style="margin-top: 16px; font-size: 15px;">
+                ${previewItem.konten.q}
+              </div>
+
+              ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
+                <div class="soal-options" style="margin-top: 12px;">
+                  ${previewItem.konten.options.map((opt, oi) => {
+                    const isCorrect = previewItem.tipe === 'pg'
+                      ? previewItem.konten.key === oi
+                      : (previewItem.konten.key || []).includes(oi);
+                    return html`
+                      <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                        <span class="soal-option-letter">${'ABCD'[oi]}</span>
+                        <span class="soal-option-text">${opt}</span>
+                        ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
+                      </div>
+                    `;
+                  })}
+                </div>
+              `}
+
+              ${previewItem.tipe === 'bs' && previewItem.konten.pernyataan && html`
+                <div class="soal-bs-list" style="margin-top: 12px;">
+                  ${previewItem.konten.pernyataan.map((p, pi) => html`
+                    <div class="soal-bs-item">
+                      <span class="soal-bs-num">${pi + 1}.</span>
+                      <span class="soal-bs-text">${p.teks}</span>
+                      <span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>
+                        ${p.key ? 'Benar' : 'Salah'}
+                      </span>
+                    </div>
+                  `)}
+                </div>
+              `}
+
+              ${previewItem.konten.pembahasan && html`
+                <div class="soal-explanation" style="margin-top: 12px;">
+                  <${MessageCircle} size=${13} />
+                  <span>${previewItem.konten.pembahasan}</span>
+                </div>
+              `}
+
+              <div class="pustaka-preview-footer">
+                <div><${User} size=${13} /> <b>${previewItem.contributor_nama}</b> <span style="opacity: 0.7;">· ${previewItem.contributor_sekolah || 'Indonesia'}</span></div>
+                <div><${Download} size=${13} /> ${previewItem.download_count || 0} kali diambil</div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-secondary" onClick=${() => setPreviewItem(null)}>Tutup</button>
+              <button class="btn-primary" onClick=${() => { handleAmbil(previewItem); setPreviewItem(null); }} disabled=${added[previewItem.id]}>
+                ${added[previewItem.id] ? html`<${Check} size=${16}/> Sudah di Kotak` : html`<${ShoppingCart} size=${16}/> Ambil ke Kotak`}
+              </button>
+            </div>
+          </div>
+        </div>
+      `}
     </div>
   `;
 }
