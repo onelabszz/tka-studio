@@ -275,36 +275,39 @@ export function ExportPage({ navigate, profile }) {
         `}
 
         <div class="export-actions">
-          ${profile?.status === 'active' ? html`
-            <button class="btn-primary btn-large" onClick=${handleDownload}>
-              <${Download} size=${18} />
-              Download File .json (Local Host)
-            </button>
+          <!-- TOMBOL DOWNLOAD (Bisa diakses siapa saja, termasuk Tamu) -->
+          <button class="btn-primary btn-large" onClick=${handleDownload}>
+            <${Download} size=${18} />
+            Download File .json (Local Host)
+          </button>
 
-            <button class="btn-secondary w-full mt-2" onClick=${handleSaveToCloud} disabled=${saving}>
-              ${saving
-                ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...`
-                : html`<${CloudUpload} size=${16} /> Simpan ke Bank Soal (Cloud)`}
-            </button>
+          <button class="btn-secondary w-full mt-2" onClick=${handleDownloadCSV}>
+            <${FileJson} size=${16} />
+            Download CSV (Excel)
+          </button>
 
-            <button class="btn-secondary w-full mt-2" onClick=${handleDownloadCSV}>
-              <${FileJson} size=${16} />
-              Download CSV (Excel)
-            </button>
+          <button class="btn-secondary w-full mt-2" onClick=${handleCopyCode}>
+            ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
+            ${copied ? 'Kode tersalin!' : 'Salin sebagai Kode (advanced)'}
+          </button>
 
-            <button class="btn-secondary w-full mt-2" onClick=${handleCopyCode}>
-              ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
-              ${copied ? 'Kode tersalin!' : 'Salin sebagai Kode (advanced)'}
-            </button>
-          ` : html`
-            <button class="btn-primary btn-large btn-warning" onClick=${() => navigate(profile ? '/pending' : '/register')}>
-              <${Lock} size=${18} />
-              Daftar / Login untuk Download
-            </button>
-            <div class="text-center text-muted text-sm mt-2">
-              ${profile ? 'Akun Anda masih menunggu verifikasi admin.' : 'Buat akun gratis untuk mengunduh soal ini.'}
-            </div>
-          `}
+          <!-- TOMBOL CLOUD (Wajib Login) -->
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
+            ${profile?.status === 'active' ? html`
+              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success);">
+                ${saving
+                  ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...`
+                  : html`<${CloudUpload} size=${16} /> Simpan ke Bank Soal (Cloud)`}
+              </button>
+            ` : html`
+              <button class="btn-secondary w-full" onClick=${() => navigate('/login')}>
+                <${Lock} size=${16} /> Login untuk Simpan ke Bank Soal
+              </button>
+              <div class="text-center text-muted text-sm mt-2">
+                Dapatkan akses ke Mode Expert, Pustaka, dan Cloud Sync.
+              </div>
+            `}
+          </div>
         </div>
 
         <div class="export-section export-instructions">
