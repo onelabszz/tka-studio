@@ -126,10 +126,11 @@ export function ExportPage({ navigate, profile }) {
         return;
       }
       await saveToBank(profile.id, final);
-      alert('Paket berhasil disimpan ke Bank Soal Anda!');
+      window.showToast('Paket berhasil disimpan ke Bank Soal Anda!', 'success');
       navigate('/bank-soal');
     } catch (e) {
       setError('Gagal menyimpan ke cloud: ' + (e.message || e));
+      window.showToast('Gagal menyimpan ke cloud.', 'error');
     }
     setSaving(false);
   };
