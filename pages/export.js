@@ -54,6 +54,7 @@ export function ExportPage({ navigate, profile }) {
     const soal = paket.soal.map((s, i) => ({ ...s, id: `s${i + 1}` }));
     return {
       ...paket,
+      version: '1.0', // <-- PASTIKAN SELALU ADA
       id,
       judul: judul.trim() || paket.judul,
       durasiMenit: Math.max(1, Math.round(durasi)),
