@@ -264,16 +264,12 @@ export function PreviewPage({ navigate, profile }) {
   const qualityWarnings = useMemo(function () { return paket ? checkQuality(paket) : []; }, [paket]);
   const allWarnings = useMemo(function () { return baseWarnings.concat(qualityWarnings); }, [baseWarnings, qualityWarnings]);
 
-  // EFFECT UNTUK MERENDER RUMUS MATEMATIKA (KATEX)
   useEffect(() => {
-    // Beri sedikit delay agar Preact selesai merender DOM
     const timer = setTimeout(() => {
-      if (window.renderMath) {
-        window.renderMath();
-      }
+      if (window.renderMath) window.renderMath();
     }, 100);
     return () => clearTimeout(timer);
-  }, [paket, filter]); // Jalankan ulang saat paket berubah atau filter berubah
+  }, [paket, filter]);
 
   if (!draft || !paket) {
     return html`
