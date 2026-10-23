@@ -37,8 +37,18 @@ function ViewMode({ soal }) {
   return html`
     <div class="soal-body">
       ${soal.img && html`
-        <div class="soal-img-badge">
-          <${ImageIcon} size=${14} /> Butuh gambar: <b>${soal.img}</b>
+        <div class="soal-img-badge" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <${ImageIcon} size=${14} /> Butuh gambar: <b>${soal.img}</b>
+          </div>
+          ${soal.img_ref && html`
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; width: 100%;">
+              <span style="flex: 1;">🔍 Cari: <i>"${soal.img_ref}"</i></span>
+              <button class="btn-secondary" style="padding: 2px 6px; font-size: 10px;" onClick=${() => navigator.clipboard.writeText(soal.img_ref)}>
+                Salin Keyword
+              </button>
+            </div>
+          `}
         </div>
       `}
       <div class="soal-question">${soal.q}</div>
