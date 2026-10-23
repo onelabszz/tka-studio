@@ -279,42 +279,38 @@ function App() {
 
   if (authLoading) return html`<div style="padding: 40px; text-align: center;">Memuat...</div>`;
 
-  // ==== Public Routes ====
+  // 1. Rute Publik (Bisa diakses Tamu tanpa Login)
   if (route === '/' || route === '') return html`<${Landing} profile=${profile} />`;
   if (route === '/login') return html`<${LoginPage} navigate=${navigate} onLoginSuccess=${handleLoginSuccess} />`;
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
+  if (route === '/debug') return html`<${DebugPage} />`;
+  
+  // Mode Basic sekarang terbuka untuk Tamu
   if (route === '/build') return html`<${BuildPage} navigate=${navigate} />`;
   if (route === '/paste') return html`<${PastePage} navigate=${navigate} />`;
   if (route === '/preview') return html`<${PreviewPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/export') return html`<${ExportPage} navigate=${navigate} profile=${profile} />`;
+  
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
-  if (route === '/debug') return html`<${DebugPage} />`;
 
-  // ==== Auth Routes (dengan sidebar) ====
-  // 1. Rute yang WAJIB login (Pustaka, Bank Soal, Expert)
+
+  // 2. Rute Wajib Login (Menggunakan AppShell Sidebar)
   const AUTH_ROUTES = [
     '/bank-soal', '/pustaka', '/kotak',
     '/expert', '/expert/new',
   ];
   const isAuthRoute = AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'));
 
-  if (isAuthRoute && !user) {
-    navigate('/login');
-    return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
-  }
-
-  // 2. Rute yang BISA diakses tamu (Mode Basic)
-  const PUBLIC_ROUTES = ['/build', '/paste', '/preview', '/export'];
-  const isPublicRoute = PUBLIC_ROUTES.some(r => route === r);
+  if (isAuthRoute) {
+    if (!user) {
+      navigate('/login');
+      return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
+    }
 
     let PageComponent = null;
     let pageProps = {};
 
-    if (route === '/build') { PageComponent = BuildPage; pageProps = { navigate }; }
-    else if (route === '/paste') { PageComponent = PastePage; pageProps = { navigate }; }
-    else if (route === '/preview') { PageComponent = PreviewPage; pageProps = { navigate, profile }; }
-    else if (route === '/export') { PageComponent = ExportPage; pageProps = { navigate, profile }; }
-    else if (route === '/bank-soal') { PageComponent = BankSoalPage; pageProps = { navigate, profile }; }
+    if (route === '/bank-soal') { PageComponent = BankSoalPage; pageProps = { navigate, profile }; }
     else if (route === '/pustaka') { PageComponent = PustakaPage; pageProps = { navigate, profile }; }
     else if (route === '/kotak') { PageComponent = KotakPage; pageProps = { navigate, profile }; }
     else if (route === '/expert') { PageComponent = ExpertListPage; pageProps = { navigate, profile }; }
