@@ -2435,3 +2435,10 @@ h1, h2, h3, h4 {
   justify-content: center;
   margin: 0 auto 20px;
 }
+.filter-panel {
+  background: var(--surface-card);
+  padding: 16px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  animation: fadeInUp 0.2s var(--ease-out);
+}
