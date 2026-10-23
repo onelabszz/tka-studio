@@ -279,26 +279,33 @@ function App() {
 
   if (authLoading) return html`<div style="padding: 40px; text-align: center;">Memuat...</div>`;
 
-  // ==== Public Routes (tanpa sidebar) ====
+  // ==== Public Routes ====
   if (route === '/' || route === '') return html`<${Landing} profile=${profile} />`;
   if (route === '/login') return html`<${LoginPage} navigate=${navigate} onLoginSuccess=${handleLoginSuccess} />`;
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
+  if (route === '/build') return html`<${BuildPage} navigate=${navigate} />`;
+  if (route === '/paste') return html`<${PastePage} navigate=${navigate} />`;
+  if (route === '/preview') return html`<${PreviewPage} navigate=${navigate} profile=${profile} />`;
+  if (route === '/export') return html`<${ExportPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
   if (route === '/debug') return html`<${DebugPage} />`;
 
   // ==== Auth Routes (dengan sidebar) ====
+  // 1. Rute yang WAJIB login (Pustaka, Bank Soal, Expert)
   const AUTH_ROUTES = [
-    '/build', '/paste', '/preview', '/export',
     '/bank-soal', '/pustaka', '/kotak',
     '/expert', '/expert/new',
   ];
   const isAuthRoute = AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'));
 
-  if (isAuthRoute) {
-    if (!user) {
-      navigate('/login');
-      return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
-    }
+  if (isAuthRoute && !user) {
+    navigate('/login');
+    return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
+  }
+
+  // 2. Rute yang BISA diakses tamu (Mode Basic)
+  const PUBLIC_ROUTES = ['/build', '/paste', '/preview', '/export'];
+  const isPublicRoute = PUBLIC_ROUTES.some(r => route === r);
 
     let PageComponent = null;
     let pageProps = {};
