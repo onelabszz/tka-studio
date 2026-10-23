@@ -2349,3 +2349,80 @@ h1, h2, h3, h4 {
 .app-main .page-shell {
   padding-top: 32px;
 }
+/* =========================================================
+   Tabel Soal Benar/Salah (B/S)
+   ========================================================= */
+.bs-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.bs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  background: white;
+}
+
+.bs-table th {
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-strong);
+  font-size: 12px;
+}
+
+.bs-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.bs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bs-table .bs-letter {
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.bs-table .bs-text {
+  color: var(--text);
+}
+
+.bs-table .bs-radio {
+  text-align: center;
+}
+
+.radio-circle {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  position: relative;
+  background: white;
+}
+
+.radio-circle.active {
+  border-color: var(--primary-mid);
+  background: white;
+}
+
+.radio-circle.active::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary-mid);
+}
