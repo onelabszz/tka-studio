@@ -3,12 +3,14 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { ArrowLeft, FolderOpen, Trash2, Share2, Eye, Loader2 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getMyBank, deleteFromBank, togglePublic } from '../lib/bank-soal.js';
+import { ConfirmModal } from '../components/ConfirmModal.js';
 
 const html = htm.bind(h);
 
 export function BankSoalPage({ navigate, profile }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmData, setConfirmData] = useState(null); // State untuk modal
 
   useEffect(() => {
     if (!profile) { navigate('/login'); return; }
@@ -24,25 +26,58 @@ export function BankSoalPage({ navigate, profile }) {
     setLoading(false);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Hapus paket ini dari Bank Soal Anda?')) return;
-    try {
-      await deleteFromBank(id);
-      loadData();
-    } catch (e) { alert(e.message); }
+  const handleDelete = (id) => {
+    setConfirmData({
+      title: 'Hapus Paket Soal?',
+      message: 'Paket ini akan dihapus permanen dari Bank Soal Anda dan tidak bisa dikembalikan.',
+      confirmText: 'Ya, Hapus',
+      isDanger: true,
+      onConfirm: async () => {
+        setConfirmData(null);
+        try {
+          await deleteFromBank(id);
+          loadData();
+        } catch (e) { alert(e.message); }
+      }
+    });
   };
 
   const handleShare = async (item) => {
     const isPublic = !item.is_public;
-    if (isPublic && !confirm('Bagikan paket ini ke Pustaka Publik? Guru lain bisa melihat dan mengunduhnya.')) return;
-    try {
-      await togglePublic(item.id, isPublic);
-      loadData();
-    } catch (e) { alert(e.message); }
+    if (isPublic) {
+      setConfirmData({
+        title: 'Bagikan ke Pustaka?',
+        message: 'Paket ini akan diterbitkan ke Pustaka Publik dan bisa diambil oleh guru lain.',
+        confirmText: 'Ya, Bagikan',
+        isDanger: false,
+        onConfirm: async () => {
+          setConfirmData(null);
+          try {
+            await togglePublic(item.id, isPublic);
+            loadData();
+          } catch (e) { alert(e.message); }
+        }
+      });
+    } else {
+      // Jika mau ditarik dari publik, langsung eksekusi
+      try {
+        await togglePublic(item.id, isPublic);
+        loadData();
+      } catch (e) { alert(e.message); }
+    }
   };
 
   const handleOpen = (item) => {
-    localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ paket: item.payload, warnings: [] }));
+    // BUG FIX: Pastikan data memiliki version dan field v1.1
+    const payload = item.payload || {};
+    const safePayload = {
+      ...payload,
+      version: '1.1', // Paksa versi terbaru
+      acakMode: payload.acakMode || 'per-tipe',
+      latihanMandiri: payload.latihanMandiri !== false,
+    };
+
+    localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ paket: safePayload, warnings: [] }));
     navigate('/preview');
   };
 
@@ -82,6 +117,17 @@ export function BankSoalPage({ navigate, profile }) {
           </div>
         `}
       </div>
+      
+      ${confirmData && html`
+        <${ConfirmModal} 
+          title=${confirmData.title} 
+          message=${confirmData.message} 
+          confirmText=${confirmData.confirmText}
+          isDanger=${confirmData.isDanger}
+          onConfirm=${confirmData.onConfirm} 
+          onCancel=${() => setConfirmData(null)} 
+        />
+      `}
     </div>
   `;
 }
