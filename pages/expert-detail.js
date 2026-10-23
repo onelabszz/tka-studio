@@ -212,11 +212,14 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         </div>
 
         ${isBahasa && html`
-          <div class="form-section">
-            <div class="form-section-header">
-              <${BookOpen} size=${18} /> Teks Wacana Acuan (Wajib untuk B.Indo)
+          <div class="form-section" style="border: 2px solid var(--primary-light); background: var(--brand-50);">
+            <div class="form-section-header" style="color: var(--primary);">
+              <${BookOpen} size=${18} /> Teks Wacana / Cerita Acuan
             </div>
             <div class="form-section-body">
+              <p class="text-muted text-sm mb-2">
+                <b>Penting untuk Bahasa Indonesia:</b> Paste cerita atau teks bacaan di sini (150-200 kata). AI akan membuat soal berdasarkan teks ini.
+              </p>
               ${editWacana ? html`
                 <textarea class="form-textarea" rows=${6} value=${wacanaText} onInput=${e => setWacanaText(e.target.value)} placeholder="Paste teks wacana di sini..."></textarea>
                 <div style="display:flex; gap:8px; margin-top:8px;">
@@ -224,8 +227,8 @@ export function ExpertDetailPage({ navigate, profile, id }) {
                   <button class="btn-secondary btn-sm" onClick=${() => setEditWacana(false)}>Batal</button>
                 </div>
               ` : html`
-                <div style="background:var(--surface-muted); padding:12px; border-radius:8px; font-size:14px; line-height:1.6; font-style:italic; margin-bottom:12px;">
-                  ${wacanaText || '(Belum ada teks wacana. AI akan membuatnya di soal pertama, atau Anda bisa paste manual di sini).'}
+                <div style="background:white; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; border: 1px dashed var(--primary-light); margin-bottom:12px;">
+                  ${wacanaText ? html`<i>"${wacanaText}"</i>` : html`<span class="text-muted">(Belum ada teks wacana. Klik "Edit Teks Wacana" untuk mem-paste cerita).</span>`}
                 </div>
                 <button class="btn-secondary btn-sm" onClick=${() => setEditWacana(true)}>Edit Teks Wacana</button>
               `}
