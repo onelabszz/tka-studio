@@ -8,11 +8,12 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, CircleDot, ListChecks, CheckCheck,
   Pencil, Trash2, CopyPlus, X, Check, AlertTriangle, MessageCircle,
-  Image as ImageIcon, Printer,
+  Image as ImageIcon, Printer, Send, Loader2
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft } from '../stores/studio.js';
 import { checkQuality } from '../lib/quality-checks.js';
-import { Stepper } from '../components/Stepper.js';
+import { Stepper } from '../components/Stepper.js'; + 
+import { publishSoal } from '../lib/pustaka.js';
 
 const html = htm.bind(h);
 
@@ -186,7 +187,7 @@ function EditMode({ soal, onSave, onCancel }) {
   `;
 }
 
-function SoalCard({ soal, index, warnings, onUpdate, onDelete, onDuplicate }) {
+function SoalCard({ soal, index, warnings, onUpdate, onDelete, onDuplicate, onPublish, isPublishing }) {
   const [editing, setEditing] = useState(false);
   const hasWarning = warnings && warnings.length > 0;
 
@@ -204,6 +205,9 @@ function SoalCard({ soal, index, warnings, onUpdate, onDelete, onDuplicate }) {
         </div>
         ${!editing && html`
           <div class="soal-actions">
+            <button class="icon-btn" onClick=${function () { onPublish(index, soal); }} aria-label="Terbitkan" title="Terbitkan ke Pustaka" disabled=${isPublishing}>
+              ${isPublishing ? html`<${Loader2} size=${15} class="spin"/>` : html`<${Send} size=${15} />`}
+            </button>
             <button class="icon-btn" onClick=${function () { setEditing(true); }} aria-label="Edit"><${Pencil} size=${15} /></button>
             <button class="icon-btn" onClick=${function () { onDuplicate(index); }} aria-label="Duplikat"><${CopyPlus} size=${15} /></button>
             <button class="icon-btn icon-danger" onClick=${function () { onDelete(index); }} aria-label="Hapus"><${Trash2} size=${15} /></button>
