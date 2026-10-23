@@ -2616,3 +2616,161 @@ h1, h2, h3, h4 {
   justify-content: space-between;
   padding: 16px 24px;
 }
+/* =========================================================
+   UI SEARCH & FILTER TERPADU (PUSTAKA)
+   ========================================================= */
+.search-filter-wrapper {
+  background: var(--surface-card);
+  border: 1px solid var(--border-brand);
+  border-radius: var(--radius-card);
+  padding: 12px;
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-main-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.search-main-box:focus-within {
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.search-main-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+}
+
+.filter-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+}
+
+.filter-chip-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.filter-select {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+.filter-select:hover { background: var(--border); }
+.filter-select:focus { border-color: var(--primary-mid); background: white; }
+
+.btn-reset-filter {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  transition: background 0.2s;
+}
+.btn-reset-filter:hover { background: #fee2e2; }
+
+/* =========================================================
+   CART BADGE INLINE
+   ========================================================= */
+.cart-badge-inline {
+  background: var(--amber-400);
+  color: var(--navy-900);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+/* =========================================================
+   CUSTOM TOAST NOTIFICATIONS (PENGGANTI ALERT)
+   ========================================================= */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+  border-left: 4px solid var(--primary);
+  pointer-events: auto;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 280px;
+  max-width: 400px;
+}
+
+.toast-success { border-left-color: var(--success); }
+.toast-success .toast-icon { color: var(--success); }
+.toast-error { border-left-color: var(--danger); }
+.toast-error .toast-icon { color: var(--danger); }
+.toast-info { border-left-color: var(--primary); }
+.toast-info .toast-icon { color: var(--primary); }
+
+.toast-msg {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.toast-close {
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.toast-close:hover { background: var(--surface-muted); color: var(--text); }
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Responsive: HP tampilan toast penuh di bawah */
+@media (max-width: 640px) {
+  .toast-container { bottom: 16px; right: 16px; left: 16px; }
+  .toast { min-width: 0; width: 100%; }
+}
