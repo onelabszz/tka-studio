@@ -8,7 +8,7 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
-  FolderOpen, BookOpen, ShoppingCart,
+  FolderOpen, BookOpen,
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -23,6 +23,7 @@ import { KotakPage } from './pages/kotak.js';
 import { ExpertListPage } from './pages/expert-list.js';
 import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
+import { AppShell } from './components/AppShell.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 
 const html = htm.bind(h);
@@ -278,32 +279,53 @@ function App() {
 
   if (authLoading) return html`<div style="padding: 40px; text-align: center;">Memuat...</div>`;
 
-  // Public Routes
+  // ==== Public Routes (tanpa sidebar) ====
   if (route === '/' || route === '') return html`<${Landing} profile=${profile} />`;
   if (route === '/login') return html`<${LoginPage} navigate=${navigate} onLoginSuccess=${handleLoginSuccess} />`;
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
-  
-  // Auth Routes (Butuh Login)
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
-  if (route === '/build') return html`<${BuildPage} navigate=${navigate} />`;
-  if (route === '/paste') return html`<${PastePage} navigate=${navigate} />`;
-  if (route === '/preview') return html`<${PreviewPage} navigate=${navigate} profile=${profile} />`;
-  if (route === '/export') return html`<${ExportPage} navigate=${navigate} profile=${profile} />`;
-  if (route === '/bank-soal') return html`<${BankSoalPage} navigate=${navigate} profile=${profile} />`;
-  if (route === '/pustaka') return html`<${PustakaPage} navigate=${navigate} profile=${profile} />`;
-  if (route === '/kotak') return html`<${KotakPage} navigate=${navigate} profile=${profile} />`;
-  
-  // Expert Mode Routes
-  if (route === '/expert') return html`<${ExpertListPage} navigate=${navigate} profile=${profile} />`;
-  if (route === '/expert/new') return html`<${ExpertNewPage} navigate=${navigate} profile=${profile} />`;
-  if (route.startsWith('/expert/')) {
-    const id = route.split('/')[2];
-    return html`<${ExpertDetailPage} navigate=${navigate} profile=${profile} id=${id} />`;
-  }
-  
-  // Dev Route
   if (route === '/debug') return html`<${DebugPage} />`;
-  
+
+  // ==== Auth Routes (dengan sidebar) ====
+  const AUTH_ROUTES = [
+    '/build', '/paste', '/preview', '/export',
+    '/bank-soal', '/pustaka', '/kotak',
+    '/expert', '/expert/new',
+  ];
+  const isAuthRoute = AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'));
+
+  if (isAuthRoute) {
+    if (!user) {
+      navigate('/login');
+      return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
+    }
+
+    let PageComponent = null;
+    let pageProps = {};
+
+    if (route === '/build') { PageComponent = BuildPage; pageProps = { navigate }; }
+    else if (route === '/paste') { PageComponent = PastePage; pageProps = { navigate }; }
+    else if (route === '/preview') { PageComponent = PreviewPage; pageProps = { navigate, profile }; }
+    else if (route === '/export') { PageComponent = ExportPage; pageProps = { navigate, profile }; }
+    else if (route === '/bank-soal') { PageComponent = BankSoalPage; pageProps = { navigate, profile }; }
+    else if (route === '/pustaka') { PageComponent = PustakaPage; pageProps = { navigate, profile }; }
+    else if (route === '/kotak') { PageComponent = KotakPage; pageProps = { navigate, profile }; }
+    else if (route === '/expert') { PageComponent = ExpertListPage; pageProps = { navigate, profile }; }
+    else if (route === '/expert/new') { PageComponent = ExpertNewPage; pageProps = { navigate, profile }; }
+    else if (route.startsWith('/expert/')) {
+      PageComponent = ExpertDetailPage;
+      pageProps = { navigate, profile, id: route.split('/')[2] };
+    }
+
+    if (PageComponent) {
+      return html`
+        <${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}>
+          <${PageComponent} ...${pageProps} />
+        </${AppShell}>
+      `;
+    }
+  }
+
   return html`<${NotFound} />`;
 }
 
