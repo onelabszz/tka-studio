@@ -42,7 +42,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
 
   const loadWorkspace = async () => {
     try {
-      const data = await getWorkspaceById(id);
+    const data = await getWorkspaceById(id);
       if (data.user_id !== profile?.id) {
         alert('Anda tidak memiliki akses ke ruang kerja ini.');
         navigate('/expert');
@@ -151,23 +151,21 @@ export function ExpertDetailPage({ navigate, profile, id }) {
 
   const handleSelesai = () => {
     // Clone soal agar tidak mengubah state asli di database
-    let finalSoal = JSON.parse(JSON.stringify(ws.soal || []));
+    const finalSoal = JSON.parse(JSON.stringify(ws.soal || []));
     
-    // Jika ada teks wacana, sisipkan ke soal PERTAMA
-    if (ws.teks_wacana && ws.teks_wacana.trim() !== '' && finalSoal.length > 0) {
-      finalSoal[0].q = `Bacalah teks berikut dengan saksama.\n\n=== Teks Bacaan ===\n${ws.teks_wacana}\n\n=== Pertanyaan ===\n${finalSoal[0].q}`;
-    }
-
-    // Pindahkan soal ke draft standard agar bisa di-preview/export
+    // Pindahkan soal ke draft standard (Format JSON v1.1)
+    // Wacana sekarang terpisah dari soal (tidak dicampur ke dalam 'q')
     localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ 
       paket: { 
-        version: '1.0',
+        version: '1.1',
         id: ws.id, 
         judul: ws.judul, 
         mapel: ws.mapel, 
         durasiMenit: ws.target_soal * 2, 
         acakMode: 'per-tipe',
         latihanMandiri: true,
+        wacana: ws.teks_wacana || null,
+        wacana_judul: ws.topik || null,
         soal: finalSoal 
       }, 
       warnings: [] 
