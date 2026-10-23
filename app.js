@@ -24,6 +24,7 @@ import { ExpertListPage } from './pages/expert-list.js';
 import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
 import { AppShell } from './components/AppShell.js';
+import './components/Toast.js'; // <-- TAMBAHKAN BARIS INI
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 
 const html = htm.bind(h);
