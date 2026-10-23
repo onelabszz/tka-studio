@@ -1,9 +1,9 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Search, Loader2, BookOpen, User, ShoppingCart, Check,
-  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle
+  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle, Filter
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getPustakaItems, addToKotak, getKotak, incrementDownload } from '../lib/pustaka.js';
 
@@ -19,68 +19,49 @@ export function PustakaPage({ navigate, profile }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
-  // State Filter & Search
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [mapel, setMapel] = useState('');
   const [kelas, setKelas] = useState('');
   const [tipe, setTipe] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
 
-  // State Keranjang & Modal
   const [cartCount, setCartCount] = useState(0);
   const [added, setAdded] = useState({});
   const [previewItem, setPreviewItem] = useState(null);
 
-  // 1. DEBOUNCE SEARCH (Mencegah spam API Supabase)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // 2. SINKRONISASI KERANJANG SAAT HALAMAN DIBUKA
   useEffect(() => {
     const kotak = getKotak();
     setCartCount(kotak.length);
-    
-    // Tandai soal yang sudah ada di keranjang
     const addedMap = {};
     kotak.forEach(item => { addedMap[item.id] = true; });
     setAdded(addedMap);
   }, []);
 
-  // 3. FETCH DATA
   useEffect(() => {
     loadData(true);
   }, [debouncedSearch, mapel, kelas, tipe]);
 
   const loadData = async (reset) => {
-    if (reset) { setLoading(true); setPage(1); } 
-    else { setLoadingMore(true); }
+    if (reset) { setLoading(true); setPage(1); } else { setLoadingMore(true); }
     setError(null);
-
     try {
       const currentPage = reset ? 1 : page + 1;
-      const res = await getPustakaItems({ 
-        search: debouncedSearch, 
-        mapel, 
-        kelas, 
-        tipe 
-      }, currentPage, LIMIT);
-      
-      if (reset) { 
-        setItems(res.data); 
-        setPage(1); 
-      } else { 
-        // Hindari duplikasi jika user klik "Muat Lebih Banyak" dua kali
+      const res = await getPustakaItems({ search: debouncedSearch, mapel, kelas, tipe }, currentPage, LIMIT);
+      if (reset) { setItems(res.data); setPage(1); } 
+      else { 
         const newItems = res.data.filter(n => !items.some(o => o.id === n.id));
-        setItems([...items, ...newItems]); 
-        setPage(currentPage); 
+        setItems([...items, ...newItems]); setPage(currentPage); 
       }
       setTotal(res.total);
     } catch (e) {
       console.error(e);
-      setError('Gagal memuat data dari server. Periksa koneksi internet Anda.');
+      setError('Gagal memuat data.');
+      window.showToast('Koneksi terputus. Gagal memuat Pustaka.', 'error');
     }
     setLoading(false);
     setLoadingMore(false);
@@ -92,8 +73,10 @@ export function PustakaPage({ navigate, profile }) {
     if (success) {
       setCartCount(getKotak().length);
       setAdded({ ...added, [item.id]: true });
-      // Jangan blokir UI jika increment gagal
+      window.showToast('Soal berhasil dimasukkan ke Kotak Saya.', 'success');
       incrementDownload(item.id).catch(console.error);
+    } else {
+      window.showToast('Soal ini sudah ada di Kotak Anda.', 'info');
     }
   };
 
@@ -106,65 +89,60 @@ export function PustakaPage({ navigate, profile }) {
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
           <div>
             <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-            <h1 class="page-title">Pustaka Soal TKA</h1>
-            <p class="page-subtitle">Kumpulan soal berkualitas dari guru-guru Indonesia.</p>
+            <h1 class="page-title">Pustaka Soal</h1>
+            <p class="page-subtitle">Kumpulan soal berkualitas dari guru Indonesia.</p>
           </div>
-          <button class="btn-primary" onClick=${() => navigate('/kotak')} style="position: relative;">
-            <${ShoppingCart} size=${18} /> Kotak Saya
-            ${cartCount > 0 && html`<span class="cart-badge">${cartCount}</span>`}
+          
+          <!-- TOMBOL KERANJANG DENGAN BADGE DI DALAM -->
+          <button class="btn-primary" onClick=${() => navigate('/kotak')} style="display:flex; align-items:center; gap:8px;">
+            <${ShoppingCart} size=${18} /> Kotak Saya 
+            ${cartCount > 0 && html`<span class="cart-badge-inline">${cartCount}</span>`}
           </button>
         </div>
 
-        <div class="search-wrapper mb-3">
-          <${Search} size=${16} class="search-icon" />
-          <input type="text" class="search-input" placeholder="Cari soal (contoh: pecahan, fotosintesis)..." 
-                 value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
-          <button class="search-clear" onClick=${() => setShowFilter(!showFilter)} style="right: 12px; color: ${showFilter || mapel || kelas || tipe ? 'var(--primary)' : 'inherit'};">
-            <${SlidersHorizontal} size=${16} />
-          </button>
-        </div>
-
-        ${showFilter && html`
-          <div class="filter-panel mb-4">
-            <div class="form-row">
-              <div class="form-field">
-                <select class="form-select" value=${mapel} onChange=${e => setMapel(e.target.value)}>
-                  <option value="">Semua Mapel</option>
-                  ${['Matematika', 'IPA', 'IPS', 'Bahasa Indonesia', 'Bahasa Inggris'].map(m => html`<option value=${m}>${m}</option>`)}
-                </select>
-              </div>
-              <div class="form-field">
-                <select class="form-select" value=${kelas} onChange=${e => setKelas(e.target.value)}>
-                  <option value="">Semua Kelas</option>
-                  ${['1 SD', '2 SD', '3 SD', '4 SD', '5 SD', '6 SD', '7 SMP', '8 SMP', '9 SMP'].map(k => html`<option value=${k}>${k}</option>`)}
-                </select>
-              </div>
-              <div class="form-field">
-                <select class="form-select" value=${tipe} onChange=${e => setTipe(e.target.value)}>
-                  <option value="">Semua Tipe</option>
-                  <option value="pg">PG (Pilihan Ganda)</option>
-                  <option value="mcma">MCMA (Kompleks)</option>
-                  <option value="bs">B/S (Benar/Salah)</option>
-                </select>
-              </div>
+        <!-- SEARCH & FILTER TERPADU -->
+        <div class="search-filter-wrapper">
+          <div class="search-main-box">
+            <${Search} size=${20} color="var(--text-muted)" />
+            <input type="text" placeholder="Cari topik, soal, atau kata kunci..." 
+                   value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
+          </div>
+          
+          <div class="filter-chips-row">
+            <div class="filter-chip-group">
+              <${Filter} size=${14} /> Filter:
             </div>
+            <select class="filter-select" value=${mapel} onChange=${e => setMapel(e.target.value)}>
+              <option value="">Semua Mapel</option>
+              ${['Matematika', 'IPA', 'IPS', 'Bahasa Indonesia', 'Bahasa Inggris'].map(m => html`<option value=${m}>${m}</option>`)}
+            </select>
+            <select class="filter-select" value=${kelas} onChange=${e => setKelas(e.target.value)}>
+              <option value="">Semua Kelas</option>
+              ${['1 SD', '2 SD', '3 SD', '4 SD', '5 SD', '6 SD', '7 SMP', '8 SMP', '9 SMP'].map(k => html`<option value=${k}>${k}</option>`)}
+            </select>
+            <select class="filter-select" value=${tipe} onChange=${e => setTipe(e.target.value)}>
+              <option value="">Semua Tipe</option>
+              <option value="pg">PG</option>
+              <option value="mcma">MCMA</option>
+              <option value="bs">B/S</option>
+            </select>
             ${(mapel || kelas || tipe) && html`
-              <button class="btn-secondary btn-sm mt-2 w-full" onClick=${() => { setMapel(''); setKelas(''); setTipe(''); }}>
-                Reset Filter
+              <button class="btn-reset-filter" onClick=${() => { setMapel(''); setKelas(''); setTipe(''); }}>
+                Reset
               </button>
             `}
           </div>
-        `}
+        </div>
 
         ${error && html`
-          <div class="result-card result-error mb-4" style="text-align: center;">
-            <${AlertTriangle} size=${24} color="var(--danger)" style="margin-bottom: 8px;" />
-            <p style="margin: 0; color: var(--danger); font-weight: 500;">${error}</p>
-            <button class="btn-primary mt-3" onClick=${() => loadData(true)}>Coba Lagi</button>
+          <div class="empty-state" style="border-color: var(--danger); background: #fef2f2;">
+            <${AlertTriangle} size=${32} color="var(--danger)" />
+            <p style="color: var(--danger); font-weight: bold;">${error}</p>
+            <button class="btn-secondary mt-2" onClick=${() => loadData(true)}>Coba Lagi</button>
           </div>
         `}
 
-        ${loading ? html`<div class="text-center mt-4"><${Loader2} class="spin" size=${32} color="var(--primary)" /></div>` : html`
+        ${loading ? html`<div class="text-center mt-5"><${Loader2} class="spin" size=${32} color="var(--primary)" /></div>` : html`
           ${items.length === 0 && !error && html`
             <div class="empty-state">
               <${BookOpen} size=${32} color="var(--text-subtle)" />
@@ -205,7 +183,7 @@ export function PustakaPage({ navigate, profile }) {
         `}
       </div>
 
-      <!-- BUG FIX: Modal Preview yang sebelumnya hilang -->
+      <!-- MODAL PREVIEW -->
       ${previewItem && html`
         <div class="modal-backdrop" onClick=${() => setPreviewItem(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -219,49 +197,23 @@ export function PustakaPage({ navigate, profile }) {
                 ${previewItem.kelas && html`<span class="badge-muted">${previewItem.kelas}</span>`}
                 <span class=${'soal-badge badge-' + previewItem.tipe}>${previewItem.tipe.toUpperCase()}</span>
               </div>
-
-              <div class="soal-question" style="margin-top: 16px; font-size: 15px;">
-                ${previewItem.konten.q}
-              </div>
-
+              <div class="soal-question" style="margin-top: 16px; font-size: 15px;">${previewItem.konten.q}</div>
               ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
                 <div class="soal-options" style="margin-top: 12px;">
                   ${previewItem.konten.options.map((opt, oi) => {
-                    const isCorrect = previewItem.tipe === 'pg'
-                      ? previewItem.konten.key === oi
-                      : (previewItem.konten.key || []).includes(oi);
-                    return html`
-                      <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-                        <span class="soal-option-letter">${'ABCD'[oi]}</span>
-                        <span class="soal-option-text">${opt}</span>
-                        ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
-                      </div>
-                    `;
+                    const isCorrect = previewItem.tipe === 'pg' ? previewItem.konten.key === oi : (previewItem.konten.key || []).includes(oi);
+                    return html`<div class=${'soal-option' + (isCorrect ? ' correct' : '')}><span class="soal-option-letter">${'ABCD'[oi]}</span><span class="soal-option-text">${opt}</span>${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}</div>`;
                   })}
                 </div>
               `}
-
               ${previewItem.tipe === 'bs' && previewItem.konten.pernyataan && html`
                 <div class="soal-bs-list" style="margin-top: 12px;">
                   ${previewItem.konten.pernyataan.map((p, pi) => html`
-                    <div class="soal-bs-item">
-                      <span class="soal-bs-num">${pi + 1}.</span>
-                      <span class="soal-bs-text">${p.teks}</span>
-                      <span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>
-                        ${p.key ? 'Benar' : 'Salah'}
-                      </span>
-                    </div>
+                    <div class="soal-bs-item"><span class="soal-bs-num">${pi + 1}.</span><span class="soal-bs-text">${p.teks}</span><span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>${p.key ? 'Benar' : 'Salah'}</span></div>
                   `)}
                 </div>
               `}
-
-              ${previewItem.konten.pembahasan && html`
-                <div class="soal-explanation" style="margin-top: 12px;">
-                  <${MessageCircle} size=${13} />
-                  <span>${previewItem.konten.pembahasan}</span>
-                </div>
-              `}
-
+              ${previewItem.konten.pembahasan && html`<div class="soal-explanation" style="margin-top: 12px;"><${MessageCircle} size=${13} /><span>${previewItem.konten.pembahasan}</span></div>`}
               <div class="pustaka-preview-footer">
                 <div><${User} size=${13} /> <b>${previewItem.contributor_nama}</b> <span style="opacity: 0.7;">· ${previewItem.contributor_sekolah || 'Indonesia'}</span></div>
                 <div><${Download} size=${13} /> ${previewItem.download_count || 0} kali diambil</div>
