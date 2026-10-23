@@ -2426,3 +2426,12 @@ h1, h2, h3, h4 {
   border-radius: 50%;
   background: var(--primary-mid);
 }
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
