@@ -8,7 +8,7 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
-  FolderOpen, BookOpen,
+  FolderOpen, BookOpen, ShoppingCart,
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -19,6 +19,7 @@ import { ExportPage } from './pages/export.js';
 import { LoginPage, RegisterPage, PendingPage } from './pages/auth.js';
 import { BankSoalPage } from './pages/bank-soal.js';
 import { PustakaPage } from './pages/pustaka.js';
+import { KotakPage } from './pages/kotak.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 
 const html = htm.bind(h);
@@ -77,7 +78,7 @@ function Footer() {
   `;
 }
 
-function Landing() {
+function Landing({ profile }) {
   return html`
     <div class="landing">
       <${Header} />
@@ -272,11 +273,11 @@ function App() {
   if (authLoading) return html`<div style="padding: 40px; text-align: center;">Memuat...</div>`;
 
   // Public Routes
-  if (route === '/' || route === '') return html`<${Landing} />`;
+  if (route === '/' || route === '') return html`<${Landing} profile=${profile} />`;
   if (route === '/login') return html`<${LoginPage} navigate=${navigate} onLoginSuccess=${handleLoginSuccess} />`;
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
   
-  // Auth Routes
+  // Auth Routes (Butuh Login)
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
   if (route === '/build') return html`<${BuildPage} navigate=${navigate} />`;
   if (route === '/paste') return html`<${PastePage} navigate=${navigate} />`;
@@ -284,6 +285,7 @@ function App() {
   if (route === '/export') return html`<${ExportPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/bank-soal') return html`<${BankSoalPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/pustaka') return html`<${PustakaPage} navigate=${navigate} profile=${profile} />`;
+  if (route === '/kotak') return html`<${KotakPage} navigate=${navigate} profile=${profile} />`;
   
   // Dev Route
   if (route === '/debug') return html`<${DebugPage} />`;
