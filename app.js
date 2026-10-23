@@ -20,6 +20,8 @@ import { LoginPage, RegisterPage, PendingPage } from './pages/auth.js';
 import { BankSoalPage } from './pages/bank-soal.js';
 import { PustakaPage } from './pages/pustaka.js';
 import { KotakPage } from './pages/kotak.js';
+import { ExpertListPage } from './pages/expert-list.js';
+import { ExpertNewPage } from './pages/expert-new.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 
 const html = htm.bind(h);
@@ -148,6 +150,9 @@ function Landing({ profile }) {
           </button>
 
           <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+             <button class="btn-secondary" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
+                <${Sparkles} size=${16} /> Mode Expert (Bertahap)
+             </button>
              <button class="btn-secondary" onClick=${() => navigate('/bank-soal')}>
                 <${FolderOpen} size=${16} /> Bank Soal Saya
              </button>
@@ -286,6 +291,10 @@ function App() {
   if (route === '/bank-soal') return html`<${BankSoalPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/pustaka') return html`<${PustakaPage} navigate=${navigate} profile=${profile} />`;
   if (route === '/kotak') return html`<${KotakPage} navigate=${navigate} profile=${profile} />`;
+  
+  // Expert Mode Routes
+  if (route === '/expert') return html`<${ExpertListPage} navigate=${navigate} profile=${profile} />`;
+  if (route === '/expert/new') return html`<${ExpertNewPage} navigate=${navigate} profile=${profile} />`;
   
   // Dev Route
   if (route === '/debug') return html`<${DebugPage} />`;
