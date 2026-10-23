@@ -133,7 +133,9 @@ export function BuildPage({ navigate }) {
     const updated = [...recipes, newRecipe];
     setRecipes(updated);
     localStorage.setItem('tka-recipes', JSON.stringify(updated));
-    alert('Resep berhasil disimpan!');
+    
+    // Perbaikan: Gunakan Toast, bukan alert
+    if (window.showToast) window.showToast('Resep berhasil disimpan!', 'success');
   };
 
   const handleLoadRecipe = (id) => {
@@ -155,7 +157,10 @@ export function BuildPage({ navigate }) {
       setPromptText(prompt);
       await copyText(prompt);
       setShowModal(true);
-    } catch (err) { alert('Gagal membuat prompt: ' + err.message); }
+    } catch (err) { 
+      // Perbaikan: Gunakan Toast, bukan alert
+      if (window.showToast) window.showToast('Gagal membuat prompt: ' + err.message, 'error');
+    }
   };
 
   return html`
