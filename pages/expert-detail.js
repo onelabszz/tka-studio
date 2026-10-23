@@ -153,10 +153,13 @@ export function ExpertDetailPage({ navigate, profile, id }) {
     // Pindahkan soal ke draft standard agar bisa di-preview/export
     localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ 
       paket: { 
+        version: '1.0',
         id: ws.id, 
         judul: ws.judul, 
         mapel: ws.mapel, 
         durasiMenit: ws.target_soal * 2, 
+        acakMode: 'per-tipe',
+        latihanMandiri: true,
         soal: ws.soal 
       }, 
       warnings: [] 
