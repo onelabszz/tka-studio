@@ -316,7 +316,7 @@ export function PreviewPage({ navigate, profile }) {
 
   const handlePublish = async function (index, soal) {
     if (!profile) {
-      alert('Login dulu untuk menerbitkan soal.');
+      window.showToast('Silakan login terlebih dahulu untuk menerbitkan soal.', 'info');
       navigate('/login');
       return;
     }
@@ -329,9 +329,9 @@ export function PreviewPage({ navigate, profile }) {
         kelas: '6 SD', 
         topik: paket.judul 
       });
-      alert('Soal berhasil diterbitkan ke Pustaka!');
+      window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
     } catch (e) {
-      alert('Gagal menerbitkan: ' + e.message);
+      window.showToast('Gagal menerbitkan: ' + e.message, 'error');
     }
     setPublishingIdx(null);
   };
