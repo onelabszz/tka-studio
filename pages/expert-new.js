@@ -20,6 +20,11 @@ export function ExpertNewPage({ navigate, profile }) {
   const [topik, setTopik] = useState('');
   const [target, setTarget] = useState(30);
   const [batch, setBatch] = useState(5);
+  
+  // State untuk fitur fokus
+  const [tipeFokus, setTipeFokus] = useState('campur');
+  const [levelKognitif, setLevelKognitif] = useState('auto');
+  
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -28,7 +33,11 @@ export function ExpertNewPage({ navigate, profile }) {
     setLoading(true);
     try {
       const res = await createWorkspace(profile.id, {
-        judul, mapel, kelas, topik, target_soal: target, soal_per_batch: batch
+        judul, mapel, kelas, topik, 
+        target_soal: target, 
+        soal_per_batch: batch,
+        tipe_fokus: tipeFokus,
+        level_kognitif: levelKognitif
       });
       navigate('/expert/' + res.id);
     } catch (err) {
@@ -74,13 +83,36 @@ export function ExpertNewPage({ navigate, profile }) {
 
           <div class="form-row">
             <div class="form-field">
+              <label class="form-label">Tipe Soal Fokus</label>
+              <select class="form-select" value=${tipeFokus} onChange=${(e) => setTipeFokus(e.target.value)}>
+                <option value="campur">Campur (PG + MCMA + BS)</option>
+                <option value="pg">Khusus PG (Pilihan Ganda)</option>
+                <option value="mcma">Khusus MCMA (Kompleks)</option>
+                <option value="bs">Khusus B/S (Benar/Salah)</option>
+              </select>
+              <div class="form-hint">Pilih satu tipe untuk hasil paling konsisten.</div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Level Kognitif</label>
+              <select class="form-select" value=${levelKognitif} onChange=${(e) => setLevelKognitif(e.target.value)}>
+                <option value="auto">Auto (Seimbang)</option>
+                <option value="c1c2">C1-C2 (Hafalan/Pemahaman)</option>
+                <option value="c3">C3 (Penerapan)</option>
+                <option value="c4c6">C4-C6 (Analisis/Evaluasi)</option>
+              </select>
+              <div class="form-hint">HOTS = C4-C6.</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
               <label class="form-label">Target Total Soal</label>
               <input class="form-input" type="number" min="5" max="100" value=${target} onInput=${(e) => setTarget(Number(e.target.value))} />
             </div>
             <div class="form-field">
               <label class="form-label">Soal per Tahap (Batch)</label>
               <input class="form-input" type="number" min="2" max="10" value=${batch} onInput=${(e) => setBatch(Number(e.target.value))} />
-              <div class="form-hint">Disarankan 5 soal per tahap agar kualitas maksimal.</div>
+              <div class="form-hint">Disarankan 5 soal per tahap.</div>
             </div>
           </div>
 
