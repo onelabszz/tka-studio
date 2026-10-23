@@ -8,11 +8,11 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, CircleDot, ListChecks, CheckCheck,
   Pencil, Trash2, CopyPlus, X, Check, AlertTriangle, MessageCircle,
-  Image as ImageIcon, Printer, Send, Loader2
+  Image as ImageIcon, Printer, Send, Loader2,
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft } from '../stores/studio.js';
 import { checkQuality } from '../lib/quality-checks.js';
-import { Stepper } from '../components/Stepper.js'; + 
+import { Stepper } from '../components/Stepper.js';
 import { publishSoal } from '../lib/pustaka.js';
 
 const html = htm.bind(h);
@@ -229,11 +229,12 @@ function SoalCard({ soal, index, warnings, onUpdate, onDelete, onDuplicate, onPu
   `;
 }
 
-export function PreviewPage({ navigate }) {
+export function PreviewPage({ navigate, profile }) {
   const draft = useMemo(function () { return loadDraft(); }, []);
   const [paket, setPaket] = useState(draft && draft.paket ? draft.paket : null);
   const [baseWarnings] = useState(draft && draft.warnings ? draft.warnings : []);
   const [filter, setFilter] = useState('all');
+  const [publishingIdx, setPublishingIdx] = useState(null);
 
   const qualityWarnings = useMemo(function () { return paket ? checkQuality(paket) : []; }, [paket]);
   const allWarnings = useMemo(function () { return baseWarnings.concat(qualityWarnings); }, [baseWarnings, qualityWarnings]);
@@ -279,6 +280,28 @@ export function PreviewPage({ navigate }) {
     const soal = paket.soal.slice(0, index + 1).concat([cloned], paket.soal.slice(index + 1))
       .map(function (s, i) { return Object.assign({}, s, { id: 's' + (i + 1) }); });
     persist(Object.assign({}, paket, { soal: soal }));
+  };
+
+  const handlePublish = async function (index, soal) {
+    if (!profile) {
+      alert('Login dulu untuk menerbitkan soal.');
+      navigate('/login');
+      return;
+    }
+    if (!confirm('Terbitkan soal ini ke Pustaka Publik? Guru lain bisa melihat dan mengambilnya.')) return;
+    
+    setPublishingIdx(index);
+    try {
+      await publishSoal(profile, paket, soal, { 
+        mapel: paket.mapel, 
+        kelas: '6 SD', // Bisa disesuaikan nanti dari paket
+        topik: paket.judul 
+      });
+      alert('Soal berhasil diterbitkan ke Pustaka!');
+    } catch (e) {
+      alert('Gagal menerbitkan: ' + e.message);
+    }
+    setPublishingIdx(null);
   };
 
   const counts = {
@@ -344,7 +367,17 @@ export function PreviewPage({ navigate }) {
           `}
           ${filtered.map(function (item) {
             const warnMessages = allWarnings.filter(function (w) { return w.index === item.index; }).map(function (w) { return w.message; });
-            return html`<${SoalCard} key=${item.soal.id} soal=${item.soal} index=${item.index} warnings=${warnMessages} onUpdate=${handleUpdate} onDelete=${handleDelete} onDuplicate=${handleDuplicate} />`;
+            return html`<${SoalCard} 
+              key=${item.soal.id} 
+              soal=${item.soal} 
+              index=${item.index} 
+              warnings=${warnMessages} 
+              onUpdate=${handleUpdate} 
+              onDelete=${handleDelete} 
+              onDuplicate=${handleDuplicate} 
+              onPublish=${handlePublish} 
+              isPublishing=${publishingIdx === item.index} 
+            />`;
           })}
         </div>
 
