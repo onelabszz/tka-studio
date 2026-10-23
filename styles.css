@@ -1917,3 +1917,140 @@ h1, h2, h3, h4 {
   border-radius: 10px;
   border: 2px solid white;
 }
+/* =========================================================
+   PUSTAKA — Compact Grid Cards
+   ========================================================= */
+
+.pustaka-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .pustaka-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+@media (min-width: 1024px) {
+  .pustaka-grid { gap: 18px; }
+}
+
+.pustaka-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-card);
+  border: 1px solid var(--border-brand);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  transition: all var(--duration) var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+
+.pustaka-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.pustaka-card-header {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.badge-muted {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pustaka-card-body {
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.pustaka-q {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pustaka-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pustaka-author {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pustaka-author span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pustaka-downloads {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.pustaka-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pustaka-card-actions .btn-sm {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* Modal Preview */
+.pustaka-preview-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.pustaka-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pustaka-preview-footer > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
