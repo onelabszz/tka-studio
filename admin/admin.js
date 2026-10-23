@@ -43,7 +43,7 @@ function waLink(wa, message) {
 }
 
 function waMessage(nama, email, password) {
-  return `Halo ${nama || 'Bapak/Ibu'}!\n\nAkun TKA Studio Anda sudah aktif. 🎉\n\nLogin di: https://ekwannugroho.github.io/tka-studio/#/login\nEmail: ${email}\nPassword: ${password}\n\nPassword ini digenerate otomatis. Mohon disimpan di tempat aman.\n\nTerima kasih,\nEkwan Nugroho\nTKA Studio — Wonogiri`;
+  return `Halo ${nama || 'Bapak/Ibu'}!\n\nAkun TKA Studio Anda sudah aktif. 🎉\n\nLogin di: https://onelabszz.github.io/tka-studio/#/login\nEmail: ${email}\nPassword: ${password}\n\nPassword ini digenerate otomatis. Mohon disimpan di tempat aman.\n\nTerima kasih,\nEkwan Nugroho\nTKA Studio — Wonogiri`;
 }
 
 async function copyText(text) {
