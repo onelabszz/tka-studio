@@ -8,7 +8,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, LogOut, RefreshCw, UserCheck, Clock, Check, Copy,
   ExternalLink, CheckCircle2, Users, Ban, Trash2, Search, X,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, BookOpen, Shield, Download, FileText
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 const html = htm.bind(h);
@@ -54,6 +54,22 @@ async function copyText(text) {
     document.body.appendChild(ta); ta.select();
     const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
   }
+}
+
+function exportToCSV(users) {
+  const header = ['Nama', 'Email', 'WhatsApp', 'Sekolah', 'Status', 'Role', 'Tanggal Daftar'];
+  const rows = users.map(u => [
+    `"${u.nama || ''}"`, `"${u.email}"`, `"${u.wa || ''}"`, `"${u.sekolah || ''}"`,
+    u.status, u.role, new Date(u.created_at).toLocaleDateString('id-ID')
+  ]);
+  const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Data_Guru_TKA_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function LoginScreen({ onLogin }) {
@@ -119,146 +135,164 @@ function PasswordModal({ data, onClose }) {
 }
 
 function Dashboard({ session, profile, onLogout }) {
+  const [view, setView] = useState('users'); // 'users' atau 'pustaka'
+  
+  // State User
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [tab, setTab] = useState('pending');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  
+  // State Pustaka
+  const [pustaka, setPustaka] = useState([]);
+  const [searchPustaka, setSearchPustaka] = useState('');
+  const [pagePustaka, setPagePustaka] = useState(1);
+
+  // State Global
+  const [stats, setStats] = useState({ users: 0, pustaka: 0, workspaces: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [busy, setBusy] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-  const loadUsers = async () => {
+  const loadData = async () => {
     setLoading(true); setError('');
     try {
       const client = await getSupabase();
-      const { data, error: err } = await client.from('profiles').select('id,email,nama,wa,sekolah,kota,status,role,created_at,verified_at').order('created_at', { ascending: false });
-      if (err) { setError(err.message); setLoading(false); return; }
-      setUsers(data || []);
+      
+      // Ambil Statistik
+      const [{ count: cUsers }, { count: cPustaka }, { count: cWork }] = await Promise.all([
+        client.from('profiles').select('*', { count: 'exact', head: true }),
+        client.from('pustaka_soal').select('*', { count: 'exact', head: true }),
+        client.from('expert_workspaces').select('*', { count: 'exact', head: true })
+      ]);
+      setStats({ users: cUsers || 0, pustaka: cPustaka || 0, workspaces: cWork || 0 });
+
+      // Ambil Users
+      const { data: uData, error: uErr } = await client.from('profiles').select('id,email,nama,wa,sekolah,kota,status,role,created_at,verified_at').order('created_at', { ascending: false });
+      if (uErr) throw uErr;
+      setUsers(uData || []);
+
+      // Ambil Pustaka
+      const { data: pData, error: pErr } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
+      if (pErr) throw pErr;
+      setPustaka(pData || []);
+
       setLoading(false);
     } catch (e) { setError(String(e?.message || e)); setLoading(false); }
   };
 
-  useEffect(() => { loadUsers(); }, []);
-
-  // Reset ke halaman 1 saat tab atau search berubah
+  useEffect(() => { loadData(); }, []);
   useEffect(() => { setPage(1); }, [tab, search]);
+  useEffect(() => { setPagePustaka(1); }, [searchPustaka]);
 
+  const flashSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
+
+  // === LOGIKA USER ===
   const counts = useMemo(() => ({
     pending: users.filter(u => u.status === 'pending' && u.role !== 'admin').length,
     active: users.filter(u => u.status === 'active' && u.role !== 'admin').length,
     suspended: users.filter(u => u.status === 'suspended' && u.role !== 'admin').length,
   }), [users]);
 
-  const filteredList = useMemo(() => {
-    const statusMap = { pending: 'pending', active: 'active', suspended: 'suspended' };
-    let list = users.filter(u => u.status === statusMap[tab] && u.role !== 'admin');
-
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(u => {
-        const nama = String(u.nama || '').toLowerCase();
-        const email = String(u.email || '').toLowerCase();
-        const sekolah = String(u.sekolah || '').toLowerCase();
-        const wa = String(u.wa || '').toLowerCase();
-        return nama.includes(q) || email.includes(q) || sekolah.includes(q) || wa.includes(q);
-      });
+  const filteredUsers = useMemo(() => {
+    let list = users.filter(u => u.status === tab && u.role !== 'admin');
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(u => String(u.nama||'').toLowerCase().includes(q) || String(u.email||'').toLowerCase().includes(q) || String(u.sekolah||'').toLowerCase().includes(q));
     }
     return list;
   }, [users, tab, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredList.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const startIdx = (safePage - 1) * PAGE_SIZE;
-  const paginatedList = filteredList.slice(startIdx, startIdx + PAGE_SIZE);
-  const showingFrom = filteredList.length === 0 ? 0 : startIdx + 1;
-  const showingTo = Math.min(startIdx + PAGE_SIZE, filteredList.length);
-
-  const flashSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3000); };
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const paginatedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleActivate = async (user) => {
-    if (!confirm(`Aktifkan akun ${user.nama || user.email} dan buat password?`)) return;
-    setBusy(user.id); setError('');
+    if (!confirm(`Aktifkan akun ${user.nama || user.email}?`)) return;
+    setBusy(user.id);
     try {
       const client = await getSupabase();
       const res = await fetch(SUPABASE_URL + '/functions/v1/activate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SUPABASE_ANON },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SUPABASE_ANON },
         body: JSON.stringify({ user_id: user.id }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Gagal aktivasi (' + res.status + ')'); setBusy(null); return; }
+      if (!res.ok) { setError(data.error); setBusy(null); return; }
       setModalData({ ...data, wa: user.wa, nama: user.nama || data.nama });
-      await loadUsers();
-      setBusy(null);
-    } catch (e) { setError('Gagal: ' + String(e?.message || e)); setBusy(null); }
+      await loadData();
+    } catch (e) { setError(String(e)); }
+    setBusy(null);
   };
 
   const handleSuspend = async (user) => {
-    if (!confirm(`Nonaktifkan akun ${user.nama || user.email}?\n\nGuru tidak akan bisa mengakses fitur sampai diaktifkan kembali.`)) return;
-    setBusy(user.id); setError('');
-    try {
-      const client = await getSupabase();
-      const { error: err } = await client.from('profiles').update({ status: 'suspended' }).eq('id', user.id);
-      if (err) { setError(err.message); setBusy(null); return; }
-      await loadUsers();
-      flashSuccess(`Akun ${user.nama || user.email} dinonaktifkan.`);
-      setBusy(null);
-    } catch (e) { setError(String(e?.message || e)); setBusy(null); }
+    if (!confirm(`Nonaktifkan ${user.nama}?`)) return;
+    setBusy(user.id);
+    const client = await getSupabase();
+    await client.from('profiles').update({ status: 'suspended' }).eq('id', user.id);
+    await loadData(); flashSuccess('User dinonaktifkan'); setBusy(null);
   };
 
   const handleReactivate = async (user) => {
-    if (!confirm(`Aktifkan kembali akun ${user.nama || user.email}?`)) return;
-    setBusy(user.id); setError('');
-    try {
-      const client = await getSupabase();
-      const { error: err } = await client.from('profiles').update({ status: 'active' }).eq('id', user.id);
-      if (err) { setError(err.message); setBusy(null); return; }
-      await loadUsers();
-      flashSuccess(`Akun ${user.nama || user.email} diaktifkan kembali.`);
-      setBusy(null);
-    } catch (e) { setError(String(e?.message || e)); setBusy(null); }
+    if (!confirm(`Aktifkan kembali ${user.nama}?`)) return;
+    setBusy(user.id);
+    const client = await getSupabase();
+    await client.from('profiles').update({ status: 'active' }).eq('id', user.id);
+    await loadData(); flashSuccess('User diaktifkan kembali'); setBusy(null);
   };
 
-  const handleDelete = async (user) => {
-    const typed = prompt(`HAPUS PERMANEN akun ${user.nama || user.email}.\n\nSemua data guru ini akan hilang dan tidak bisa dikembalikan.\n\nKetik "HAPUS" untuk konfirmasi:`);
-    if (typed !== 'HAPUS') { if (typed !== null) alert('Konfirmasi tidak cocok. Dibatalkan.'); return; }
-    setBusy(user.id); setError('');
+  const handleMakeAdmin = async (user) => {
+    if (!confirm(`Jadikan ${user.nama} sebagai Admin?\n\nMereka akan bisa mengakses halaman admin ini.`)) return;
+    setBusy(user.id);
+    const client = await getSupabase();
+    await client.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+    await loadData(); flashSuccess('User diangkat menjadi Admin'); setBusy(null);
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (prompt(`Ketik "HAPUS" untuk menghapus permanen ${user.nama}`) !== 'HAPUS') return;
+    setBusy(user.id);
     try {
       const res = await fetch(SUPABASE_URL + '/functions/v1/delete-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SUPABASE_ANON },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SUPABASE_ANON },
         body: JSON.stringify({ user_id: user.id }),
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Gagal menghapus (' + res.status + ')'); setBusy(null); return; }
-      await loadUsers();
-      flashSuccess(`Akun ${user.nama || user.email} dihapus permanen.`);
-      setBusy(null);
-    } catch (e) { setError('Gagal: ' + String(e?.message || e)); setBusy(null); }
+      if (!res.ok) { setError('Gagal hapus user'); setBusy(null); return; }
+      await loadData(); flashSuccess('User dihapus permanen');
+    } catch (e) { setError(String(e)); }
+    setBusy(null);
   };
 
-  const handleLogout = async () => {
-    if (!confirm('Keluar dari panel admin?')) return;
-    const client = await getSupabase();
-    await client.auth.signOut();
-    onLogout();
+  // === LOGIKA PUSTAKA ===
+  const filteredPustaka = useMemo(() => {
+    if (!searchPustaka) return pustaka;
+    const q = searchPustaka.toLowerCase();
+    return pustaka.filter(p => String(p.q_text||'').toLowerCase().includes(q) || String(p.contributor_nama||'').toLowerCase().includes(q));
+  }, [pustaka, searchPustaka]);
+
+  const totalPagesPustaka = Math.max(1, Math.ceil(filteredPustaka.length / PAGE_SIZE));
+  const paginatedPustaka = filteredPustaka.slice((pagePustaka - 1) * PAGE_SIZE, pagePustaka * PAGE_SIZE);
+
+  const handleDeletePustaka = async (item) => {
+    if (!confirm('Hapus soal ini dari Pustaka publik?')) return;
+    setBusy(item.id);
+    try {
+      const client = await getSupabase();
+      const { error: err } = await client.from('pustaka_soal').delete().eq('id', item.id);
+      if (err) throw err;
+      await loadData(); flashSuccess('Soal dihapus dari Pustaka');
+    } catch (e) { setError(String(e)); }
+    setBusy(null);
   };
 
-  const tabs = [
-    { k: 'pending', label: 'Menunggu', icon: Clock, count: counts.pending },
-    { k: 'active', label: 'Aktif', icon: Users, count: counts.active },
-    { k: 'suspended', label: 'Ditangguhkan', icon: Ban, count: counts.suspended },
-  ];
 
   return html`
     <div class="shell">
       <div class="header">
         <div class="brand"><${GraduationCap} size=${22} strokeWidth=${2} /><span>TKA Studio <small>Admin</small></span></div>
         <div class="header-actions">
-          <button class="btn btn-secondary btn-sm" onClick=${loadUsers} disabled=${loading}><${RefreshCw} size=${14} class=${loading ? 'spin' : ''} /> Muat Ulang</button>
-          <button class="btn btn-secondary btn-sm" onClick=${handleLogout}><${LogOut} size=${14} /> Keluar</button>
+          <button class="btn btn-secondary btn-sm" onClick=${loadData} disabled=${loading}><${RefreshCw} size=${14} class=${loading ? 'spin' : ''} /> Refresh</button>
+          <button class="btn btn-secondary btn-sm" onClick=${onLogout}><${LogOut} size=${14} /> Keluar</button>
         </div>
       </div>
 
@@ -267,109 +301,150 @@ function Dashboard({ session, profile, onLogout }) {
       ${error && html`<div class="alert alert-error">${error}</div>`}
       ${success && html`<div class="alert alert-success">${success}</div>`}
 
-      <div class="tabs">
-        ${tabs.map(t => html`
-          <button class=${'tab' + (tab === t.k ? ' active' : '')} onClick=${() => setTab(t.k)}>
-            <${t.icon} size=${14} class="tab-icon" />
-            ${t.label} <span class="count">${t.count}</span>
-          </button>
-        `)}
-      </div>
-
-      <div class="search-wrapper">
-        <${Search} size=${16} class="search-icon" />
-        <input
-          class="search-input"
-          type="text"
-          placeholder="Cari nama, email, sekolah, atau nomor WA..."
-          value=${search}
-          onInput=${(e) => setSearch(e.target.value)}
-        />
-        ${search && html`
-          <button class="search-clear" onClick=${() => setSearch('')} aria-label="Hapus pencarian">
-            <${X} size=${14} />
-          </button>
-        `}
-      </div>
-
-      ${loading && users.length === 0 && html`<div class="empty"><p>Memuat data...</p></div>`}
-
-      ${!loading && filteredList.length === 0 && html`
-        <div class="empty">
-          <${UserCheck} size=${32} strokeWidth=${1.5} color="var(--text-subtle)" />
-          ${search
-            ? html`<p>Tidak ada hasil untuk "<b>${search}</b>"</p>
-                <button class="btn btn-secondary btn-sm" style="margin-top: 12px;" onClick=${() => setSearch('')}>Hapus Pencarian</button>`
-            : html`<p>${tab === 'pending' ? 'Tidak ada pendaftar yang menunggu.' : tab === 'active' ? 'Belum ada user aktif.' : 'Tidak ada akun yang ditangguhkan.'}</p>`}
+      <!-- STATISTIK -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon users"><${Users} size=${20} /></div>
+          <div class="stat-info"><span>Total Pengguna</span><b>${stats.users}</b></div>
         </div>
-      `}
+        <div class="stat-card">
+          <div class="stat-icon pustaka"><${BookOpen} size=${20} /></div>
+          <div class="stat-info"><span>Soal di Pustaka</span><b>${stats.pustaka}</b></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon expert"><${FileText} size=${20} /></div>
+          <div class="stat-info"><span>Proyek Expert</span><b>${stats.workspaces}</b></div>
+        </div>
+      </div>
 
-      ${filteredList.length > 0 && html`
-        <div class="list">
-          ${paginatedList.map((u) => html`
-            <div class=${'list-item ' + (u.status === 'suspended' ? 'suspended' : u.status)}>
-              <div class="list-head">
-                <div>
-                  <div class="list-title">${u.nama || '(tanpa nama)'}</div>
-                  <div class="list-meta">
-                    <span>📧 ${u.email}</span>
-                    ${u.wa && html`<span>📱 ${u.wa}</span>`}
-                    ${u.sekolah && html`<span>🏫 ${u.sekolah}</span>`}
-                  </div>
-                  <div class="list-meta">
-                    <span>📅 Daftar: ${formatDate(u.created_at)}</span>
-                    ${u.verified_at && html`<span>✅ Aktif: ${formatDate(u.verified_at)}</span>`}
+      <!-- TAB UTAMA -->
+      <div class="tabs" style="margin-bottom: 20px; border-bottom: 1px solid var(--border);">
+        <button class=${'tab' + (view === 'users' ? ' active' : '')} onClick=${() => setView('users')}><${Users} size=${16} class="tab-icon" /> Manajemen Pengguna</button>
+        <button class=${'tab' + (view === 'pustaka' ? ' active' : '')} onClick=${() => setView('pustaka')}><${BookOpen} size=${16} class="tab-icon" /> Moderasi Pustaka</button>
+      </div>
+
+      <!-- KONTEN: MANAJEMEN USER -->
+      ${view === 'users' && html`
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div class="tabs" style="margin-bottom: 0;">
+            ${[{ k: 'pending', label: 'Menunggu', icon: Clock, count: counts.pending }, { k: 'active', label: 'Aktif', icon: Users, count: counts.active }, { k: 'suspended', label: 'Nonaktif', icon: Ban, count: counts.suspended }].map(t => html`
+              <button class=${'tab' + (tab === t.k ? ' active' : '')} onClick=${() => setTab(t.k)}>
+                <${t.icon} size=${14} class="tab-icon" /> ${t.label} <span class="count">${t.count}</span>
+              </button>
+            `)}
+          </div>
+          <button class="btn btn-secondary btn-sm" onClick=${() => exportToCSV(users)}>
+            <${Download} size=${14} /> Ekspor CSV
+          </button>
+        </div>
+
+        <div class="search-wrapper">
+          <${Search} size=${16} class="search-icon" />
+          <input class="search-input" type="text" placeholder="Cari nama, email, sekolah..." value=${search} onInput=${(e) => setSearch(e.target.value)} />
+        </div>
+
+        ${loading && users.length === 0 && html`<div class="empty"><p>Memuat data...</p></div>`}
+        
+        ${!loading && filteredUsers.length === 0 && html`
+          <div class="empty">
+            <${UserCheck} size=${32} color="var(--text-subtle)" />
+            <p>${search ? `Tidak ada hasil untuk "${search}"` : 'Tidak ada data.'}</p>
+          </div>
+        `}
+
+        ${filteredUsers.length > 0 && html`
+          <div class="list">
+            ${paginatedUsers.map((u) => html`
+              <div class=${'list-item ' + u.status}>
+                <div class="list-head">
+                  <div>
+                    <div class="list-title">${u.nama || '(tanpa nama)'}</div>
+                    <div class="list-meta">
+                      <span>📧 ${u.email}</span>
+                      ${u.wa && html`<span>📱 ${u.wa}</span>`}
+                      ${u.sekolah && html`<span>🏫 ${u.sekolah}</span>`}
+                    </div>
+                    <div class="list-meta"><span>📅 Daftar: ${formatDate(u.created_at)}</span></div>
                   </div>
                 </div>
+                <div class="list-actions">
+                  ${u.status === 'pending' && html`
+                    <button class="btn btn-primary btn-sm" disabled=${busy === u.id} onClick=${() => handleActivate(u)}>
+                      ${busy === u.id ? 'Memproses...' : html`<${UserCheck} size=${14} /> Aktifkan`}
+                    </button>
+                  `}
+                  ${u.status === 'active' && html`
+                    <button class="btn btn-secondary btn-sm" disabled=${busy === u.id} onClick=${() => handleMakeAdmin(u)}>
+                      <${Shield} size=${14} /> Jadikan Admin
+                    </button>
+                    <button class="btn btn-secondary btn-sm" disabled=${busy === u.id} onClick=${() => handleSuspend(u)}>
+                      <${Ban} size=${14} /> Nonaktifkan
+                    </button>
+                  `}
+                  ${u.status === 'suspended' && html`
+                    <button class="btn btn-primary btn-sm" disabled=${busy === u.id} onClick=${() => handleReactivate(u)}>
+                      <${UserCheck} size=${14} /> Aktifkan
+                    </button>
+                  `}
+                  <button class="btn btn-danger btn-sm" disabled=${busy === u.id} onClick=${() => handleDeleteUser(u)}>
+                    <${Trash2} size=${14} /> Hapus
+                  </button>
+                </div>
               </div>
-              <div class="list-actions">
-                ${u.status === 'pending' && html`
-                  <button class="btn btn-primary btn-sm" disabled=${busy === u.id} onClick=${() => handleActivate(u)}>
-                    ${busy === u.id ? 'Memproses...' : html`<${UserCheck} size=${14} /> Aktifkan & Buat Password`}
-                  </button>
-                `}
-                ${u.status === 'active' && html`
-                  <button class="btn btn-secondary btn-sm" disabled=${busy === u.id} onClick=${() => handleSuspend(u)}>
-                    <${Ban} size=${14} /> Nonaktifkan
-                  </button>
-                  <button class="btn btn-danger btn-sm" disabled=${busy === u.id} onClick=${() => handleDelete(u)}>
-                    <${Trash2} size=${14} /> Hapus
-                  </button>
-                `}
-                ${u.status === 'suspended' && html`
-                  <button class="btn btn-primary btn-sm" disabled=${busy === u.id} onClick=${() => handleReactivate(u)}>
-                    <${UserCheck} size=${14} /> Aktifkan Kembali
-                  </button>
-                  <button class="btn btn-danger btn-sm" disabled=${busy === u.id} onClick=${() => handleDelete(u)}>
-                    <${Trash2} size=${14} /> Hapus
-                  </button>
-                `}
+            `)}
+          </div>
+          ${totalPages > 1 && html`
+            <div class="pagination">
+              <div class="pagination-info">Halaman <b>${page}</b> dari <b>${totalPages}</b></div>
+              <div class="pagination-controls">
+                <button class="pagination-btn" disabled=${page <= 1} onClick=${() => setPage(page - 1)}><${ChevronLeft} size=${16} /></button>
+                <button class="pagination-btn" disabled=${page >= totalPages} onClick=${() => setPage(page + 1)}><${ChevronRight} size=${16} /></button>
               </div>
             </div>
-          `)}
+          `}
+        `}
+      `}
+
+      <!-- KONTEN: MODERASI PUSTAKA -->
+      ${view === 'pustaka' && html`
+        <div class="search-wrapper">
+          <${Search} size=${16} class="search-icon" />
+          <input class="search-input" type="text" placeholder="Cari soal atau nama guru..." value=${searchPustaka} onInput=${(e) => setSearchPustaka(e.target.value)} />
         </div>
 
-        ${totalPages > 1 && html`
-          <div class="pagination">
-            <div class="pagination-info">
-              Menampilkan <b>${showingFrom}–${showingTo}</b> dari <b>${filteredList.length}</b>
-            </div>
-            <div class="pagination-controls">
-              <button class="pagination-btn" disabled=${safePage <= 1} onClick=${() => setPage(safePage - 1)} aria-label="Halaman sebelumnya">
-                <${ChevronLeft} size=${16} />
-              </button>
-              <span class="pagination-page">${safePage} / ${totalPages}</span>
-              <button class="pagination-btn" disabled=${safePage >= totalPages} onClick=${() => setPage(safePage + 1)} aria-label="Halaman berikutnya">
-                <${ChevronRight} size=${16} />
-              </button>
-            </div>
-          </div>
-        `}
+        ${!loading && filteredPustaka.length === 0 && html`<div class="empty"><p>Tidak ada soal di Pustaka.</p></div>`}
 
-        ${totalPages === 1 && filteredList.length > PAGE_SIZE / 2 && html`
-          <div class="pagination">
-            <div class="pagination-info">Menampilkan <b>${filteredList.length}</b> data</div>
+        ${filteredPustaka.length > 0 && html`
+          <div class="list">
+            ${paginatedPustaka.map((p) => html`
+              <div class="list-item">
+                <div class="list-head">
+                  <div>
+                    <div class="list-title">[${p.tipe.toUpperCase()}] ${p.mapel} - ${p.kelas}</div>
+                    <div style="font-size: 13px; margin: 8px 0; color: var(--text);">${p.q_text}</div>
+                    <div class="list-meta">
+                      <span>👤 ${p.contributor_nama} (${p.contributor_sekolah || '-'})</span>
+                      <span>📅 ${formatDate(p.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-actions">
+                  <button class="btn btn-danger btn-sm" disabled=${busy === p.id} onClick=${() => handleDeletePustaka(p)}>
+                    <${Trash2} size=${14} /> Hapus Soal
+                  </button>
+                </div>
+              </div>
+            `)}
           </div>
+          ${totalPagesPustaka > 1 && html`
+            <div class="pagination">
+              <div class="pagination-info">Halaman <b>${pagePustaka}</b> dari <b>${totalPagesPustaka}</b></div>
+              <div class="pagination-controls">
+                <button class="pagination-btn" disabled=${pagePustaka <= 1} onClick=${() => setPagePustaka(pagePustaka - 1)}><${ChevronLeft} size=${16} /></button>
+                <button class="pagination-btn" disabled=${pagePustaka >= totalPagesPustaka} onClick=${() => setPagePustaka(pagePustaka + 1)}><${ChevronRight} size=${16} /></button>
+              </div>
+            </div>
+          `}
         `}
       `}
 
