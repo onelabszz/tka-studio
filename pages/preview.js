@@ -3,7 +3,7 @@
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState, useMemo } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useMemo, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, CircleDot, ListChecks, CheckCheck,
@@ -254,6 +254,17 @@ export function PreviewPage({ navigate, profile }) {
   const qualityWarnings = useMemo(function () { return paket ? checkQuality(paket) : []; }, [paket]);
   const allWarnings = useMemo(function () { return baseWarnings.concat(qualityWarnings); }, [baseWarnings, qualityWarnings]);
 
+  // EFFECT UNTUK MERENDER RUMUS MATEMATIKA (KATEX)
+  useEffect(() => {
+    // Beri sedikit delay agar Preact selesai merender DOM
+    const timer = setTimeout(() => {
+      if (window.renderMath) {
+        window.renderMath();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [paket, filter]); // Jalankan ulang saat paket berubah atau filter berubah
+
   if (!draft || !paket) {
     return html`
       <div class="page">
@@ -309,7 +320,7 @@ export function PreviewPage({ navigate, profile }) {
     try {
       await publishSoal(profile, paket, soal, { 
         mapel: paket.mapel, 
-        kelas: '6 SD', // Bisa disesuaikan nanti dari paket
+        kelas: '6 SD', 
         topik: paket.judul 
       });
       alert('Soal berhasil diterbitkan ke Pustaka!');
