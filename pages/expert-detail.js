@@ -150,6 +150,14 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   };
 
   const handleSelesai = () => {
+    // Clone soal agar tidak mengubah state asli di database
+    let finalSoal = JSON.parse(JSON.stringify(ws.soal || []));
+    
+    // Jika ada teks wacana, sisipkan ke soal PERTAMA
+    if (ws.teks_wacana && ws.teks_wacana.trim() !== '' && finalSoal.length > 0) {
+      finalSoal[0].q = `Bacalah teks berikut dengan saksama.\n\n=== Teks Bacaan ===\n${ws.teks_wacana}\n\n=== Pertanyaan ===\n${finalSoal[0].q}`;
+    }
+
     // Pindahkan soal ke draft standard agar bisa di-preview/export
     localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ 
       paket: { 
@@ -160,7 +168,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         durasiMenit: ws.target_soal * 2, 
         acakMode: 'per-tipe',
         latihanMandiri: true,
-        soal: ws.soal 
+        soal: finalSoal 
       }, 
       warnings: [] 
     }));
