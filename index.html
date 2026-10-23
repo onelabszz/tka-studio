@@ -19,12 +19,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://esm.sh" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX: Untuk Render Rumus Matematika (LaTeX) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="window.renderMath = function() { renderMathInElement(document.body, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\[', right: '\\]', display: true}, {left: '\\(', right: '\\)', display: false} ], throwOnError: false }); }"></script>
+
+  <!-- Stylesheet Utama -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div id="app"></div>
   <noscript>Harap aktifkan JavaScript untuk menggunakan TKA Studio.</noscript>
 
+  <!-- Error Overlay (untuk debugging di HP/Spck) -->
   <script>
     (function () {
       var el = document.getElementById('app');
@@ -58,7 +66,10 @@
     })();
   </script>
 
+  <!-- Aplikasi Utama -->
   <script type="module" src="./app.js"></script>
+
+  <!-- Registrasi Service Worker (PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
