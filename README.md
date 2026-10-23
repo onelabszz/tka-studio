@@ -8,16 +8,17 @@ Prompt builder + parser untuk membuat bank soal TKA. Ekspor ke TKA Local Host.
 - Preview kartu soal dengan edit inline
 - Quality checks heuristik
 - Ekspor ke TKA Local Host (.json) & Excel (.csv)
-- Bank Soal pribadi & Pustaka Soal publik
+- Bank Soal pribadi & Pustaka Soal publik (gotong royong)
+- Admin panel untuk verifikasi akun guru
 
 ## Teknologi
-- Preact + htm (via CDN)
+- Preact + htm (via CDN esm.sh)
 - Supabase (Auth + Database)
 - GitHub Pages (hosting)
 
 ## Akses
-- Guru: https://username.github.io/tka-studio/
-- Admin: https://username.github.io/tka-studio/admin/
+- Guru: https://onelabszz.github.io/tka-studio/
+- Admin: https://onelabszz.github.io/tka-studio/admin/
 
 ## Lisensi
 © 2026 Ekwan Nugroho — Wonogiri. All rights reserved.
