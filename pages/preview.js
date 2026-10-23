@@ -44,18 +44,33 @@ function ViewMode({ soal }) {
       <div class="soal-question">${soal.q}</div>
 
       ${soal.tipe === 'bs' && html`
-        <div class="soal-bs-list">
-          ${soal.pernyataan.map(function (p, pi) {
-            return html`
-              <div class="soal-bs-item">
-                <span class="soal-bs-num">${pi + 1}.</span>
-                <span class="soal-bs-text">${p.teks}</span>
-                <span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>
-                  ${p.key ? 'Benar' : 'Salah'}
-                </span>
-              </div>
-            `;
-          })}
+        <div class="bs-table-wrapper">
+          <table class="bs-table">
+            <thead>
+              <tr>
+                <th width="40">#</th>
+                <th>Pernyataan</th>
+                <th width="60" style="text-align: center;">Benar</th>
+                <th width="60" style="text-align: center;">Salah</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${soal.pernyataan.map(function (p, pi) {
+                return html`
+                  <tr>
+                    <td class="bs-letter">${'ABCDEFG'[pi]}.</td>
+                    <td class="bs-text">${p.teks}</td>
+                    <td class="bs-radio">
+                      <span class=${'radio-circle ' + (p.key === true ? 'active' : '')}></span>
+                    </td>
+                    <td class="bs-radio">
+                      <span class=${'radio-circle ' + (p.key === false ? 'active' : '')}></span>
+                    </td>
+                  </tr>
+                `;
+              })}
+            </tbody>
+          </table>
         </div>
       `}
 
