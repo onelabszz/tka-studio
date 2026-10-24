@@ -2774,3 +2774,74 @@ h1, h2, h3, h4 {
   .toast-container { bottom: 16px; right: 16px; left: 16px; }
   .toast { min-width: 0; width: 100%; }
 }
+/* =========================================================
+   CUSTOM CONFIRM MODAL (PREMIUM)
+   ========================================================= */
+.confirm-modal {
+  max-width: 420px;
+  text-align: center;
+  padding: 40px 32px 32px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.2);
+  position: relative;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.confirm-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.confirm-icon-wrapper.danger {
+  background: #fee2e2;
+  color: #dc2626;
+  box-shadow: 0 0 0 8px #fef2f2;
+}
+
+.confirm-icon-wrapper.info {
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 0 0 8px #eff6ff;
+}
+
+.confirm-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: var(--navy-900);
+  letter-spacing: -0.02em;
+}
+
+.confirm-message {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 28px;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-actions button {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
