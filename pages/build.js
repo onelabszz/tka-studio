@@ -169,8 +169,8 @@ export function BuildPage({ navigate }) {
         <${Stepper} current="build" />
         <div class="page-header">
           <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-          <h1 class="page-title">Susun Prompt</h1>
-          <p class="page-subtitle">Isi detail soal, lalu kami buatkan prompt siap-copy untuk AI.</p>
+          <h1 class="page-title">Buat Soal (Basic)</h1>
+          <p class="page-subtitle">Langkah cepat membuat paket soal dalam sekali jalan.</p>
         </div>
 
         <div class="recipe-bar">
