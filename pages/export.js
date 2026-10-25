@@ -286,13 +286,18 @@ export function ExportPage({ navigate, profile }) {
 
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-strong);">
             ${profile?.status === 'active' ? html`
-              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success); height: 44px;">
+              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success); height: 44px; font-weight: 600;">
                 ${saving ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...` : html`<${CloudUpload} size=${16} /> Simpan ke Koleksi Saya`}
               </button>
             ` : html`
-              <button class="btn-secondary w-full" onClick=${() => navigate('/login')} style="height: 44px;">
-                <${Lock} size=${16} /> Login untuk Menyimpan Paket
-              </button>
+              <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center;">
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                  Ingin menyimpan paket ini ke akun Anda agar bisa diedit kapan saja?
+                </div>
+                <button class="btn-primary w-full" onClick=${() => navigate('/login')} style="height: 44px;">
+                  <${Lock} size=${16} /> Daftar / Masuk untuk Menyimpan
+                </button>
+              </div>
             `}
           </div>
         </div>
