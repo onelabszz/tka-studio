@@ -1,7 +1,6 @@
 /**
  * TKA Studio — pages/export.js
  * © 2026 Ekwan Nugroho — Wonogiri
- * All rights reserved.
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useMemo } from 'https://esm.sh/preact@10.24.3/hooks';
@@ -56,14 +55,12 @@ export function ExportPage({ navigate, profile }) {
     const soal = paket.soal.map((s, i) => ({ ...s, id: `s${i + 1}` }));
     return {
       ...paket,
-      version: '1.1', // <-- Ubah ke 1.1
+      version: '1.1',
       id,
       judul: judul.trim() || paket.judul,
       durasiMenit: Math.max(1, Math.round(durasi)),
       acakMode,
       latihanMandiri,
-      wacana: paket.wacana || null,
-      wacana_judul: paket.wacana_judul || null,
       soal,
     };
   };
@@ -75,6 +72,7 @@ export function ExportPage({ navigate, profile }) {
       const v = validatePaket(final);
       if (!v.valid) {
         setError(v.errors.map((e) => e.message).join('; '));
+        if (window.showToast) window.showToast('Validasi gagal. Periksa soal Anda.', 'error');
         return;
       }
       downloadPaket(final);
@@ -82,8 +80,10 @@ export function ExportPage({ navigate, profile }) {
       saveDraft(updated);
       setPaket(final);
       setDownloaded(true);
+      if (window.showToast) window.showToast('File berhasil diunduh.', 'success');
     } catch (e) {
       setError(String(e.message || e));
+      if (window.showToast) window.showToast('Gagal mengunduh file.', 'error');
     }
   };
 
@@ -92,8 +92,10 @@ export function ExportPage({ navigate, profile }) {
       setError(null);
       const final = buildFinalPaket();
       downloadCSV(final);
+      if (window.showToast) window.showToast('File CSV berhasil diunduh.', 'success');
     } catch (e) {
       setError(String(e.message || e));
+      if (window.showToast) window.showToast('Gagal mengunduh CSV.', 'error');
     }
   };
 
@@ -103,36 +105,34 @@ export function ExportPage({ navigate, profile }) {
       const json = toLocalHostFormat(final);
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(json))));
       const ok = await copyText(encoded);
-      if (ok) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+      if (ok) { 
+        setCopied(true); 
+        setTimeout(() => setCopied(false), 2000); 
+        if (window.showToast) window.showToast('Kode berhasil disalin ke clipboard.', 'success');
       }
-    } catch (e) {
-      setError(String(e.message || e));
+    } catch (e) { 
+      setError(String(e.message || e)); 
+      if (window.showToast) window.showToast('Gagal menyalin kode.', 'error');
     }
   };
 
   const handleSaveToCloud = async () => {
-    if (!profile) {
-      navigate('/login');
-      return;
-    }
-    setSaving(true);
-    setError(null);
+    if (!profile) { navigate('/login'); return; }
+    setSaving(true); setError(null);
     try {
       const final = buildFinalPaket();
       const v = validatePaket(final);
-      if (!v.valid) {
-        setError(v.errors.map((e) => e.message).join('; '));
-        setSaving(false);
-        return;
+      if (!v.valid) { 
+        setError(v.errors.map((e) => e.message).join('; ')); 
+        setSaving(false); 
+        return; 
       }
       await saveToBank(profile.id, final);
-      window.showToast('Paket berhasil disimpan ke Bank Soal Anda!', 'success');
+      if (window.showToast) window.showToast('Paket berhasil disimpan ke Bank Soal!', 'success');
       navigate('/bank-soal');
     } catch (e) {
       setError('Gagal menyimpan ke cloud: ' + (e.message || e));
-      window.showToast('Gagal menyimpan ke cloud.', 'error');
+      if (window.showToast) window.showToast('Gagal menyimpan ke Bank Soal.', 'error');
     }
     setSaving(false);
   };
@@ -146,6 +146,7 @@ export function ExportPage({ navigate, profile }) {
       onConfirm: () => {
         setConfirmData(null);
         saveDraft({ ...draft, originalText: '', savedAt: Date.now() });
+        if (window.showToast) window.showToast('Draf berhasil diduplikasi.', 'success');
         navigate('/build');
       }
     });
@@ -228,49 +229,25 @@ export function ExportPage({ navigate, profile }) {
 
           <div class="form-field">
             <label class="form-label">Judul Paket</label>
-            <input
-              class="form-input"
-              value=${judul}
-              onInput=${(e) => setJudul(e.target.value)}
-              placeholder="Judul paket yang tampil di Local Host"
-            />
+            <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
           </div>
 
           <div class="form-field">
             <label class="form-label">Durasi Ujian (menit)</label>
-            <input
-              class="form-input"
-              type="number"
-              min=${1}
-              max=${300}
-              value=${durasi}
-              onInput=${(e) => setDurasi(Number(e.target.value) || 30)}
-            />
+            <input class="form-input" type="number" min=${1} max=${300} value=${durasi} onInput=${(e) => setDurasi(Number(e.target.value) || 30)} />
           </div>
 
           <div class="form-field">
             <label class="form-label">Mode Acak Soal</label>
             <div class="radio-group">
-              ${[
-                { v: 'per-tipe', l: 'Per Tipe' },
-                { v: 'full', l: 'Penuh' },
-                { v: 'none', l: 'Tidak Diacak' },
-              ].map(({ v, l }) => html`
-                <button
-                  type="button"
-                  class=${`radio-card ${acakMode === v ? 'active' : ''}`}
-                  onClick=${() => setAcakMode(v)}
-                >${l}</button>
+              ${[{ v: 'per-tipe', l: 'Per Tipe' }, { v: 'full', l: 'Penuh' }, { v: 'none', l: 'Tidak Diacak' }].map(({ v, l }) => html`
+                <button type="button" class=${`radio-card ${acakMode === v ? 'active' : ''}`} onClick=${() => setAcakMode(v)}>${l}</button>
               `)}
             </div>
           </div>
 
           <label class="checkbox-label mt-3">
-            <input
-              type="checkbox"
-              checked=${latihanMandiri}
-              onChange=${(e) => setLatihanMandiri(e.target.checked)}
-            />
+            <input type="checkbox" checked=${latihanMandiri} onChange=${(e) => setLatihanMandiri(e.target.checked)} />
             Bisa dipakai untuk latihan mandiri siswa
           </label>
         </div>
@@ -286,37 +263,26 @@ export function ExportPage({ navigate, profile }) {
         `}
 
         <div class="export-actions">
-          <!-- TOMBOL DOWNLOAD (Bisa diakses siapa saja, termasuk Tamu) -->
           <button class="btn-primary btn-large" onClick=${handleDownload}>
-            <${Download} size=${18} />
-            Download File .json (Local Host)
+            <${Download} size=${18} /> Download File .json (Local Host)
           </button>
-
           <button class="btn-secondary w-full mt-2" onClick=${handleDownloadCSV}>
-            <${FileJson} size=${16} />
-            Download CSV (Excel)
+            <${FileJson} size=${16} /> Download CSV (Excel)
           </button>
-
           <button class="btn-secondary w-full mt-2" onClick=${handleCopyCode}>
             ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
             ${copied ? 'Kode tersalin!' : 'Salin sebagai Kode (advanced)'}
           </button>
 
-          <!-- TOMBOL CLOUD (Wajib Login) -->
           <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
             ${profile?.status === 'active' ? html`
               <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success);">
-                ${saving
-                  ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...`
-                  : html`<${CloudUpload} size=${16} /> Simpan ke Bank Soal (Cloud)`}
+                ${saving ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...` : html`<${CloudUpload} size=${16} /> Simpan ke Bank Soal (Cloud)`}
               </button>
             ` : html`
               <button class="btn-secondary w-full" onClick=${() => navigate('/login')}>
                 <${Lock} size=${16} /> Login untuk Simpan ke Bank Soal
               </button>
-              <div class="text-center text-muted text-sm mt-2">
-                Dapatkan akses ke Mode Expert, Pustaka, dan Cloud Sync.
-              </div>
             `}
           </div>
         </div>
@@ -354,32 +320,15 @@ export function ExportPage({ navigate, profile }) {
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
             <div class="modal-header">
-              <div class="modal-title">
-                <${CheckCircle2} size=${20} color="var(--success)" />
-                <span>File berhasil diunduh!</span>
-              </div>
+              <div class="modal-title"><${CheckCircle2} size=${20} color="var(--success)" /><span>File berhasil diunduh!</span></div>
             </div>
             <div class="modal-body">
-              <p class="text-muted text-sm mb-4">
-                File <b>${filename}</b> tersimpan di folder Download HP/laptop Anda.
-              </p>
-              <div class="form-hint mb-4">
-                Pindahkan file ke laptop yang menjalankan TKA Local Host (via WhatsApp, Google Drive, atau USB), lalu impor.
-              </div>
-              <div class="steps-list">
-                <div class="step-line"><span class="step-num">1</span><div>Buka TKA Local Host</div></div>
-                <div class="step-line"><span class="step-num">2</span><div>Menu Paket Soal → Import JSON</div></div>
-                <div class="step-line"><span class="step-num">3</span><div>Pilih file ${filename}</div></div>
-                ${gambarDibutuhkan.length > 0 && html`
-                  <div class="step-line"><span class="step-num">4</span><div>Upload ${gambarDibutuhkan.length} file gambar ke folder <b>paket/gambar/</b></div></div>
-                `}
-              </div>
+              <p class="text-muted text-sm mb-4">File <b>${filename}</b> tersimpan di folder Download HP/laptop Anda.</p>
+              <div class="form-hint mb-4">Pindahkan file ke laptop yang menjalankan TKA Local Host, lalu impor.</div>
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setDownloaded(false)}>Tutup</button>
-              <button class="btn-primary" onClick=${handleFinish}>
-                Buat Soal Baru
-              </button>
+              <button class="btn-primary" onClick=${handleFinish}>Buat Soal Baru</button>
             </div>
           </div>
         </div>
