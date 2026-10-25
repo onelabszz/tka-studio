@@ -3,19 +3,26 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Search, Loader2, BookOpen, User, ShoppingCart, Check,
-  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle,
-  Filter // <-- IMPORT DITAMBAHKAN DI SINI
+  Eye, X, Download, MessageCircle, AlertTriangle, Filter
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getPustakaItems, addToKotak, getKotak, incrementDownload } from '../lib/pustaka.js';
 
 const html = htm.bind(h);
 const LIMIT = 20;
 
+// Helper: ambil 1-2 huruf inisial dari nama
+function initials(name) {
+  if (!name) return '?';
+  const parts = String(name).trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function PustakaPage({ navigate, profile }) {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  
+
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -61,10 +68,10 @@ export function PustakaPage({ navigate, profile }) {
     try {
       const currentPage = reset ? 1 : page + 1;
       const res = await getPustakaItems({ search: debouncedSearch, mapel, kelas, tipe }, currentPage, LIMIT);
-      if (reset) { setItems(res.data); setPage(1); } 
-      else { 
+      if (reset) { setItems(res.data); setPage(1); }
+      else {
         const newItems = res.data.filter(n => !items.some(o => o.id === n.id));
-        setItems([...items, ...newItems]); setPage(currentPage); 
+        setItems([...items, ...newItems]); setPage(currentPage);
       }
       setTotal(res.total);
     } catch (e) {
@@ -112,7 +119,7 @@ export function PustakaPage({ navigate, profile }) {
             <${Search} size=${20} color="var(--text-muted)" />
             <input type="text" placeholder="Cari topik, soal, atau kata kunci..." value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
           </div>
-          
+
           <div class="filter-chips-row">
             <div class="filter-chip-group"><${Filter} size=${14} /> Filter:</div>
             <select class="filter-select" value=${mapel} onChange=${e => setMapel(e.target.value)}>
@@ -148,20 +155,31 @@ export function PustakaPage({ navigate, profile }) {
               <p>Tidak ada soal ditemukan. Coba ubah kata kunci atau filter.</p>
             </div>
           `}
-          
+
           <div class="pustaka-grid">
             ${items.map(item => html`
               <div class="pustaka-card">
+                
                 <div class="pustaka-card-header">
                   <span class="badge-pg">${item.mapel}</span>
                   <span class="badge-muted">${item.kelas || '-'}</span>
                   <span class=${'soal-badge badge-' + item.tipe}>${item.tipe.toUpperCase()}</span>
                 </div>
-                <div class="pustaka-card-body"><div class="pustaka-q">${truncate(item.konten.q, 120)}</div></div>
-                <div class="pustaka-card-meta">
-                  <div class="pustaka-author"><${User} size=${12} /><span>${item.contributor_nama}</span></div>
-                  <div class="pustaka-downloads"><${Download} size=${12} /> ${item.download_count || 0}</div>
+
+                <div class="pustaka-meta-row">
+                  <span class="author-pill" title=${item.contributor_nama || 'Anonim'}>
+                    <span class="author-avatar">${initials(item.contributor_nama)}</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">${item.contributor_nama || 'Anonim'}</span>
+                  </span>
+                  <span class="download-count" title="${item.download_count || 0} kali diambil">
+                    <${Download} size=${11} /> ${item.download_count || 0}
+                  </span>
                 </div>
+
+                <div class="pustaka-card-body">
+                  <div class="pustaka-q">${truncate(item.konten.q, 120)}</div>
+                </div>
+
                 <div class="pustaka-card-actions">
                   <button class="btn-secondary btn-sm" onClick=${() => setPreviewItem(item)}><${Eye} size=${14} /> Preview</button>
                   <button class="btn-primary btn-sm" onClick=${() => handleAmbil(item)} disabled=${added[item.id]} style="flex: 1;">
@@ -171,7 +189,7 @@ export function PustakaPage({ navigate, profile }) {
               </div>
             `)}
           </div>
-          
+
           ${hasMore && html`
             <div class="text-center mt-4">
               <button class="btn-secondary" onClick=${() => loadData(false)} disabled=${loadingMore}>
@@ -195,9 +213,9 @@ export function PustakaPage({ navigate, profile }) {
                 ${previewItem.kelas && html`<span class="badge-muted">${previewItem.kelas}</span>`}
                 <span class=${'soal-badge badge-' + previewItem.tipe}>${previewItem.tipe.toUpperCase()}</span>
               </div>
-              
+
               <div class="soal-question" style="margin-top: 16px; font-size: 15px;">${previewItem.konten.q}</div>
-              
+
               ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
                 <div class="soal-options" style="margin-top: 12px;">
                   ${previewItem.konten.options.map((opt, oi) => {
@@ -257,8 +275,16 @@ export function PustakaPage({ navigate, profile }) {
               `}
 
               <div class="pustaka-preview-footer">
-                <div><${User} size=${13} /> <b>${previewItem.contributor_nama}</b> <span style="opacity: 0.7;">· ${previewItem.contributor_sekolah || 'Indonesia'}</span></div>
-                <div><${Download} size=${13} /> ${previewItem.download_count || 0} kali diambil</div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="author-avatar" style="width: 24px; height: 24px; font-size: 11px;">${initials(previewItem.contributor_nama)}</span>
+                  <div>
+                    <b>${previewItem.contributor_nama || 'Anonim'}</b>
+                    <div style="font-size: 11px; opacity: 0.7;">${previewItem.contributor_sekolah || 'Indonesia'}</div>
+                  </div>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #c2410c;">
+                  <${Download} size=${13} /> ${previewItem.download_count || 0} kali diambil
+                </div>
               </div>
             </div>
             <div class="modal-footer">
