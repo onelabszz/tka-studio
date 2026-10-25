@@ -2845,3 +2845,54 @@ h1, h2, h3, h4 {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+/* =========================================================
+   UI TOMBOL OPSI UJIAN (RADIO & CHECKBOX)
+   ========================================================= */
+.option-indicator {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  margin-right: 12px;
+  background: white;
+}
+
+/* Bentuk Bulat untuk PG */
+.option-indicator.radio {
+  border-radius: 50%;
+}
+.option-indicator.radio.active {
+  border-color: var(--primary-mid);
+}
+.option-indicator.radio.active::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary-mid);
+}
+
+/* Bentuk Kotak untuk MCMA */
+.option-indicator.checkbox {
+  border-radius: 4px;
+}
+.option-indicator.checkbox.active {
+  background: var(--primary-mid);
+  border-color: var(--primary-mid);
+  color: white;
+}
+
+/* Modifikasi opsi agar sejajar */
+.soal-option {
+  align-items: center;
+}
+.soal-option.correct {
+  background: #f0fdf4;
+  border-color: var(--success);
+}
+
