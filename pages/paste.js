@@ -7,12 +7,14 @@ import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, ScanSearch, AlertTriangle,
-  CircleCheck, CircleX, Loader2, Sparkles,
+  CircleCheck, CircleX, Loader2, Sparkles, ClipboardPaste,
+  FileJson, Zap, Info
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
 import { saveDraft } from '../stores/studio.js';
 import { Stepper } from '../components/Stepper.js';
+import { PageHero } from '../components/PageHero.js';
 
 const html = htm.bind(h);
 
@@ -71,28 +73,42 @@ export function PastePage({ navigate }) {
     }, 250);
   };
 
+  const chips = text.trim()
+    ? [
+        { icon: ClipboardPaste, text: `${text.length.toLocaleString()} karakter` },
+        { icon: Zap, text: result ? 'Terurai' : 'Siap diolah' }
+      ]
+    : null;
+
   return html`
     <div class="page">
       <div class="page-shell">
         <${Stepper} current="paste" />
-        <div class="page-header">
-          <button class="btn-back" onClick=${() => navigate('/build')}>
-            <${ArrowLeft} size=${16} /> Susun Prompt
-          </button>
-          <h1 class="page-title">Tempel Hasil AI</h1>
-          <p class="page-subtitle">Copy hasil dari ChatGPT / Gemini / Claude, lalu paste di bawah. Format JSON atau CSV otomatis dikenali.</p>
-        </div>
+
+        <${PageHero}
+          icon=${ClipboardPaste}
+          title="Tempel Hasil AI"
+          subtitle="Copy hasil dari ChatGPT / Gemini / Claude, lalu paste. Format JSON atau CSV otomatis dikenali."
+          chips=${chips}
+          topnav=${html`
+            <button class="btn-back" onClick=${() => navigate('/build')}>
+              <${ArrowLeft} size=${16} /> Susun Prompt
+            </button>
+          `}
+        />
 
         ${!result && html`
           <div class="paste-box">
             <textarea
               class="paste-textarea"
-              placeholder='Tempel hasil AI di sini...&#10;&#10;Contoh:&#10;&#123;&#10;  "version": "1.0",&#10;  "id": "matematika-pecahan-2026",&#10;  "soal": [...]&#10;&#125;'
+              placeholder='Tempel hasil AI di sini...&#10;&#10;Contoh:&#10;&#123;&#10;  "version": "1.1",&#10;  "id": "matematika-pecahan-2026",&#10;  "soal": [...]&#10;&#125;'
               value=${text}
               onInput=${(e) => setText(e.target.value)}
               spellcheck=${false}
             />
-            <div class="form-hint mt-2">💡 Tips: paste langsung (Ctrl+V) — format otomatis dikenali.</div>
+            <div class="cta-hint" style="margin-top:8px;">
+              <${Info} size=${12} /> Tips: paste langsung (Ctrl+V) — format otomatis dikenali.
+            </div>
           </div>
           <div class="form-actions">
             <button class="btn-primary btn-large" disabled=${!text.trim() || parsing} onClick=${handleParse}>
@@ -139,21 +155,26 @@ export function PastePage({ navigate }) {
               <${CircleCheck} size=${20} color="var(--success)" />
               <h2>${result.paket.soal.length} soal berhasil di-parse</h2>
             </div>
-            <div class="result-summary">
+            <div class="page-hero-chips" style="margin-bottom:12px;">
+              <span class="config-chip is-success"><${FileJson} size=${12} /> Format ${result.format?.toUpperCase()}</span>
+              <span class="config-chip is-success"><${CircleCheck} size=${12} /> ${result.paket.soal.length} soal siap</span>
+              ${result.warnings.length > 0 && html`
+                <span class="config-chip is-warning"><${AlertTriangle} size=${12} /> ${result.warnings.length} peringatan</span>
+              `}
+            </div>
+            <div class="result-summary" style="border-top-color: #bbf7d0;">
               <div class="summary-item">
                 <span class="summary-label">Format</span>
                 <span class="summary-value">${result.format?.toUpperCase()}</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Total soal</span>
+                <span class="summary-label">Total Soal</span>
                 <span class="summary-value">${result.paket.soal.length}</span>
               </div>
-              ${result.warnings.length > 0 && html`
-                <div class="summary-item">
-                  <span class="summary-label">Peringatan</span>
-                  <span class="summary-value" style="color: var(--warning);">${result.warnings.length}</span>
-                </div>
-              `}
+              <div class="summary-item">
+                <span class="summary-label">Mapel</span>
+                <span class="summary-value summary-value-sm">${result.paket.mapel || '-'}</span>
+              </div>
             </div>
             ${result.warnings.length > 0 && html`
               <details class="warnings-detail">
