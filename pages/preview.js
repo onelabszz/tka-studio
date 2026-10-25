@@ -229,6 +229,14 @@ function SoalCard({ soal, index, warnings, onUpdate, onDelete, onDuplicate, onPu
   const [editing, setEditing] = useState(false);
   const hasWarning = warnings && warnings.length > 0;
 
+  // Re-render KaTeX saat keluar dari mode edit
+  useEffect(() => {
+    if (!editing && window.renderMath) {
+      const timer = setTimeout(() => window.renderMath(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [editing, soal]);
+
   const handleSave = function (updated) {
     onUpdate(index, updated);
     setEditing(false);
