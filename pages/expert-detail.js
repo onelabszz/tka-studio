@@ -5,9 +5,9 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { 
-  ArrowLeft, ArrowRight, Wand2, ClipboardPaste, CheckCircle2, 
-  Loader2, Check, AlertTriangle, BookOpen, AlertCircle
+import {
+  ArrowLeft, ArrowRight, Wand2, ClipboardPaste, CheckCircle2,
+  Loader2, Check, BookOpen
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getWorkspaceById, updateWorkspaceSoal, updateTeksWacana } from '../lib/expert-workspace.js';
 import { buildExpertPrompt } from '../lib/expert-prompt.js';
@@ -23,8 +23,7 @@ async function copyText(text) {
 export function ExpertDetailPage({ navigate, profile, id }) {
   const [ws, setWs] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // State untuk UI
+
   const [promptText, setPromptText] = useState('');
   const [copied, setCopied] = useState(false);
   const [pasteText, setPasteText] = useState('');
@@ -32,7 +31,6 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   const [reviewItems, setReviewItems] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // State untuk Teks Wacana (B.Indo)
   const [wacanaText, setWacanaText] = useState('');
   const [editWacana, setEditWacana] = useState(false);
 
@@ -61,7 +59,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   const generatePrompt = (currentWs) => {
     const sisaTarget = currentWs.target_soal - (currentWs.soal?.length || 0);
     const batchSize = Math.min(currentWs.soal_per_batch, sisaTarget);
-    
+
     if (batchSize <= 0) {
       setPromptText('');
       return;
@@ -104,7 +102,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         setParsing(false);
         return;
       }
-      
+
       const { paket, errors } = normalizePaket(parsed.raw);
       if (!paket) {
         if (window.showToast) window.showToast('Soal tidak valid: ' + (errors[0]?.message || 'Unknown error'), 'error');
@@ -136,7 +134,12 @@ export function ExpertDetailPage({ navigate, profile, id }) {
       setWs(updatedWs);
       setReviewItems(null);
       setPasteText('');
-      
+
+      // ✅ Success toast
+      if (window.showToast) {
+        window.showToast(`${acceptedItems.length} soal berhasil disimpan ke proyek!`, 'success');
+      }
+
       if (updatedWs.soal.length >= updatedWs.target_soal) {
         await updateWorkspaceSoal(ws.id, [], 'completed');
         setWs({ ...updatedWs, status: 'completed' });
@@ -151,20 +154,20 @@ export function ExpertDetailPage({ navigate, profile, id }) {
 
   const handleSelesai = () => {
     const finalSoal = JSON.parse(JSON.stringify(ws.soal || []));
-    
-    localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ 
-      paket: { 
+
+    localStorage.setItem('tka-studio-draft-v1', JSON.stringify({
+      paket: {
         version: '1.1',
-        id: ws.id, 
-        judul: ws.judul, 
-        mapel: ws.mapel, 
-        durasiMenit: ws.target_soal * 2, 
+        id: ws.id,
+        judul: ws.judul,
+        mapel: ws.mapel,
+        durasiMenit: ws.target_soal * 2,
         acakMode: 'per-tipe',
         latihanMandiri: true,
         wacana: ws.teks_wacana || null,
         wacana_judul: ws.topik || null,
-        soal: finalSoal 
-      }, 
+        soal: finalSoal
+      },
       warnings: [],
       _fromExpert: { id: ws.id, judul: ws.judul }
     }));
@@ -247,7 +250,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
               <${Wand2} size=${18} /> Tahap ${Math.ceil((currentSoalCount + 1) / ws.soal_per_batch)}: Buat ${Math.min(ws.soal_per_batch, ws.target_soal - currentSoalCount)} Soal Baru
             </div>
             <div class="form-section-body">
-              
+
               <div class="form-field">
                 <label class="form-label">Langkah 1: Salin Prompt AI</label>
                 <button class="btn-primary w-full" onClick=${handleCopyPrompt}>
@@ -278,18 +281,18 @@ export function ExpertDetailPage({ navigate, profile, id }) {
             </div>
             <div class="form-section-body">
               <p class="text-muted text-sm mb-3">Centang soal yang ingin disimpan ke proyek.</p>
-              
+
               <div class="soal-list">
                 ${reviewItems.map((item, idx) => html`
-                  <div class="soal-card" style="border-color: ${item.accepted ? 'var(--success)' : 'var(--border)'}">
+                  <div class="soal-card" key=${item.tempId} style="border-color: ${item.accepted ? 'var(--success)' : 'var(--border)'};">
                     <div class="soal-header" style="background: ${item.accepted ? '#f0fdf4' : 'var(--surface-muted)'};">
                       <div class="soal-header-left">
-                        <input type="checkbox" checked=${item.accepted} 
+                        <input type="checkbox" checked=${item.accepted}
                           onChange=${e => {
                             const newItems = [...reviewItems];
                             newItems[idx].accepted = e.target.checked;
                             setReviewItems(newItems);
-                          }} 
+                          }}
                           style="width:18px; height:18px; accent-color: var(--success); margin-right:8px;"
                         />
                         <span class="soal-badge badge-${item.tipe}">${item.tipe.toUpperCase()}</span>
@@ -305,7 +308,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
               <div class="form-actions" style="flex-direction: row; gap: 12px; margin-top: 20px;">
                 <button class="btn-secondary" onClick=${() => setReviewItems(null)} style="flex: 1;">Batal</button>
                 <button class="btn-primary" onClick=${handleSimpanBatch} disabled=${saving || !reviewItems.some(i => i.accepted)} style="flex: 2;">
-                  ${saving ? html`<${Loader2} class="spin" size=${16}/>` : html`<${Check} size=${16}/>`} 
+                  ${saving ? html`<${Loader2} class="spin" size=${16}/>` : html`<${Check} size=${16}/>`}
                   Simpan ${reviewItems.filter(i => i.accepted).length} Soal ke Proyek
                 </button>
               </div>
