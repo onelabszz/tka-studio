@@ -86,21 +86,23 @@ function ViewMode({ soal }) {
       `}
 
       ${(soal.tipe === 'pg' || soal.tipe === 'mcma') && html`
-        <div class="soal-options">
-          ${soal.options.map(function (opt, oi) {
-            const isCorrect = soal.tipe === 'pg'
-              ? soal.key === oi
-              : soal.key.indexOf(oi) !== -1;
-            return html`
-              <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-                <span class="soal-option-letter">${'ABCD'[oi]}</span>
-                <span class="soal-option-text">${opt}</span>
-                ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
-              </div>
-            `;
-          })}
+  <div class="soal-options">
+    ${soal.options.map(function (opt, oi) {
+      const isCorrect = soal.tipe === 'pg'
+        ? soal.key === oi
+        : soal.key.indexOf(oi) !== -1;
+      const isPG = soal.tipe === 'pg';
+      return html`
+        <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+          <span class=${'option-indicator ' + (isPG ? 'radio' : 'checkbox') + (isCorrect ? ' active' : '')}>
+            ${!isPG && isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+          </span>
+          <span class="soal-option-text">${'ABCD'[oi]}. ${opt}</span>
         </div>
-      `}
+      `;
+    })}
+  </div>
+`}
 
       ${soal.pembahasan && html`
         <div class="soal-explanation">
