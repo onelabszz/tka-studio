@@ -178,15 +178,24 @@ export function KotakPage({ navigate }) {
                     const isCorrect = previewItem.tipe === 'pg' 
                       ? previewItem.konten.key === oi 
                       : (previewItem.konten.key || []).includes(oi);
-                    const isPG = previewItem.tipe === 'pg';
-                    return html`
-                      <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-                        <span class=${'option-indicator ' + (isPG ? 'radio' : 'checkbox') + (isCorrect ? ' active' : '')}>
-                          ${!isPG && isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
-                        </span>
-                        <span class="soal-option-text">${'ABCD'[oi]}. ${opt}</span>
-                      </div>
-                    `;
+                    if (previewItem.tipe === 'pg') {
+                      return html`
+                        <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                          <span class="soal-option-letter">${'ABCD'[oi]}</span>
+                          <span class="soal-option-text">${opt}</span>
+                          ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
+                        </div>
+                      `;
+                    } else {
+                      return html`
+                        <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                          <span class=${'option-indicator checkbox' + (isCorrect ? ' active' : '')}>
+                            ${isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+                          </span>
+                          <span class="soal-option-text">${opt}</span>
+                        </div>
+                      `;
+                    }
                   })}
                 </div>
               `}
