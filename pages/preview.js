@@ -14,6 +14,7 @@ import { loadDraft, saveDraft } from '../stores/studio.js';
 import { checkQuality } from '../lib/quality-checks.js';
 import { Stepper } from '../components/Stepper.js';
 import { publishSoal } from '../lib/pustaka.js';
+import { ConfirmModal } from '../components/ConfirmModal.js';
 
 const html = htm.bind(h);
 
@@ -260,6 +261,9 @@ export function PreviewPage({ navigate, profile }) {
   const [baseWarnings] = useState(draft && draft.warnings ? draft.warnings : []);
   const [filter, setFilter] = useState('all');
   const [publishingIdx, setPublishingIdx] = useState(null);
+  
+  // STATE INI YANG SEBELUMNYA HILANG
+  const [confirmData, setConfirmData] = useState(null);
 
   const qualityWarnings = useMemo(function () { return paket ? checkQuality(paket) : []; }, [paket]);
   const allWarnings = useMemo(function () { return baseWarnings.concat(qualityWarnings); }, [baseWarnings, qualityWarnings]);
@@ -300,10 +304,21 @@ export function PreviewPage({ navigate, profile }) {
   };
 
   const handleDelete = function (index) {
-    if (paket.soal.length <= 1) { alert('Minimal harus ada 1 soal.'); return; }
-    if (!confirm('Hapus soal #' + (index + 1) + '?')) return;
-    const soal = paket.soal.filter(function (_, i) { return i !== index; }).map(function (s, i) { return Object.assign({}, s, { id: 's' + (i + 1) }); });
-    persist(Object.assign({}, paket, { soal: soal }));
+    if (paket.soal.length <= 1) { 
+      if (window.showToast) window.showToast('Minimal harus ada 1 soal.', 'info');
+      return; 
+    }
+    setConfirmData({
+      title: 'Hapus Soal?',
+      message: 'Soal #' + (index + 1) + ' akan dihapus dari draft Anda.',
+      confirmText: 'Ya, Hapus',
+      isDanger: true,
+      onConfirm: () => {
+        setConfirmData(null);
+        const soal = paket.soal.filter(function (_, i) { return i !== index; }).map(function (s, i) { return Object.assign({}, s, { id: 's' + (i + 1) }); });
+        persist(Object.assign({}, paket, { soal: soal }));
+      }
+    });
   };
 
   const handleDuplicate = function (index) {
@@ -312,11 +327,12 @@ export function PreviewPage({ navigate, profile }) {
     const soal = paket.soal.slice(0, index + 1).concat([cloned], paket.soal.slice(index + 1))
       .map(function (s, i) { return Object.assign({}, s, { id: 's' + (i + 1) }); });
     persist(Object.assign({}, paket, { soal: soal }));
+    if (window.showToast) window.showToast('Soal berhasil diduplikasi.', 'success');
   };
 
   const handlePublish = function (index, soal) {
     if (!profile) {
-      window.showToast('Silakan login terlebih dahulu untuk menerbitkan soal.', 'info');
+      if (window.showToast) window.showToast('Silakan login terlebih dahulu untuk menerbitkan soal.', 'info');
       navigate('/login');
       return;
     }
@@ -334,9 +350,9 @@ export function PreviewPage({ navigate, profile }) {
             kelas: '6 SD', 
             topik: paket.judul 
           });
-          window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
+          if (window.showToast) window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
         } catch (e) {
-          window.showToast('Gagal menerbitkan: ' + e.message, 'error');
+          if (window.showToast) window.showToast('Gagal menerbitkan: ' + e.message, 'error');
         }
         setPublishingIdx(null);
       }
@@ -424,6 +440,17 @@ export function PreviewPage({ navigate, profile }) {
           <button class="btn-primary btn-large" onClick=${function () { navigate('/export'); }}>Lanjut ke Ekspor <${ArrowRight} size=${18} /></button>
         </div>
       </div>
+      
+      ${confirmData && html`
+        <${ConfirmModal} 
+          title=${confirmData.title} 
+          message=${confirmData.message} 
+          confirmText=${confirmData.confirmText}
+          isDanger=${confirmData.isDanger}
+          onConfirm=${confirmData.onConfirm} 
+          onCancel=${() => setConfirmData(null)} 
+        />
+      `}
     </div>
   `;
 }
