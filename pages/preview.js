@@ -314,26 +314,33 @@ export function PreviewPage({ navigate, profile }) {
     persist(Object.assign({}, paket, { soal: soal }));
   };
 
-  const handlePublish = async function (index, soal) {
+  const handlePublish = function (index, soal) {
     if (!profile) {
       window.showToast('Silakan login terlebih dahulu untuk menerbitkan soal.', 'info');
       navigate('/login');
       return;
     }
-    if (!confirm('Terbitkan soal ini ke Pustaka Publik? Guru lain bisa melihat dan mengambilnya.')) return;
-    
-    setPublishingIdx(index);
-    try {
-      await publishSoal(profile, paket, soal, { 
-        mapel: paket.mapel, 
-        kelas: '6 SD', 
-        topik: paket.judul 
-      });
-      window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
-    } catch (e) {
-      window.showToast('Gagal menerbitkan: ' + e.message, 'error');
-    }
-    setPublishingIdx(null);
+    setConfirmData({
+      title: 'Terbitkan ke Pustaka?',
+      message: 'Soal ini akan dibagikan ke Pustaka Publik dan bisa diambil oleh guru lain di seluruh Indonesia.',
+      confirmText: 'Ya, Terbitkan',
+      isDanger: false,
+      onConfirm: async () => {
+        setConfirmData(null);
+        setPublishingIdx(index);
+        try {
+          await publishSoal(profile, paket, soal, { 
+            mapel: paket.mapel, 
+            kelas: '6 SD', 
+            topik: paket.judul 
+          });
+          window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
+        } catch (e) {
+          window.showToast('Gagal menerbitkan: ' + e.message, 'error');
+        }
+        setPublishingIdx(null);
+      }
+    });
   };
 
   const counts = {
