@@ -312,7 +312,12 @@ function DebugPageInner() {
 }
 
 function PublicLayout({ children, profile }) {
-  return html`<div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);"><${Header} profile=${profile} isLanding=${false} /><main style="flex: 1; padding-top: 80px;">${children}</main><${Footer} /></div>`;
+  return html`
+    <div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);">
+      <${Header} profile=${profile} isLanding=${false} />
+      <main style="flex: 1; padding-top: 80px;">${children}</main>
+    </div>
+  `;
 }
 
 function App() {
