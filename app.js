@@ -144,7 +144,10 @@ function Landing({ profile }) {
             </p>
             <div class="hero-actions">
               <button class="cta-button" onClick=${() => navigate('/build')}>
-                <${Sparkles} size=${20} /> Mulai Buat Soal
+                <${Sparkles} size=${20} /> Buat Soal (Basic)
+              </button>
+              <button class="btn-secondary" onClick=${() => navigate('/expert')} style="height: 56px; border-radius: 10px; padding: 0 24px; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: white; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px;">
+                <${Star} size=${18} /> Mode Expert (Bertahap)
               </button>
             </div>
             <div class="hero-guide-link">
