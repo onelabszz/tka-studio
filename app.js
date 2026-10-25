@@ -165,7 +165,7 @@ function Landing({ profile }) {
             <div class="v-card v-card-math">
               <div class="v-header"><span class="v-badge badge-pg">PG · Matematika</span></div>
               <div class="v-q">Tentukan hasil dari:</div>
-              <div class="v-math-box">3 \frac{1}{2} + 2 \frac{1}{4}</div>
+              <div class="v-math-box">3 ½ + 2 ¼</div>
               <div class="v-opts">
                 <div class="v-opt correct">A. 5 \frac{3}{4}</div>
                 <div class="v-opt">B. 5 \frac{1}{2}</div>
