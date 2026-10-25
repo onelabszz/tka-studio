@@ -350,11 +350,30 @@ function App() {
   
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
+    let pageProps = { navigate, profile };
     if (route === '/build') PageComponent = BuildPage;
     else if (route === '/paste') PageComponent = PastePage;
     else if (route === '/preview') PageComponent = PreviewPage;
     else if (route === '/export') PageComponent = ExportPage;
-    return html`<${PublicLayout} profile=${profile}><${PageComponent} navigate=${navigate} profile=${profile} /></${PublicLayout}>`;
+    
+    // Cek apakah draft datang dari Expert Mode
+    let fromExpert = null;
+    try {
+      const d = JSON.parse(localStorage.getItem('tka-studio-draft-v1') || '{}');
+      fromExpert = d?._fromExpert || null;
+    } catch {}
+    
+    // Jika dari Expert dan user login → pakai AppShell (sidebar tetap)
+    if (fromExpert && user) {
+      return html`
+        <${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}>
+          <${PageComponent} ...${pageProps} />
+        </${AppShell}>
+      `;
+    }
+    
+    // Selain itu → PublicLayout (no sidebar)
+    return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
