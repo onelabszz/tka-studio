@@ -91,9 +91,8 @@ function ViewMode({ soal }) {
             const isCorrect = soal.tipe === 'pg'
               ? soal.key === oi
               : soal.key.indexOf(oi) !== -1;
-            
+
             if (soal.tipe === 'pg') {
-              // PG: Huruf A, B, C, D tanpa bulatan
               return html`
                 <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
                   <span class="soal-option-letter">${'ABCD'[oi]}</span>
@@ -102,7 +101,6 @@ function ViewMode({ soal }) {
                 </div>
               `;
             } else {
-              // MCMA: Checkbox tanpa huruf
               return html`
                 <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
                   <span class=${'option-indicator checkbox' + (isCorrect ? ' active' : '')}>
@@ -388,6 +386,8 @@ export function PreviewPage({ navigate, profile }) {
     { k: 'bs', label: 'B/S', n: counts.bs },
   ].filter(function (f) { return f.k === 'all' || f.n > 0; });
 
+  const backLabel = (draft && draft._fromExpert) ? 'Kembali ke Expert' : 'Tempel Hasil';
+
   return html`
     <div class="page">
       <div class="page-shell page-shell-wide">
@@ -400,8 +400,7 @@ export function PreviewPage({ navigate, profile }) {
               navigate('/paste');
             }
           }}>
-            <${ArrowLeft} size=${16} />
-            ${draft && draft._fromExpert ? 'Kembali ke Expert' : 'Tempel Hasil'}
+            <${ArrowLeft} size=${16} /> ${backLabel}
           </button>
           <h1 class="page-title">Preview Soal</h1>
           <p class="page-subtitle">${paket.soal.length} soal · ${paket.mapel} · ${paket.judul}</p>
@@ -459,7 +458,7 @@ export function PreviewPage({ navigate, profile }) {
           <button class="btn-primary btn-large" onClick=${function () { navigate('/export'); }}>Lanjut ke Ekspor <${ArrowRight} size=${18} /></button>
         </div>
       </div>
-      
+
       ${confirmData && html`
         <${ConfirmModal} 
           title=${confirmData.title} 
