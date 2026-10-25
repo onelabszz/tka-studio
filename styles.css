@@ -1553,3 +1553,304 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .build-hero-title { font-size: 22px; }
   .difficulty-card { padding: 16px; }
 }
+
+/* =========================================================
+   PREMIUM DESIGN SYSTEM (v6)
+   Konsisten untuk semua halaman
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* ---------- Page Hero (reusable) ---------- */
+.page-hero-wrap { margin-bottom: 16px; }
+.page-hero-topnav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.page-hero {
+  position: relative;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.page-hero.accent-primary::before {
+  background: linear-gradient(90deg, var(--primary-mid) 0%, var(--amber-400) 100%);
+}
+.page-hero.accent-success::before {
+  background: linear-gradient(90deg, var(--success) 0%, #34d399 100%);
+}
+.page-hero.accent-warning::before {
+  background: linear-gradient(90deg, var(--warning) 0%, var(--amber-400) 100%);
+}
+
+.page-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.page-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  flex-shrink: 0;
+}
+.accent-primary .page-hero-icon {
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary));
+}
+.accent-success .page-hero-icon {
+  background: linear-gradient(135deg, #10b981, var(--success));
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+.accent-warning .page-hero-icon {
+  background: linear-gradient(135deg, var(--amber-400), var(--warning));
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+}
+.page-hero-copy { flex: 1; min-width: 0; }
+.page-hero-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin: 0 0 2px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.page-hero-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+.page-hero-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Config chip (shared) ---------- */
+.config-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid rgba(30, 64, 175, 0.1);
+  white-space: nowrap;
+}
+.config-chip svg { opacity: 0.85; flex-shrink: 0; }
+.config-chip.is-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: rgba(5, 150, 105, 0.15);
+}
+.config-chip.is-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: rgba(217, 119, 6, 0.15);
+}
+
+/* ---------- Empty state premium ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+}
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.empty-state h3 {
+  color: var(--navy-900);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+.empty-state p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 340px;
+}
+
+/* ---------- Result cards — polish ---------- */
+.result-card {
+  position: relative;
+  overflow: hidden;
+}
+.result-card.result-success::before,
+.result-card.result-warning::before,
+.result-card.result-error::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 4px;
+}
+.result-card.result-success::before { background: var(--success); }
+.result-card.result-warning::before { background: var(--warning); }
+.result-card.result-error::before { background: var(--danger); }
+
+/* ---------- Section header badges ---------- */
+.form-section-header .section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Advanced toggle — shared ---------- */
+.advanced-toggle {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-3) 0;
+}
+.advanced-toggle .accordion-toggle {
+  width: auto;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--duration) var(--ease);
+  font-family: inherit;
+}
+.advanced-toggle .accordion-toggle:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-mid);
+}
+
+/* ---------- CTA hint ---------- */
+.cta-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  padding-top: 4px;
+  font-weight: 500;
+}
+
+/* ---------- Visual option cards (shared pattern) ---------- */
+.option-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-input);
+  text-align: left;
+  transition: all var(--duration) var(--ease);
+  cursor: pointer;
+  font-family: inherit;
+}
+.option-card:hover {
+  border-color: var(--primary-mid);
+  background: var(--primary-light);
+}
+.option-card.active {
+  background: var(--primary-light);
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.option-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+.option-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy-900);
+  line-height: 1.2;
+}
+.option-card.active .option-card-title { color: var(--primary-dark); }
+.option-card-code {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.option-card.active .option-card-code {
+  background: var(--primary);
+  color: white;
+}
+.option-card-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+  .page-hero { padding: 16px; }
+  .page-hero-icon { width: 40px; height: 40px; border-radius: 10px; }
+  .page-hero-title { font-size: 18px; }
+  .option-cards-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .page-hero { padding: 22px 24px; }
+  .page-hero-icon { width: 48px; height: 48px; }
+  .page-hero-title { font-size: 22px; }
+}
