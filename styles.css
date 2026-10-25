@@ -902,10 +902,11 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   gap: 8px;
 }
 .expert-card .pustaka-card-actions button { flex: 1; }
+
 /* =========================================================
-   DESKTOP MAXIMIZATION LAYER (v5.2)
-   Semua aturan di sini HANYA aktif di layar lebar.
-   Mobile (< 640px) tidak terpengaruh sama sekali.
+   ADAPTIVE LAYOUT v5.4 — Perluas grid, bukan zoom
+   Base sizing DIPERTAHANKAN. Hanya container & kolom yang diatur.
+   © 2026 Ekwan Nugroho — Wonogiri
    ========================================================= */
 
 /* =========================================================
@@ -916,411 +917,254 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
     grid-template-columns: 1fr 1fr;
     gap: var(--space-4);
   }
-  .page-shell { max-width: 720px; }
-  .page-shell-wide { max-width: 960px; }
+  .page-shell { max-width: 760px; }
+  .page-shell-wide { max-width: 1080px; }
 }
 
 /* =========================================================
-   DESKTOP (≥ 1024px) — INTI PENGOPTIMALAN
+   DESKTOP (≥ 1024px) — PERLUAS KONTAINER & GRID SAJA
    ========================================================= */
 @media (min-width: 1024px) {
-
-  /* ---------- LANDING PAGE ---------- */
-  .landing-header .header-container { max-width: 1400px; padding: 0 var(--space-8); }
-  .hero-container { max-width: 1400px; gap: 100px; padding: 0 var(--space-8); }
-  .landing-main { max-width: 1400px; }
-  .section-container { max-width: 1400px; padding: 0 var(--space-8); }
-
-  .hero-section { padding: 180px 0 120px; min-height: 100vh; }
-  .hero-title { font-size: 68px; line-height: 1; }
-  .hero-desc { font-size: 20px; max-width: 600px; }
-  .hero-visual { height: 500px; }
-  .v-card-math { width: 300px; }
-  .v-card-bs { width: 280px; }
-  .v-card-mcma { width: 300px; }
-
-  .section-pain { padding: 120px 0 100px; border-radius: 40px 40px 0 0; }
-  .section-steps, .section-features, .section-creator,
-  .section-faq, .section-ekosistem { padding: 100px 0; }
-  .section-header { margin-bottom: 64px; }
-  .section-header h2 { font-size: 42px; }
-  .section-header p { font-size: 17px; max-width: 700px; }
-
-  .grid-3 { gap: var(--space-6); }
-  .grid-2 { gap: var(--space-6); }
-  .step-card, .feature-card { padding: 40px 32px; }
-  .step-visual { height: 200px; }
-  .step-card h3, .feature-card h3 { font-size: 20px; }
-  .step-card p, .feature-card p { font-size: 15px; }
-
-  .faq-list { max-width: 900px; }
-  .faq-item summary { padding: 24px 32px; font-size: 17px; }
-  .faq-item p { padding: 0 32px 24px 32px; font-size: 15px; }
-
-  .bridge-flow { gap: var(--space-10); }
-  .bridge-node { max-width: 340px; padding: var(--space-8); }
-
-  .landing-footer { padding: 80px var(--space-8) 40px; }
-  .footer-container { max-width: 1400px; gap: 60px; }
-
-  /* ---------- PAGE SHELL & TYPOGRAPHY ---------- */
+  /* ---- Container lebih lebar ---- */
   .page-shell {
-    max-width: 1000px;
-    padding: var(--space-8) var(--space-8) var(--space-12);
+    max-width: 900px;
+    padding: var(--space-6) var(--space-6) var(--space-12);
   }
   .page-shell-wide {
-    max-width: 1400px;
-    padding: var(--space-8) var(--space-8) var(--space-12);
+    max-width: 1280px;
+    padding: var(--space-6) var(--space-6) var(--space-12);
   }
-  .page-title { font-size: 44px; line-height: 1.1; }
-  .page-subtitle { font-size: 16px; }
-  .page-header { margin-bottom: var(--space-8); }
-  .btn-back { font-size: 14px; padding: 8px 14px; }
-
-  /* ---------- FORMS ---------- */
-  .form-section {
-    padding: 32px 40px;
-    margin-bottom: var(--space-5);
-  }
-  .form-section-header {
-    margin-bottom: var(--space-5);
-    padding-bottom: var(--space-4);
-  }
-  .form-section-header h2 { font-size: 16px; }
-  .form-section-body { gap: var(--space-5); }
-
-  .form-row { grid-template-columns: 1fr 1fr; gap: var(--space-5); }
-  .form-field { gap: 8px; }
-  .form-label { font-size: 14px; }
-  .form-hint { font-size: 13px; }
-
-  .form-input, .form-select {
-    height: 48px;
-    font-size: 15px;
-    padding: 0 18px;
-  }
-  .form-textarea {
-    font-size: 15px;
-    padding: 14px 18px;
-    min-height: 120px;
+  .app-main .page {
+    padding: var(--space-6) var(--space-6) var(--space-12);
   }
 
-  .radio-card { height: 48px; font-size: 15px; }
-  .checkbox-label { font-size: 15px; }
-
-  .stepper { height: 48px; }
-  .stepper-btn { width: 44px; height: 48px; font-size: 20px; }
-  .stepper-input { width: 70px; height: 48px; font-size: 16px; }
-
-  .komposisi-label { font-size: 15px; }
-  .komposisi-label .form-hint { font-size: 13px; }
-  .komposisi-total { font-size: 15px; }
-  .komposisi-total b { font-size: 18px; }
-
-  /* ---------- BUTTONS ---------- */
-  .btn-primary, .btn-secondary, .btn-danger, .btn-warning {
-    min-height: 48px;
-    padding: 12px 24px;
-    font-size: 15px;
-  }
-  .btn-large { height: 56px; font-size: 16px; padding: 0 32px; }
-  .btn-sm { min-height: 36px; padding: 6px 14px; font-size: 13px; }
-  .icon-btn { width: 38px; height: 38px; }
-
-  /* ---------- STEPPER WIZARD ---------- */
-  .stepper-container {
-    padding: var(--space-3) 0;
-    margin-bottom: var(--space-8);
-    gap: 12px;
-  }
-  .stepper-item {
-    padding: var(--space-3) var(--space-5);
-    font-size: 15px;
-    max-width: 220px;
-  }
-  .stepper-circle { width: 36px; height: 36px; font-size: 14px; }
-  .stepper-label { font-size: 15px; }
-
-  /* ---------- PASTE ---------- */
-  .paste-textarea {
-    min-height: 520px;
-    padding: 28px;
-    font-size: 14px;
-    line-height: 1.7;
-  }
-
-  /* ---------- PREVIEW ---------- */
-  .page-shell-wide .soal-list {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-5);
-  }
-  .soal-card:has(.edit-mode) { grid-column: span 2; }
-  .soal-body { padding: 24px 28px; }
-  .soal-question { font-size: 15.5px; margin-bottom: 20px; }
-  .soal-option { padding: 14px 18px; font-size: 14.5px; gap: 14px; }
-  .soal-option-letter { width: 28px; height: 28px; font-size: 12px; }
-  .soal-explanation { padding: 16px 20px; font-size: 13.5px; }
-  .soal-header { padding: 16px 24px; }
-
-  /* Filter bar */
-  .filter-chip { padding: 10px 20px; font-size: 14px; }
-  .filter-count { font-size: 12px; padding: 2px 8px; }
-
-  /* ---------- PUSTAKA GRID ---------- */
-  .pustaka-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-5);
-  }
-  .pustaka-card { padding: 24px; }
-  .pustaka-card-actions { gap: 8px; }
-  .pustaka-q { font-size: 14.5px; line-height: 1.55; }
-
-  .search-filter-wrapper { padding: 16px; }
-  .search-main-box { padding: 14px 20px; }
-  .search-main-box input { font-size: 16px; }
-  .filter-select { padding: 8px 16px; font-size: 14px; }
-
-  /* ---------- EXPERT CARD ---------- */
-  .expert-card { padding: 24px; }
-  .expert-card-title { font-size: 17px; }
-  .expert-card-meta { font-size: 14px; }
-
-  /* ---------- MODAL ---------- */
-  .modal { max-width: 700px; }
-  .modal-header { padding: 24px 32px; }
-  .modal-body { padding: 32px; }
-  .modal-footer { padding: 20px 32px; }
-  .modal-title { font-size: 18px; }
-  .modal-close { width: 40px; height: 40px; }
-
-  .confirm-modal { padding: 48px 40px 40px; }
-  .confirm-title { font-size: 24px; }
-  .confirm-message { font-size: 15px; }
-
-  /* ---------- AUTH ---------- */
-  .auth-card { max-width: 480px; padding: 40px; }
-
-  /* ---------- EXPORT ---------- */
-  .export-section { padding: 28px 32px; }
-  .export-summary { gap: var(--space-8); }
-  .summary-value { font-size: 18px; }
-  .summary-label { font-size: 12px; }
-
-  /* ---------- TOAST ---------- */
-  .toast { min-width: 340px; max-width: 480px; padding: 16px 22px; }
-  .toast-msg { font-size: 14px; }
-}
-
-/* =========================================================
-   LARGE DESKTOP (≥ 1280px) — EKSTRA LEGA
-   ========================================================= */
-@media (min-width: 1280px) {
+  /* ---- Landing containers ---- */
+  .header-container,
   .hero-container,
   .section-container,
-  .header-container,
-  .footer-container { max-width: 1500px; }
-  .landing-main { max-width: 1500px; }
+  .footer-container { max-width: 1280px; }
 
-  .hero-title { font-size: 80px; }
-  .hero-desc { font-size: 22px; }
-  .hero-visual { height: 560px; }
-  .v-card-math, .v-card-mcma { width: 340px; }
-  .v-card-bs { width: 300px; }
-  .v-card { padding: 24px; }
-  .v-math-box { font-size: 24px; padding: 16px; }
-  .v-q { font-size: 14px; }
-  .v-opt { font-size: 13px; padding: 10px 14px; }
+  /* ---- Preview: soal jadi 2 kolom (ruang dipakai, bukan di-zoom) ---- */
+  .page-shell-wide .soal-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .soal-card:has(.edit-mode) { grid-column: 1 / -1; }
 
-  .grid-3 { gap: var(--space-8); }
-  .step-card, .feature-card { padding: 48px 40px; }
-  .step-card h3, .feature-card h3 { font-size: 22px; }
-  .step-card p, .feature-card p { font-size: 16px; }
+  /* ---- Pustaka & Expert grid multi-kolom ---- */
+  .pustaka-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
 
-  .page-shell { max-width: 1100px; }
-  .page-shell-wide { max-width: 1500px; }
+  /* ---- Landing grid ---- */
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
 
-  /* Preview tetap 2 kolom, tapi lebih lega */
-  .page-shell-wide .soal-list { grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+  /* ---- Hero sedikit lebih lega di desain hero SAJA (bukan body) ---- */
+  .hero-section { padding: 140px 0 100px; }
+  /* Hero title TIDAK dibesarkan — biar konsisten */
 
-  /* Pustaka tetap 3 kolom di large desktop (bisa jadi 4 jika mau) */
-  .pustaka-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
-
-  .form-section { padding: 36px 48px; }
-
-  .landing-footer { padding: 96px 48px 48px; }
+  /* ---- Landing sections spacing sedikit lebih lega ---- */
+  .section-steps, .section-features, .section-creator,
+  .section-faq, .section-ekosistem { padding: 80px 0; }
+  .section-pain { padding: 80px 0 60px; }
 }
 
 /* =========================================================
-   v5.3 PATCH — RECIPE, ACCORDION, FORM-WARNING, SUMMARY
-   © 2026 Ekwan Nugroho — Wonogiri
+   LARGE (≥ 1280px) — Pustaka jadi 3 kolom, container lebih lega
+   ========================================================= */
+@media (min-width: 1280px) {
+  .page-shell { max-width: 980px; }
+  .page-shell-wide { max-width: 1440px; }
+  .header-container,
+  .hero-container,
+  .section-container,
+  .footer-container { max-width: 1360px; }
+
+  .pustaka-grid { grid-template-columns: repeat(3, 1fr); }
+  .page-shell-wide .soal-list { gap: var(--space-5); }
+}
+
+/* =========================================================
+   PUSTAKA CARD — Author Pill & Download Count
+   (Gunakan di pages/pustaka.js)
    ========================================================= */
 
-/* Recipe bar (build.js) */
-.recipe-bar {
+/* Row untuk meta penulis & download */
+.pustaka-meta-row {
   display: flex;
-  gap: var(--space-3);
   align-items: center;
-  margin-bottom: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-sm);
+  gap: 8px;
   flex-wrap: wrap;
-}
-.recipe-select {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 200px;
-}
-.recipe-select .form-select {
-  flex: 1;
-  margin: 0;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
 }
 
-/* Accordion (build.js modal, expert-new.js advanced) */
-.accordion {
-  margin-top: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.accordion-toggle {
-  display: flex;
+/* Pill penulis (dengan avatar lingkaran) */
+.author-pill,
+.pustaka-author {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 3px 10px 3px 3px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid rgba(30, 64, 175, 0.15);
+  border-radius: 999px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--primary);
-  background: var(--surface-muted);
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--duration) var(--ease);
-  font-family: inherit;
+  color: var(--primary-dark);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.accordion-toggle:hover { background: var(--primary-light); }
-.accordion-toggle svg { flex-shrink: 0; }
-
-/* Advanced toggle wrapper */
-.advanced-toggle {
-  display: flex;
+.author-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary));
+  color: white;
+  font-size: 9.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  margin: var(--space-3) 0;
-}
-.advanced-toggle .accordion-toggle {
-  width: auto;
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--surface-card);
-  font-size: 13px;
-}
-.advanced-toggle .accordion-toggle:hover {
-  background: var(--primary-light);
-  border-color: var(--primary-mid);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2);
 }
 
-/* Prompt textarea (build.js modal) */
-.prompt-textarea {
-  width: 100%;
-  min-height: 200px;
-  padding: 14px 16px;
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text);
-  background: var(--surface);
-  border: none;
-  border-top: 1px solid var(--border);
-  resize: vertical;
-  outline: none;
-  display: block;
+/* Pill jumlah download */
+.download-count,
+.pustaka-downloads {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: #fff7ed;
+  border: 1px solid rgba(194, 65, 12, 0.15);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #c2410c;
+  font-variant-numeric: tabular-nums;
 }
-.prompt-textarea:focus { background: white; }
+.download-count svg,
+.pustaka-downloads svg { opacity: 0.9; }
 
-/* Form warning (build.js) */
-.form-warning {
+/* Footer pustaka card (opsional, untuk tombol aksi) */
+.pustaka-card-footer {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #92400e;
-  background: #fffbeb;
-  border: 1px solid #fcd34d;
-  border-radius: var(--radius-sm);
-  margin-top: var(--space-2);
-}
-
-/* Result summary (paste.js) */
-.result-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+  margin-top: auto;
   border-top: 1px solid var(--border);
-  margin-top: var(--space-3);
 }
-.result-summary .summary-item {
+
+/* =========================================================
+   EXPERT CARD — Selaras dengan Pustaka
+   ========================================================= */
+
+.expert-card {
+  padding: 20px 20px 20px 24px; /* padding kiri lebih besar untuk border accent */
+}
+
+.expert-card-header { margin-bottom: 12px; }
+.expert-card-badges {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 100px;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
 }
-.result-summary .summary-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+
+/* Badge "Selesai" kecil untuk project yang sudah selesai */
+.badge-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.expert-card-body {
+  flex: 1;
+  margin-bottom: 4px;
+}
+
+/* Meta topik */
+.expert-card .expert-card-meta {
+  font-size: 12.5px;
   color: var(--text-muted);
-  font-weight: 700;
-}
-.result-summary .summary-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
+  margin: 0 0 14px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
 }
 
-/* Warnings detail (paste.js) */
-.warnings-detail {
-  margin-top: var(--space-3);
-  border: 1px solid #fcd34d;
-  border-radius: var(--radius-sm);
-  background: #fffbeb;
-  padding: 10px 14px;
+/* Progress header */
+.expert-card-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
-.warnings-detail summary {
-  font-weight: 700;
-  font-size: 13px;
-  color: #92400e;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
+.expert-progress-pct {
+  color: var(--primary);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
-.warnings-detail summary::-webkit-details-marker { display: none; }
-.warnings-detail summary::after {
-  content: ' ▾';
-  color: var(--warning);
-}
-.warnings-detail[open] summary::after { content: ' ▴'; }
-.warnings-detail ul {
-  margin: 8px 0 0;
-  padding-left: 20px;
-  font-size: 12px;
-  color: #92400e;
-  line-height: 1.5;
-}
-.warnings-detail li { margin-bottom: 4px; }
-.warnings-detail li:last-child { margin-bottom: 0; }
+.expert-card.is-done .expert-progress-pct { color: var(--success); }
 
-/* Responsive adjustments */
-@media (min-width: 1024px) {
-  .recipe-bar { padding: var(--space-4) var(--space-5); gap: var(--space-4); }
-  .accordion-toggle { padding: 12px 18px; font-size: 14px; }
-  .advanced-toggle .accordion-toggle { padding: 12px 24px; font-size: 14px; }
+/* Footer stats */
+.expert-card-footer {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  border-top: 1px dashed var(--border);
+}
+.expert-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--surface-muted);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.expert-stat svg { opacity: 0.75; flex-shrink: 0; }
+
+/* Actions */
+.expert-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+.expert-card-actions .btn-primary { flex: 1; }
+.expert-card-actions .btn-danger {
+  flex-shrink: 0;
+  width: auto;
+  padding: 6px 12px;
 }
