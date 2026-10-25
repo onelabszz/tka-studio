@@ -190,6 +190,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
             <div>
               <h1 class="page-title" style="margin:0;">${ws.judul}</h1>
               <p class="page-subtitle">${ws.mapel} · ${ws.kelas} · ${ws.topik || 'Umum'}</p>
+              ${ws.kompetensi && html`<p class="text-muted text-sm mt-1" style="max-width:600px; font-style:italic;">Kompetensi: "${ws.kompetensi}"</p>`}
               <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
                 <span class="badge-muted" style="background: var(--primary-light); color: var(--primary);">
                   Tipe: ${(ws.tipe_fokus || 'campur').toUpperCase()}
