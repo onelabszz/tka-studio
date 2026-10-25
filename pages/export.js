@@ -7,9 +7,10 @@ import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useMemo } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
-  ArrowLeft, Download, CheckCircle2, ExternalLink, Copy, Check,
+  ArrowLeft, Download, CheckCircle2, Copy, Check,
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
-  CloudUpload, Loader2, MonitorPlay
+  CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
+  CircleCheck, Image as ImageIcon, Shield, Zap
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -17,6 +18,7 @@ import { downloadCSV } from '../lib/csv-export.js';
 import { saveToBank } from '../lib/bank-soal.js';
 import { Stepper } from '../components/Stepper.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
+import { PageHero } from '../components/PageHero.js';
 
 const html = htm.bind(h);
 
@@ -31,7 +33,7 @@ export function ExportPage({ navigate, profile }) {
   const [durasi, setDurasi] = useState(draft?.paket?.durasiMenit || 30);
   const [acakMode, setAcakMode] = useState(draft?.paket?.acakMode || 'per-tipe');
   const [latihanMandiri, setLatihanMandiri] = useState(draft?.paket?.latihanMandiri !== false);
-  
+
   const [downloaded, setDownloaded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -106,13 +108,13 @@ export function ExportPage({ navigate, profile }) {
       const json = toLocalHostFormat(final);
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(json))));
       const ok = await copyText(encoded);
-      if (ok) { 
-        setCopied(true); 
-        setTimeout(() => setCopied(false), 2000); 
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
         if (window.showToast) window.showToast('Kode berhasil disalin ke clipboard.', 'success');
       }
-    } catch (e) { 
-      setError(String(e.message || e)); 
+    } catch (e) {
+      setError(String(e.message || e));
       if (window.showToast) window.showToast('Gagal menyalin kode.', 'error');
     }
   };
@@ -123,10 +125,10 @@ export function ExportPage({ navigate, profile }) {
     try {
       const final = buildFinalPaket();
       const v = validatePaket(final);
-      if (!v.valid) { 
-        setError(v.errors.map((e) => e.message).join('; ')); 
-        setSaving(false); 
-        return; 
+      if (!v.valid) {
+        setError(v.errors.map((e) => e.message).join('; '));
+        setSaving(false);
+        return;
       }
       await saveToBank(profile.id, final);
       if (window.showToast) window.showToast('Paket berhasil disimpan ke Koleksi Saya!', 'success');
@@ -178,152 +180,200 @@ export function ExportPage({ navigate, profile }) {
   const finalId = slugify(judul) || slugify(paket.judul) || 'paket-soal';
   const filename = `${finalId}.json`;
 
+  const previewValidate = validatePaket(buildFinalPaket());
+  const isReady = previewValidate.valid;
+
+  const chips = [
+    { icon: FileJson, text: filename },
+    { icon: Layers, text: `${paket.soal.length} soal` },
+    { icon: Clock, text: `${durasi} menit` }
+  ];
+
   return html`
     <div class="page">
       <div class="page-shell">
         <${Stepper} current="export" />
-        <div class="page-header">
-          <button class="btn-back" onClick=${() => navigate('/preview')}>
-            <${ArrowLeft} size=${16} /> Preview
-          </button>
-          <h1 class="page-title">Ekspor Paket Soal</h1>
-          <p class="page-subtitle">Siapkan file .json untuk dijalankan di TKA Local Host.</p>
-        </div>
 
+        <${PageHero}
+          icon=${isReady ? CheckCircle2 : Download}
+          title="Ekspor Paket Soal"
+          subtitle="Download file .json, lalu impor ke TKA Local Host."
+          chips=${chips}
+          accent=${isReady ? 'success' : 'primary'}
+          topnav=${html`
+            <button class="btn-back" onClick=${() => navigate('/preview')}>
+              <${ArrowLeft} size=${16} /> Preview
+            </button>
+            ${draft._fromExpert && html`
+              <span class="config-chip is-success">
+                <${Sparkles} size=${12} /> Dari Mode Expert
+              </span>
+            `}
+          `}
+        />
+
+        <!-- Image warning -->
         ${gambarDibutuhkan.length > 0 && html`
           <div class="result-card result-warning mb-4">
             <div class="result-header">
-              <${AlertTriangle} size=${18} color="var(--warning)" />
+              <${ImageIcon} size=${18} color="var(--warning)" />
               <h2>${gambarDibutuhkan.length} Soal Butuh Gambar</h2>
             </div>
-            <p class="text-muted text-sm mb-3">
-              Sebelum mengimpor ke Local Host, siapkan file berikut di folder <b>paket/gambar/</b>:
+            <p class="text-muted text-sm" style="margin-bottom: 6px;">
+              Siapkan file berikut di folder <b>paket/gambar/</b> sebelum impor:
             </p>
-            <ul class="error-list font-monospace mb-3">
-              ${gambarDibutuhkan.map((g) => html`<li>Soal #${g.nomor} &rarr; ${g.img}</li>`)}
-            </ul>
-          </div>
-        `}
-
-        <div class="export-section">
-          <div class="export-section-header">
-            <${FileJson} size=${18} />
-            <h2>Ringkasan Paket</h2>
-          </div>
-          <div class="export-summary">
-            <div class="summary-item">
-              <span class="summary-label">Nama File</span>
-              <span class="summary-value" style="font-family: monospace;">${filename}</span>
-            </div>
-            <div class="summary-item">
-              <span class="summary-label">Total Soal</span>
-              <span class="summary-value">${paket.soal.length}</span>
-            </div>
-            <div class="summary-item">
-              <span class="summary-label">Komposisi</span>
-              <span class="summary-value summary-value-sm">
-                PG ${counts.pg} · MCMA ${counts.mcma} · B/S ${counts.bs}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="export-section">
-          <div class="export-section-header">
-            <${Settings2} size=${18} />
-            <h2>Pengaturan Ujian</h2>
-          </div>
-
-          <div class="form-field">
-            <label class="form-label">Judul Paket (Tampil di Local Host)</label>
-            <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
-          </div>
-
-          <div class="form-field">
-            <label class="form-label">Durasi Ujian (menit)</label>
-            <input class="form-input" type="number" min=${1} max=${300} value=${durasi} onInput=${(e) => setDurasi(Number(e.target.value) || 30)} />
-          </div>
-
-          <div class="form-field">
-            <label class="form-label">Mode Acak Soal</label>
-            <div class="radio-group">
-              ${[{ v: 'per-tipe', l: 'Per Tipe' }, { v: 'full', l: 'Penuh' }, { v: 'none', l: 'Tidak Diacak' }].map(({ v, l }) => html`
-                <button type="button" class=${`radio-card ${acakMode === v ? 'active' : ''}`} onClick=${() => setAcakMode(v)}>${l}</button>
+            <div class="img-warning-list">
+              ${gambarDibutuhkan.map((g) => html`
+                <div class="img-warning-item">
+                  <span class="img-warning-num">#${g.nomor}</span>
+                  <span>${g.img}</span>
+                </div>
               `)}
             </div>
           </div>
+        `}
 
-          <label class="checkbox-label mt-3">
-            <input type="checkbox" checked=${latihanMandiri} onChange=${(e) => setLatihanMandiri(e.target.checked)} />
-            Bisa dipakai untuk latihan mandiri siswa
-          </label>
+        <!-- Summary receipt -->
+        <div class="export-receipt">
+          <div class="export-receipt-head">
+            <div class="export-receipt-icon"><${FileJson} size=${22} /></div>
+            <div class="export-receipt-headinfo">
+              <div class="export-receipt-title">File Output</div>
+              <div class="export-receipt-filename">${filename}</div>
+            </div>
+          </div>
+          <div class="export-receipt-stats">
+            <div class="export-receipt-stat">
+              <span class="export-receipt-stat-label">Total Soal</span>
+              <span class="export-receipt-stat-value">${paket.soal.length}</span>
+            </div>
+            <div class="export-receipt-stat">
+              <span class="export-receipt-stat-label">Durasi</span>
+              <span class="export-receipt-stat-value">${durasi} mnt</span>
+            </div>
+            <div class="export-receipt-stat">
+              <span class="export-receipt-stat-label">Versi</span>
+              <span class="export-receipt-stat-value">v1.1</span>
+            </div>
+          </div>
+          <div class="export-receipt-compo">
+            <span class="config-chip"><b>PG</b> ${counts.pg}</span>
+            <span class="config-chip is-warning"><b>MCMA</b> ${counts.mcma}</span>
+            <span class="config-chip" style="background:#ede9fe; color:#5b21b6; border-color:rgba(124,58,237,0.15);"><b>B/S</b> ${counts.bs}</span>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <${Settings2} size=${18} strokeWidth=${2} />
+            <h2>Pengaturan Ujian</h2>
+          </div>
+          <div class="form-section-body">
+            <div class="form-field">
+              <label class="form-label">Judul Paket (Tampil di Local Host)</label>
+              <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Durasi Ujian (menit)</label>
+                <input class="form-input" type="number" min=${1} max=${300} value=${durasi} onInput=${(e) => setDurasi(Number(e.target.value) || 30)} />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Mode Acak Soal</label>
+                <select class="form-select" value=${acakMode} onChange=${(e) => setAcakMode(e.target.value)}>
+                  <option value="per-tipe">Per Tipe</option>
+                  <option value="full">Penuh</option>
+                  <option value="none">Tidak Diacak</option>
+                </select>
+              </div>
+            </div>
+            <label class="checkbox-label">
+              <input type="checkbox" checked=${latihanMandiri} onChange=${(e) => setLatihanMandiri(e.target.checked)} />
+              Bisa dipakai untuk latihan mandiri siswa
+            </label>
+          </div>
         </div>
 
         ${error && html`
           <div class="result-card result-error">
             <div class="result-header">
-              <${Info} size=${18} color="var(--danger)" />
+              <${AlertTriangle} size=${18} color="var(--danger)" />
               <h2>Gagal mengekspor</h2>
             </div>
             <pre class="pre-wrap text-sm">${error}</pre>
           </div>
         `}
 
-        <!-- EKSPOR ACTIONS: JEMBATAN KE LOCAL HOST -->
-        <div class="export-actions" style="background: var(--surface-muted); padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-weight: 800; font-size: 18px; color: var(--navy-900); margin-bottom: 6px;">Kirim ke TKA Local Host</div>
-            <div style="font-size: 14px; color: var(--text-muted); max-width: 400px; margin: 0 auto;">Download file di bawah ini, lalu impor ke aplikasi ujian offline Anda.</div>
+        <!-- Bridge CTA -->
+        <div class="export-bridge">
+          <div class="export-bridge-head">
+            <div class="export-bridge-title">
+              <${Zap} size=${18} color="var(--amber-400)" />
+              Kirim ke TKA Local Host
+            </div>
+            <div class="export-bridge-sub">
+              Download file di bawah ini, lalu impor ke aplikasi ujian offline Anda.
+            </div>
           </div>
-          
-          <button class="btn-primary btn-large" onClick=${handleDownload} style="height: 56px; font-size: 16px; box-shadow: 0 8px 24px rgba(30, 64, 175, 0.3);">
-            <${Download} size=${20} /> Download File .json
-          </button>
-          
-          <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
-            <button class="btn-secondary" onClick=${handleDownloadCSV} style="flex: 1; height: 44px;">
-              <${FileJson} size=${16} /> Download CSV
+          <div class="export-bridge-actions">
+            <button class="btn-primary w-full" onClick=${handleDownload}>
+              <${Download} size=${20} /> Download File .json
             </button>
-            <button class="btn-secondary" onClick=${handleCopyCode} style="flex: 1; height: 44px;">
-              ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
-              ${copied ? 'Tersalin!' : 'Salin Kode'}
-            </button>
+            <div class="export-bridge-split">
+              <button class="btn-secondary" onClick=${handleDownloadCSV}>
+                <${FileJson} size=${16} /> Download CSV
+              </button>
+              <button class="btn-secondary" onClick=${handleCopyCode}>
+                ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
+                ${copied ? 'Tersalin!' : 'Salin Kode'}
+              </button>
+            </div>
           </div>
 
-          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-strong);">
+          <div class="export-bridge-divider">
             ${profile?.status === 'active' ? html`
-              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success); height: 44px; font-weight: 600;">
-                ${saving ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...` : html`<${CloudUpload} size=${16} /> Simpan ke Koleksi Saya`}
+              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: rgba(255,255,255,0.3); color: white;">
+                ${saving
+                  ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...`
+                  : html`<${CloudUpload} size=${16} /> Simpan ke Koleksi Saya`}
               </button>
             ` : html`
-              <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-                  Ingin menyimpan paket ini ke akun Anda agar bisa diedit kapan saja?
+              <div class="save-hint">
+                <div style="margin-bottom: 4px;">
+                  <${Lock} size=${14} style="vertical-align: -2px; margin-right: 4px;" />
+                  Ingin menyimpan paket ini ke akun Anda?
                 </div>
-                <button class="btn-primary w-full" onClick=${() => navigate('/login')} style="height: 44px;">
-                  <${Lock} size=${16} /> Daftar / Masuk untuk Menyimpan
+                <div style="font-size: 11.5px; opacity: 0.75; margin-bottom: 6px;">
+                  Daftar gratis — bisa diedit kapan saja & dibagikan ke Pustaka.
+                </div>
+                <button class="btn-primary w-full" onClick=${() => navigate('/login')}>
+                  <${Shield} size=${14} /> Daftar / Masuk
                 </button>
               </div>
             `}
           </div>
         </div>
 
-        <div class="export-section export-instructions">
-          <div class="export-section-header">
-            <${Info} size=${18} />
-            <h2>Cara Impor ke TKA Local Host</h2>
+        <!-- Instructions collapsible -->
+        <details class="export-steps-details" open=${gambarDibutuhkan.length > 0}>
+          <summary>
+            <${Info} size=${16} />
+            Cara Impor ke TKA Local Host
+          </summary>
+          <div class="export-steps-details-body">
+            <ol class="steps-list">
+              <li><div class="step-line"><span class="step-num">1</span><div>Buka <b>TKA Local Host</b> di laptop Anda</div></div></li>
+              <li><div class="step-line"><span class="step-num">2</span><div>Masuk menu <b>Paket Soal</b></div></div></li>
+              <li><div class="step-line"><span class="step-num">3</span><div>Klik <b>Import JSON</b> (atau Import CSV)</div></div></li>
+              <li><div class="step-line"><span class="step-num">4</span><div>Pilih file <b>${filename}</b> yang baru diunduh</div></div></li>
+              ${gambarDibutuhkan.length > 0 && html`
+                <li><div class="step-line"><span class="step-num">5</span><div>Upload gambar ke folder <b>paket/gambar/</b></div></div></li>
+              `}
+              <li><div class="step-line"><span class="step-num">${gambarDibutuhkan.length > 0 ? '6' : '5'}</span><div>Selesai — paket siap dipakai ujian</div></div></li>
+            </ol>
           </div>
-          <ol class="steps-list">
-            <li><div class="step-line"><span class="step-num">1</span><div>Buka TKA Local Host di laptop Anda</div></div></li>
-            <li><div class="step-line"><span class="step-num">2</span><div>Masuk menu <b>Paket Soal</b></div></div></li>
-            <li><div class="step-line"><span class="step-num">3</span><div>Klik tombol <b>Import JSON</b> (atau Import CSV)</div></div></li>
-            <li><div class="step-line"><span class="step-num">4</span><div>Pilih file <b>${filename}</b> yang baru diunduh</div></div></li>
-            ${gambarDibutuhkan.length > 0 && html`
-              <li><div class="step-line"><span class="step-num">5</span><div>Upload gambar ke folder <b>paket/gambar/</b></div></div></li>
-            `}
-            <li><div class="step-line"><span class="step-num">${gambarDibutuhkan.length > 0 ? '6' : '5'}</span><div>Selesai — paket siap dipakai ujian</div></div></li>
-          </ol>
-        </div>
+        </details>
 
         <div class="form-actions" style="display: flex; flex-direction: column; gap: 8px;">
           ${profile?.status === 'active' && html`
@@ -337,7 +387,7 @@ export function ExportPage({ navigate, profile }) {
         </div>
       </div>
 
-      <!-- MODAL SUKSES DENGAN PENDEKATAN JEMBATAN -->
+      <!-- Success Modal -->
       ${downloaded && html`
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -345,21 +395,21 @@ export function ExportPage({ navigate, profile }) {
               <div class="modal-title"><${CheckCircle2} size=${20} color="var(--success)" /><span>File berhasil diunduh!</span></div>
             </div>
             <div class="modal-body">
-              
               <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 64px; height: 64px; background: #dcfce7; color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-                  <${FileJson} size=${32} />
-                </div>
+                <div class="export-success-icon"><${FileJson} size=${36} /></div>
                 <h3 style="font-size: 18px; font-weight: 800; color: var(--navy-900); margin: 0 0 8px;">File siap diimpor!</h3>
-                <p class="text-muted text-sm">File <b>${filename}</b> tersimpan di folder Download HP/laptop Anda.</p>
+                <p class="text-muted text-sm">File <b style="font-family: monospace;">${filename}</b> tersimpan di folder Download Anda.</p>
               </div>
-              
-              <div style="background: var(--surface-muted); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                <div style="font-weight: 700; font-size: 14px; margin-bottom: 16px; color: var(--navy-900);">Langkah Selanjutnya di TKA Local Host:</div>
+
+              <div style="background: var(--surface-muted); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;">
+                <div style="font-weight: 700; font-size: 13px; margin-bottom: 12px; color: var(--navy-900); display: flex; align-items: center; gap: 6px;">
+                  <${ArrowRight} size=${14} color="var(--primary)" />
+                  Langkah Selanjutnya di TKA Local Host
+                </div>
                 <div class="steps-list">
                   <div class="step-line"><span class="step-num">1</span><div>Buka aplikasi <b>TKA Local Host</b>.</div></div>
                   <div class="step-line"><span class="step-num">2</span><div>Masuk ke menu <b>Paket Soal</b> → Klik <b>Import JSON</b>.</div></div>
-                  <div class="step-line"><span class="step-num">3</span><div>Pilih file <b>${filename}</b> yang baru saja diunduh.</div></div>
+                  <div class="step-line"><span class="step-num">3</span><div>Pilih file <b>${filename}</b>.</div></div>
                   ${gambarDibutuhkan.length > 0 && html`
                     <div class="step-line"><span class="step-num">4</span><div>Upload <b>${gambarDibutuhkan.length} file gambar</b> ke folder <code>paket/gambar/</code>.</div></div>
                   `}
@@ -368,21 +418,22 @@ export function ExportPage({ navigate, profile }) {
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setDownloaded(false)}>Tutup</button>
-              <button class="btn-primary" onClick=${handleFinish}>Buat Soal Baru</button>
+              <button class="btn-primary" onClick=${handleFinish}>
+                <${CircleCheck} size=${16} /> Buat Soal Baru
+              </button>
             </div>
           </div>
         </div>
       `}
 
-      <!-- CUSTOM CONFIRM MODAL -->
       ${confirmData && html`
-        <${ConfirmModal} 
-          title=${confirmData.title} 
-          message=${confirmData.message} 
+        <${ConfirmModal}
+          title=${confirmData.title}
+          message=${confirmData.message}
           confirmText=${confirmData.confirmText}
           isDanger=${confirmData.isDanger}
-          onConfirm=${confirmData.onConfirm} 
-          onCancel=${() => setConfirmData(null)} 
+          onConfirm=${confirmData.onConfirm}
+          onCancel=${() => setConfirmData(null)}
         />
       `}
     </div>
