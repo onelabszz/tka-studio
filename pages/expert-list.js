@@ -86,31 +86,33 @@ export function ExpertListPage({ navigate, profile }) {
                 const isDone = totalSoal >= ws.target_soal;
 
                 return html`
-                  <div class="pustaka-card" style="border-left: 4px solid ${isDone ? 'var(--success)' : 'var(--primary-mid)'};">
-                    <div class="pustaka-card-header">
-                      <span class="badge-pg">${ws.mapel}</span>
-                      <span class="badge-muted">${ws.kelas}</span>
-                      <span class="badge-muted" style="background: var(--primary-light); color: var(--primary);">
-                        ${(ws.tipe_fokus || 'campur').toUpperCase()}
-                      </span>
+                  <div class=${'expert-card' + (isDone ? ' is-done' : '')}>
+                    <div class="expert-card-header">
+                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px;">
+                        <span class="badge-pg">${ws.mapel}</span>
+                        <span class="badge-muted">${ws.kelas}</span>
+                        <span class="badge-muted" style="background: var(--primary-light); color: var(--primary);">
+                          ${(ws.tipe_fokus || 'campur').toUpperCase()}
+                        </span>
+                      </div>
                     </div>
                     
-                    <div class="pustaka-card-body">
-                      <h3 style="font-size: 16px; margin: 0 0 8px; color: var(--navy-900); font-weight: 700;">${ws.judul}</h3>
-                      <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                    <div style="flex: 1;">
+                      <h3 class="expert-card-title">${ws.judul}</h3>
+                      <div class="expert-card-meta">
                         Topik: ${ws.topik || '-'}
                       </div>
                       
-                      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-top: 16px; margin-bottom: 6px;">
                         <span style="color: var(--text-muted);">Progress</span>
                         <span style="color: var(--text);">${totalSoal} / ${ws.target_soal} soal</span>
                       </div>
-                      <div style="height: 8px; background: var(--surface-muted); border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${progress}%; background: ${isDone ? 'var(--success)' : 'var(--primary-mid)'}; transition: width 0.4s var(--ease-out);"></div>
+                      <div class="expert-progress-bg">
+                        <div class="expert-progress-bar" style="width: ${progress}%; background: ${isDone ? 'var(--success)' : 'var(--primary-mid)'};"></div>
                       </div>
                     </div>
 
-                    <div class="pustaka-card-actions">
+                    <div class="pustaka-card-actions" style="margin-top: 16px;">
                       <button class="btn-primary btn-sm" onClick=${() => navigate('/expert/' + ws.id)} style="flex: 1;">
                         ${isDone ? 'Lihat Hasil' : 'Lanjutkan'}
                       </button>
