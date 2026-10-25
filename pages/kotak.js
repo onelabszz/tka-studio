@@ -97,8 +97,8 @@ export function KotakPage({ navigate }) {
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
           <div>
             <button class="btn-back" onClick=${() => navigate('/pustaka')}><${ArrowLeft} size=${16} /> Pustaka</button>
-            <h1 class="page-title">Kotak Saya</h1>
-            <p class="page-subtitle">${items.length} soal diambil dari Pustaka.</p>
+            <h1 class="page-title">Keranjang Soal</h1>
+            <p class="page-subtitle">${items.length} soal diambil dari Pustaka. Siap dirakit menjadi paket ujian.</p>
           </div>
           ${items.length > 0 && html`
             <button class="btn-secondary" onClick=${handleClear} style="color: var(--danger); border-color: #fecaca;">
