@@ -166,10 +166,9 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         soal: finalSoal 
       }, 
       warnings: [],
-      _fromExpert: { id: ws.id, judul: ws.judul }  // ← TANDAI ASAL DRAFT
+      _fromExpert: { id: ws.id, judul: ws.judul }
     }));
     navigate('/preview');
-  };
 
   if (loading) return html`<div class="page"><div class="text-center mt-4"><${Loader2} class="spin" /></div></div>`;
   if (!ws) return null;
