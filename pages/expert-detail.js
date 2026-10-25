@@ -29,7 +29,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   const [copied, setCopied] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [parsing, setParsing] = useState(false);
-  const [reviewItems, setReviewItems] = useState(null); // Menyimpan hasil parse sementara
+  const [reviewItems, setReviewItems] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // State untuk Teks Wacana (B.Indo)
@@ -42,9 +42,9 @@ export function ExpertDetailPage({ navigate, profile, id }) {
 
   const loadWorkspace = async () => {
     try {
-    const data = await getWorkspaceById(id);
+      const data = await getWorkspaceById(id);
       if (data.user_id !== profile?.id) {
-        alert('Anda tidak memiliki akses ke ruang kerja ini.');
+        if (window.showToast) window.showToast('Anda tidak memiliki akses ke ruang kerja ini.', 'error');
         navigate('/expert');
         return;
       }
@@ -52,7 +52,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
       setWacanaText(data.teks_wacana || '');
       generatePrompt(data);
     } catch (e) {
-      alert('Gagal memuat proyek: ' + e.message);
+      if (window.showToast) window.showToast('Gagal memuat proyek: ' + e.message, 'error');
       navigate('/expert');
     }
     setLoading(false);
@@ -87,8 +87,10 @@ export function ExpertDetailPage({ navigate, profile, id }) {
       setWs(updated);
       setEditWacana(false);
       generatePrompt(updated);
-      alert('Teks wacana berhasil disimpan!');
-    } catch (e) { alert(e.message); }
+      if (window.showToast) window.showToast('Teks wacana berhasil disimpan!', 'success');
+    } catch (e) {
+      if (window.showToast) window.showToast(e.message, 'error');
+    }
     setSaving(false);
   };
 
@@ -98,19 +100,18 @@ export function ExpertDetailPage({ navigate, profile, id }) {
     setTimeout(() => {
       const parsed = smartParse(pasteText);
       if (!parsed.ok) {
-        alert('Format tidak dikenali: ' + parsed.error);
+        if (window.showToast) window.showToast('Format tidak dikenali: ' + parsed.error, 'error');
         setParsing(false);
         return;
       }
       
       const { paket, errors } = normalizePaket(parsed.raw);
       if (!paket) {
-        alert('Soal tidak valid: ' + (errors[0]?.message || 'Unknown error'));
+        if (window.showToast) window.showToast('Soal tidak valid: ' + (errors[0]?.message || 'Unknown error'), 'error');
         setParsing(false);
         return;
       }
 
-      // Beri ID sementara untuk review
       const itemsToReview = paket.soal.map((s, i) => ({
         ...s,
         tempId: 'temp-' + i,
@@ -125,7 +126,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   const handleSimpanBatch = async () => {
     const acceptedItems = reviewItems.filter(item => item.accepted).map(({tempId, accepted, ...rest}) => rest);
     if (acceptedItems.length === 0) {
-      alert('Pilih minimal 1 soal untuk disimpan.');
+      if (window.showToast) window.showToast('Pilih minimal 1 soal untuk disimpan.', 'info');
       return;
     }
 
@@ -136,7 +137,6 @@ export function ExpertDetailPage({ navigate, profile, id }) {
       setReviewItems(null);
       setPasteText('');
       
-      // Cek apakah target sudah terpenuhi
       if (updatedWs.soal.length >= updatedWs.target_soal) {
         await updateWorkspaceSoal(ws.id, [], 'completed');
         setWs({ ...updatedWs, status: 'completed' });
@@ -144,7 +144,7 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         generatePrompt(updatedWs);
       }
     } catch (e) {
-      alert('Gagal menyimpan: ' + e.message);
+      if (window.showToast) window.showToast('Gagal menyimpan: ' + e.message, 'error');
     }
     setSaving(false);
   };
