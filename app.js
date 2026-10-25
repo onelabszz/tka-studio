@@ -357,7 +357,7 @@ function Landing({ profile }) {
             </div>
 
             <div class="creator-card">
-              <div class="creator-avatar">EN</div>
+              <${CreatorAvatar} />
               <div class="creator-info">
                 <h3>Ekwan Nugroho</h3>
                 <div class="creator-meta">
