@@ -1168,3 +1168,49 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   width: auto;
   padding: 6px 12px;
 }
+
+/* =========================================================
+   PUSTAKA — Supplementary (v5.4.1)
+   ========================================================= */
+
+/* Body card — fleksibel, grow agar actions selalu di bawah */
+.pustaka-card-body {
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+/* Teks soal — base (sebelumnya hanya ada di media query) */
+.pustaka-q {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  font-weight: 500;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Preview meta (di modal detail) */
+.pustaka-preview-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Preview footer (di modal detail) */
+.pustaka-preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-muted);
+}
