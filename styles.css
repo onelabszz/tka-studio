@@ -2850,8 +2850,8 @@ h1, h2, h3, h4 {
    UI TOMBOL OPSI UJIAN (RADIO & CHECKBOX)
    ========================================================= */
 .option-indicator {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border: 2px solid var(--border-strong);
   display: inline-flex;
   align-items: center;
@@ -2860,21 +2860,6 @@ h1, h2, h3, h4 {
   transition: all 0.2s;
   margin-right: 12px;
   background: white;
-}
-
-/* Bentuk Bulat untuk PG */
-.option-indicator.radio {
-  border-radius: 50%;
-}
-.option-indicator.radio.active {
-  border-color: var(--primary-mid);
-}
-.option-indicator.radio.active::after {
-  content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--primary-mid);
 }
 
 /* Bentuk Kotak untuk MCMA */
@@ -2886,13 +2871,3 @@ h1, h2, h3, h4 {
   border-color: var(--primary-mid);
   color: white;
 }
-
-/* Modifikasi opsi agar sejajar */
-.soal-option {
-  align-items: center;
-}
-.soal-option.correct {
-  background: #f0fdf4;
-  border-color: var(--success);
-}
-
