@@ -393,8 +393,13 @@ export function PreviewPage({ navigate, profile }) {
       <div class="page-shell page-shell-wide">
         <${Stepper} current="preview" />
         <div class="page-header">
-          <button class="btn-back" onClick=${function () { navigate('/paste'); }}>
-            <${ArrowLeft} size=${16} /> Tempel Hasil
+          <button class="btn-back" onClick=${function () {
+            const d = JSON.parse(localStorage.getItem('tka-studio-draft-v1') || '{}');
+            if (d._fromExpert) navigate('/expert/' + d._fromExpert.id);
+            else navigate('/paste');
+          }}>
+            <${ArrowLeft} size=${16} /> 
+            ${draft?._fromExpert ? 'Kembali ke Expert' : 'Tempel Hasil'}
           </button>
           <h1 class="page-title">Preview Soal</h1>
           <p class="page-subtitle">${paket.soal.length} soal · ${paket.mapel} · ${paket.judul}</p>
