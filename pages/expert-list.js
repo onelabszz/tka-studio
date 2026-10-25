@@ -7,12 +7,14 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { ArrowLeft, Plus, FolderOpen, Trash2, Loader2 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getWorkspaces, deleteWorkspace } from '../lib/expert-workspace.js';
+import { ConfirmModal } from '../components/ConfirmModal.js';
 
 const html = htm.bind(h);
 
 export function ExpertListPage({ navigate, profile }) {
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmData, setConfirmData] = useState(null);
 
   useEffect(() => {
     if (!profile) { navigate('/login'); return; }
@@ -26,19 +28,28 @@ export function ExpertListPage({ navigate, profile }) {
       setWorkspaces(data);
     } catch (e) {
       console.error(e);
-      alert('Gagal memuat ruang kerja: ' + e.message);
+      if (window.showToast) window.showToast('Gagal memuat ruang kerja: ' + e.message, 'error');
     }
     setLoading(false);
   };
 
-  const handleDelete = async (id, judul) => {
-    if (!confirm(`Hapus ruang kerja "${judul}"? Semua soal di dalamnya akan hilang permanen.`)) return;
-    try {
-      await deleteWorkspace(id);
-      loadData();
-    } catch (e) {
-      alert('Gagal menghapus: ' + e.message);
-    }
+  const handleDelete = (id, judul) => {
+    setConfirmData({
+      title: 'Hapus Ruang Kerja?',
+      message: `Proyek "${judul}" beserta semua soal di dalamnya akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`,
+      confirmText: 'Ya, Hapus',
+      isDanger: true,
+      onConfirm: async () => {
+        setConfirmData(null);
+        try {
+          await deleteWorkspace(id);
+          await loadData();
+          if (window.showToast) window.showToast('Ruang kerja berhasil dihapus.', 'success');
+        } catch (e) {
+          if (window.showToast) window.showToast('Gagal menghapus: ' + e.message, 'error');
+        }
+      }
+    });
   };
 
   return html`
@@ -56,13 +67,16 @@ export function ExpertListPage({ navigate, profile }) {
         </div>
 
         ${loading ? html`
-          <div class="text-center mt-4"><${Loader2} class="spin" /></div>
+          <div class="text-center mt-4"><${Loader2} class="spin" size=${32} color="var(--primary)" /></div>
         ` : html`
           ${workspaces.length === 0 ? html`
             <div class="empty-state">
-              <${FolderOpen} size=${32} strokeWidth=${1.5} />
-              <p>Belum ada ruang kerja. Buat proyek pertama Anda!</p>
-              <button class="btn-primary mt-3" onClick=${() => navigate('/expert/new')}>Mulai Proyek</button>
+              <${FolderOpen} size=${48} strokeWidth=${1.5} color="var(--text-subtle)" style="margin-bottom: 16px;" />
+              <h3 style="margin: 0 0 8px; font-size: 18px; color: var(--text);">Belum ada ruang kerja</h3>
+              <p>Buat proyek pertama Anda untuk mulai menyusun soal secara bertahap.</p>
+              <button class="btn-primary mt-3" onClick=${() => navigate('/expert/new')}>
+                <${Plus} size=${16} /> Mulai Proyek Baru
+              </button>
             </div>
           ` : html`
             <div class="pustaka-grid">
@@ -82,17 +96,17 @@ export function ExpertListPage({ navigate, profile }) {
                     </div>
                     
                     <div class="pustaka-card-body">
-                      <h3 style="font-size: 16px; margin: 0 0 8px; color: var(--navy-900);">${ws.judul}</h3>
+                      <h3 style="font-size: 16px; margin: 0 0 8px; color: var(--navy-900); font-weight: 700;">${ws.judul}</h3>
                       <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
                         Topik: ${ws.topik || '-'}
                       </div>
                       
-                      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-bottom: 4px;">
-                        <span>Progress</span>
-                        <span>${totalSoal} / ${ws.target_soal} soal</span>
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                        <span style="color: var(--text-muted);">Progress</span>
+                        <span style="color: var(--text);">${totalSoal} / ${ws.target_soal} soal</span>
                       </div>
                       <div style="height: 8px; background: var(--surface-muted); border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${progress}%; background: ${isDone ? 'var(--success)' : 'var(--primary-mid)'}; transition: width 0.3s;"></div>
+                        <div style="height: 100%; width: ${progress}%; background: ${isDone ? 'var(--success)' : 'var(--primary-mid)'}; transition: width 0.4s var(--ease-out);"></div>
                       </div>
                     </div>
 
@@ -100,7 +114,7 @@ export function ExpertListPage({ navigate, profile }) {
                       <button class="btn-primary btn-sm" onClick=${() => navigate('/expert/' + ws.id)} style="flex: 1;">
                         ${isDone ? 'Lihat Hasil' : 'Lanjutkan'}
                       </button>
-                      <button class="btn-secondary btn-sm" onClick=${() => handleDelete(ws.id, ws.judul)} title="Hapus">
+                      <button class="btn-danger btn-sm" onClick=${() => handleDelete(ws.id, ws.judul)} title="Hapus Proyek" style="padding: 6px 12px;">
                         <${Trash2} size=${14} />
                       </button>
                     </div>
@@ -111,6 +125,17 @@ export function ExpertListPage({ navigate, profile }) {
           `}
         `}
       </div>
+
+      ${confirmData && html`
+        <${ConfirmModal} 
+          title=${confirmData.title} 
+          message=${confirmData.message} 
+          confirmText=${confirmData.confirmText}
+          isDanger=${confirmData.isDanger}
+          onConfirm=${confirmData.onConfirm} 
+          onCancel=${() => setConfirmData(null)} 
+        />
+      `}
     </div>
   `;
 }
