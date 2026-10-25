@@ -154,8 +154,14 @@ export function ExportPage({ navigate, profile }) {
   };
 
   const handleFinish = () => {
+    const fromExpert = draft?._fromExpert;
     clearDraft();
-    navigate('/');
+    if (fromExpert) {
+      navigate('/expert/' + fromExpert.id);
+      if (window.showToast) window.showToast('Paket berhasil diekspor. Kembali ke Expert Mode.', 'success');
+    } else {
+      navigate('/');
+    }
   };
 
   const counts = {
