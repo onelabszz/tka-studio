@@ -3,7 +3,8 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Search, Loader2, BookOpen, User, ShoppingCart, Check,
-  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle
+  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle,
+  Filter // <-- IMPORT DITAMBAHKAN DI SINI
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getPustakaItems, addToKotak, getKotak, incrementDownload } from '../lib/pustaka.js';
 
@@ -46,7 +47,6 @@ export function PustakaPage({ navigate, profile }) {
     loadData(true);
   }, [debouncedSearch, mapel, kelas, tipe]);
 
-  // Render KaTeX saat modal preview dibuka
   useEffect(() => {
     if (previewItem) {
       setTimeout(() => {
@@ -182,7 +182,6 @@ export function PustakaPage({ navigate, profile }) {
         `}
       </div>
 
-      <!-- MODAL PREVIEW TERBARU -->
       ${previewItem && html`
         <div class="modal-backdrop" onClick=${() => setPreviewItem(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
