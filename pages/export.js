@@ -10,7 +10,7 @@ import {
   ArrowLeft, Download, CheckCircle2, Copy, Check,
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
   CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
-  CircleCheck, Image as ImageIcon, Shield, Zap
+  CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -155,7 +155,7 @@ export function ExportPage({ navigate, profile }) {
     });
   };
 
-  const handleFinish = () => {
+  const doFinish = () => {
     const fromExpert = draft && draft._fromExpert;
     clearDraft();
     if (fromExpert) {
@@ -164,6 +164,24 @@ export function ExportPage({ navigate, profile }) {
     } else {
       navigate('/');
     }
+  };
+
+  const handleFinish = () => {
+    // Konfirmasi kalau belum download
+    if (!downloaded) {
+      setConfirmData({
+        title: 'Keluar tanpa download?',
+        message: 'Draft akan dihapus dari browser. Pastikan Anda sudah mendownload file .json atau CSV sebelum keluar.',
+        confirmText: 'Ya, Keluar',
+        isDanger: true,
+        onConfirm: () => {
+          setConfirmData(null);
+          doFinish();
+        }
+      });
+      return;
+    }
+    doFinish();
   };
 
   const counts = {
@@ -183,9 +201,31 @@ export function ExportPage({ navigate, profile }) {
   const previewValidate = validatePaket(buildFinalPaket());
   const isReady = previewValidate.valid;
 
+  const totalSoal = paket.soal.length;
+  const detikPerSoal = totalSoal > 0 && durasi > 0 ? Math.round((durasi * 60) / totalSoal) : 0;
+  const hintDurasiClass = detikPerSoal > 0 && detikPerSoal < 30 ? 'is-warn'
+    : detikPerSoal > 180 ? 'is-info' : '';
+  const hintDurasiText = detikPerSoal > 0
+    ? detikPerSoal < 30
+      ? `~${detikPerSoal} dtk/soal — terlalu cepat untuk soal HOTS`
+      : detikPerSoal > 180
+        ? `~${detikPerSoal} dtk/soal — terlalu longgar`
+        : `~${detikPerSoal} dtk/soal — wajar`
+    : '';
+
+  // Status login
+  const isActive = profile?.status === 'active';
+  const isPending = profile && profile.status !== 'active';
+
+  // Aksen PageHero dinamis
+  const hasImgWarning = gambarDibutuhkan.length > 0;
+  const hasValidationError = !!error || !isReady;
+  const heroAccent = hasValidationError || hasImgWarning ? 'warning'
+    : isReady ? 'success' : 'primary';
+
   const chips = [
     { icon: FileJson, text: filename },
-    { icon: Layers, text: `${paket.soal.length} soal` },
+    { icon: Layers, text: `${totalSoal} soal` },
     { icon: Clock, text: `${durasi} menit` }
   ];
 
@@ -199,7 +239,7 @@ export function ExportPage({ navigate, profile }) {
           title="Ekspor Paket Soal"
           subtitle="Download file .json, lalu impor ke TKA Local Host."
           chips=${chips}
-          accent=${isReady ? 'success' : 'primary'}
+          accent=${heroAccent}
           topnav=${html`
             <button class="btn-back" onClick=${() => navigate('/preview')}>
               <${ArrowLeft} size=${16} /> Preview
@@ -212,7 +252,6 @@ export function ExportPage({ navigate, profile }) {
           `}
         />
 
-        <!-- Image warning -->
         ${gambarDibutuhkan.length > 0 && html`
           <div class="result-card result-warning mb-4">
             <div class="result-header">
@@ -233,7 +272,7 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
-        <!-- Summary receipt -->
+        <!-- Receipt -->
         <div class="export-receipt">
           <div class="export-receipt-head">
             <div class="export-receipt-icon"><${FileJson} size=${22} /></div>
@@ -245,7 +284,7 @@ export function ExportPage({ navigate, profile }) {
           <div class="export-receipt-stats">
             <div class="export-receipt-stat">
               <span class="export-receipt-stat-label">Total Soal</span>
-              <span class="export-receipt-stat-value">${paket.soal.length}</span>
+              <span class="export-receipt-stat-value">${totalSoal}</span>
             </div>
             <div class="export-receipt-stat">
               <span class="export-receipt-stat-label">Durasi</span>
@@ -259,7 +298,7 @@ export function ExportPage({ navigate, profile }) {
           <div class="export-receipt-compo">
             <span class="config-chip"><b>PG</b> ${counts.pg}</span>
             <span class="config-chip is-warning"><b>MCMA</b> ${counts.mcma}</span>
-            <span class="config-chip" style="background:#ede9fe; color:#5b21b6; border-color:rgba(124,58,237,0.15);"><b>B/S</b> ${counts.bs}</span>
+            <span class="config-chip is-purple"><b>B/S</b> ${counts.bs}</span>
           </div>
         </div>
 
@@ -273,19 +312,35 @@ export function ExportPage({ navigate, profile }) {
             <div class="form-field">
               <label class="form-label">Judul Paket (Tampil di Local Host)</label>
               <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
+              <span class="field-hint-inline">
+                <${FileJson} size=${11} style="vertical-align:-2px; margin-right:3px;" />
+                ${filename}
+              </span>
             </div>
             <div class="form-row">
               <div class="form-field">
                 <label class="form-label">Durasi Ujian (menit)</label>
                 <input class="form-input" type="number" min=${1} max=${300} value=${durasi} onInput=${(e) => setDurasi(Number(e.target.value) || 30)} />
+                ${hintDurasiText && html`
+                  <span class=${'field-hint-inline ' + hintDurasiClass}>
+                    <${ClockIcon} size=${11} style="vertical-align:-2px; margin-right:3px;" />
+                    ${hintDurasiText}
+                  </span>
+                `}
               </div>
               <div class="form-field">
                 <label class="form-label">Mode Acak Soal</label>
-                <select class="form-select" value=${acakMode} onChange=${(e) => setAcakMode(e.target.value)}>
-                  <option value="per-tipe">Per Tipe</option>
-                  <option value="full">Penuh</option>
-                  <option value="none">Tidak Diacak</option>
-                </select>
+                <div class="radio-group">
+                  ${[
+                    { v: 'per-tipe', l: 'Per Tipe' },
+                    { v: 'full', l: 'Penuh' },
+                    { v: 'none', l: 'Tidak' }
+                  ].map(({ v, l }) => html`
+                    <button type="button" class=${'radio-card ' + (acakMode === v ? 'active' : '')} onClick=${() => setAcakMode(v)}>
+                      ${l}
+                    </button>
+                  `)}
+                </div>
               </div>
             </div>
             <label class="checkbox-label">
@@ -305,7 +360,7 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
-        <!-- Bridge CTA -->
+        <!-- Bridge -->
         <div class="export-bridge">
           <div class="export-bridge-head">
             <div class="export-bridge-title">
@@ -317,14 +372,14 @@ export function ExportPage({ navigate, profile }) {
             </div>
           </div>
           <div class="export-bridge-actions">
-            <button class="btn-primary w-full" onClick=${handleDownload}>
+            <button class="btn-primary w-full" onClick=${handleDownload} style="background: white; color: var(--primary);">
               <${Download} size=${20} /> Download File .json
             </button>
             <div class="export-bridge-split">
-              <button class="btn-secondary" onClick=${handleDownloadCSV}>
+              <button class="btn-glass" onClick=${handleDownloadCSV}>
                 <${FileJson} size=${16} /> Download CSV
               </button>
-              <button class="btn-secondary" onClick=${handleCopyCode}>
+              <button class="btn-glass" onClick=${handleCopyCode}>
                 ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
                 ${copied ? 'Tersalin!' : 'Salin Kode'}
               </button>
@@ -332,12 +387,22 @@ export function ExportPage({ navigate, profile }) {
           </div>
 
           <div class="export-bridge-divider">
-            ${profile?.status === 'active' ? html`
-              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: rgba(255,255,255,0.3); color: white;">
+            ${isActive ? html`
+              <button class="btn-glass w-full" onClick=${handleSaveToCloud} disabled=${saving}>
                 ${saving
                   ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...`
                   : html`<${CloudUpload} size=${16} /> Simpan ke Koleksi Saya`}
               </button>
+            ` : isPending ? html`
+              <div class="export-status-card">
+                <div class="export-status-card-icon"><${ClockIcon} size=${16} /></div>
+                <div class="export-status-card-body">
+                  <div class="export-status-card-title">Akun menunggu verifikasi</div>
+                  <div class="export-status-card-desc">
+                    Paket bisa diunduh bebas. Fitur simpan ke Koleksi Saya aktif setelah admin menyetujui akun Anda.
+                  </div>
+                </div>
+              </div>
             ` : html`
               <div class="save-hint">
                 <div style="margin-bottom: 4px;">
@@ -347,7 +412,7 @@ export function ExportPage({ navigate, profile }) {
                 <div style="font-size: 11.5px; opacity: 0.75; margin-bottom: 6px;">
                   Daftar gratis — bisa diedit kapan saja & dibagikan ke Pustaka.
                 </div>
-                <button class="btn-primary w-full" onClick=${() => navigate('/login')}>
+                <button class="btn-primary w-full" onClick=${() => navigate('/login')} style="background: white; color: var(--primary); height: 40px; font-size: 13px;">
                   <${Shield} size=${14} /> Daftar / Masuk
                 </button>
               </div>
@@ -355,7 +420,7 @@ export function ExportPage({ navigate, profile }) {
           </div>
         </div>
 
-        <!-- Instructions collapsible -->
+        <!-- Instructions -->
         <details class="export-steps-details" open=${gambarDibutuhkan.length > 0}>
           <summary>
             <${Info} size=${16} />
@@ -376,7 +441,7 @@ export function ExportPage({ navigate, profile }) {
         </details>
 
         <div class="form-actions" style="display: flex; flex-direction: column; gap: 8px;">
-          ${profile?.status === 'active' && html`
+          ${isActive && html`
             <button class="btn-secondary w-full" onClick=${handleDuplicateDraft}>
               <${CopyPlus} size=${16} /> Duplikat Draf (Ubah Topik)
             </button>
@@ -387,7 +452,6 @@ export function ExportPage({ navigate, profile }) {
         </div>
       </div>
 
-      <!-- Success Modal -->
       ${downloaded && html`
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
