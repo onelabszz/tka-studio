@@ -9,7 +9,7 @@ import {
   Sparkles, ArrowRight, ArrowLeft, Copy, Check, X,
   BookOpen, Gauge, ListChecks, MessageSquareText, Settings2, Info, ExternalLink,
   ClipboardCheck, ChevronDown, ChevronUp, CircleDot, CheckCheck, Wand2, Image as ImageIcon,
-  Save, FolderOpen,
+  Save, FolderOpen, Star // <-- ICON STAR DITAMBAHKAN DI SINI
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { buildPrompt } from '../lib/prompt-template.js';
 import { Stepper } from '../components/Stepper.js';
@@ -134,7 +134,6 @@ export function BuildPage({ navigate }) {
     setRecipes(updated);
     localStorage.setItem('tka-recipes', JSON.stringify(updated));
     
-    // Perbaikan: Gunakan Toast, bukan alert
     if (window.showToast) window.showToast('Resep berhasil disimpan!', 'success');
   };
 
@@ -158,7 +157,6 @@ export function BuildPage({ navigate }) {
       await copyText(prompt);
       setShowModal(true);
     } catch (err) { 
-      // Perbaikan: Gunakan Toast, bukan alert
       if (window.showToast) window.showToast('Gagal membuat prompt: ' + err.message, 'error');
     }
   };
