@@ -1,6 +1,7 @@
 /**
  * TKA Studio — pages/export.js
  * © 2026 Ekwan Nugroho — Wonogiri
+ * All rights reserved.
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useMemo } from 'https://esm.sh/preact@10.24.3/hooks';
@@ -8,7 +9,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Download, CheckCircle2, ExternalLink, Copy, Check,
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
-  CloudUpload, Loader2,
+  CloudUpload, Loader2, MonitorPlay
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -30,6 +31,7 @@ export function ExportPage({ navigate, profile }) {
   const [durasi, setDurasi] = useState(draft?.paket?.durasiMenit || 30);
   const [acakMode, setAcakMode] = useState(draft?.paket?.acakMode || 'per-tipe');
   const [latihanMandiri, setLatihanMandiri] = useState(draft?.paket?.latihanMandiri !== false);
+  
   const [downloaded, setDownloaded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -80,7 +82,6 @@ export function ExportPage({ navigate, profile }) {
       saveDraft(updated);
       setPaket(final);
       setDownloaded(true);
-      if (window.showToast) window.showToast('File berhasil diunduh.', 'success');
     } catch (e) {
       setError(String(e.message || e));
       if (window.showToast) window.showToast('Gagal mengunduh file.', 'error');
@@ -128,11 +129,11 @@ export function ExportPage({ navigate, profile }) {
         return; 
       }
       await saveToBank(profile.id, final);
-      if (window.showToast) window.showToast('Paket berhasil disimpan ke Bank Soal!', 'success');
+      if (window.showToast) window.showToast('Paket berhasil disimpan ke Koleksi Saya!', 'success');
       navigate('/bank-soal');
     } catch (e) {
       setError('Gagal menyimpan ke cloud: ' + (e.message || e));
-      if (window.showToast) window.showToast('Gagal menyimpan ke Bank Soal.', 'error');
+      if (window.showToast) window.showToast('Gagal menyimpan ke cloud.', 'error');
     }
     setSaving(false);
   };
@@ -180,7 +181,7 @@ export function ExportPage({ navigate, profile }) {
             <${ArrowLeft} size=${16} /> Preview
           </button>
           <h1 class="page-title">Ekspor Paket Soal</h1>
-          <p class="page-subtitle">Download file .json, lalu impor ke TKA Local Host.</p>
+          <p class="page-subtitle">Siapkan file .json untuk dijalankan di TKA Local Host.</p>
         </div>
 
         ${gambarDibutuhkan.length > 0 && html`
@@ -205,8 +206,8 @@ export function ExportPage({ navigate, profile }) {
           </div>
           <div class="export-summary">
             <div class="summary-item">
-              <span class="summary-label">File</span>
-              <span class="summary-value">${filename}</span>
+              <span class="summary-label">Nama File</span>
+              <span class="summary-value" style="font-family: monospace;">${filename}</span>
             </div>
             <div class="summary-item">
               <span class="summary-label">Total Soal</span>
@@ -224,11 +225,11 @@ export function ExportPage({ navigate, profile }) {
         <div class="export-section">
           <div class="export-section-header">
             <${Settings2} size=${18} />
-            <h2>Pengaturan Ekspor</h2>
+            <h2>Pengaturan Ujian</h2>
           </div>
 
           <div class="form-field">
-            <label class="form-label">Judul Paket</label>
+            <label class="form-label">Judul Paket (Tampil di Local Host)</label>
             <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
           </div>
 
@@ -262,26 +263,35 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
-        <div class="export-actions">
-          <button class="btn-primary btn-large" onClick=${handleDownload}>
-            <${Download} size=${18} /> Download File .json (Local Host)
+        <!-- EKSPOR ACTIONS: JEMBATAN KE LOCAL HOST -->
+        <div class="export-actions" style="background: var(--surface-muted); padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-weight: 800; font-size: 18px; color: var(--navy-900); margin-bottom: 6px;">Kirim ke TKA Local Host</div>
+            <div style="font-size: 14px; color: var(--text-muted); max-width: 400px; margin: 0 auto;">Download file di bawah ini, lalu impor ke aplikasi ujian offline Anda.</div>
+          </div>
+          
+          <button class="btn-primary btn-large" onClick=${handleDownload} style="height: 56px; font-size: 16px; box-shadow: 0 8px 24px rgba(30, 64, 175, 0.3);">
+            <${Download} size=${20} /> Download File .json
           </button>
-          <button class="btn-secondary w-full mt-2" onClick=${handleDownloadCSV}>
-            <${FileJson} size=${16} /> Download CSV (Excel)
-          </button>
-          <button class="btn-secondary w-full mt-2" onClick=${handleCopyCode}>
-            ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
-            ${copied ? 'Kode tersalin!' : 'Salin sebagai Kode (advanced)'}
-          </button>
+          
+          <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+            <button class="btn-secondary" onClick=${handleDownloadCSV} style="flex: 1; height: 44px;">
+              <${FileJson} size=${16} /> Download CSV
+            </button>
+            <button class="btn-secondary" onClick=${handleCopyCode} style="flex: 1; height: 44px;">
+              ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
+              ${copied ? 'Tersalin!' : 'Salin Kode'}
+            </button>
+          </div>
 
-          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-strong);">
             ${profile?.status === 'active' ? html`
-              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success);">
-                ${saving ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...` : html`<${CloudUpload} size=${16} /> Simpan ke Bank Soal (Cloud)`}
+              <button class="btn-secondary w-full" onClick=${handleSaveToCloud} disabled=${saving} style="border-color: var(--success); color: var(--success); height: 44px;">
+                ${saving ? html`<${Loader2} size=${16} class="spin" /> Menyimpan...` : html`<${CloudUpload} size=${16} /> Simpan ke Koleksi Saya`}
               </button>
             ` : html`
-              <button class="btn-secondary w-full" onClick=${() => navigate('/login')}>
-                <${Lock} size=${16} /> Login untuk Simpan ke Bank Soal
+              <button class="btn-secondary w-full" onClick=${() => navigate('/login')} style="height: 44px;">
+                <${Lock} size=${16} /> Login untuk Menyimpan Paket
               </button>
             `}
           </div>
@@ -296,7 +306,7 @@ export function ExportPage({ navigate, profile }) {
             <li><div class="step-line"><span class="step-num">1</span><div>Buka TKA Local Host di laptop Anda</div></div></li>
             <li><div class="step-line"><span class="step-num">2</span><div>Masuk menu <b>Paket Soal</b></div></div></li>
             <li><div class="step-line"><span class="step-num">3</span><div>Klik tombol <b>Import JSON</b> (atau Import CSV)</div></div></li>
-            <li><div class="step-line"><span class="step-num">4</span><div>Pilih file yang baru saja diunduh</div></div></li>
+            <li><div class="step-line"><span class="step-num">4</span><div>Pilih file <b>${filename}</b> yang baru diunduh</div></div></li>
             ${gambarDibutuhkan.length > 0 && html`
               <li><div class="step-line"><span class="step-num">5</span><div>Upload gambar ke folder <b>paket/gambar/</b></div></div></li>
             `}
@@ -307,7 +317,7 @@ export function ExportPage({ navigate, profile }) {
         <div class="form-actions" style="display: flex; flex-direction: column; gap: 8px;">
           ${profile?.status === 'active' && html`
             <button class="btn-secondary w-full" onClick=${handleDuplicateDraft}>
-              <${CopyPlus} size=${16} /> Duplikat sebagai Draf Baru (Ubah Topik)
+              <${CopyPlus} size=${16} /> Duplikat Draf (Ubah Topik)
             </button>
           `}
           <button class="btn-secondary w-full" onClick=${handleFinish}>
@@ -316,6 +326,7 @@ export function ExportPage({ navigate, profile }) {
         </div>
       </div>
 
+      <!-- MODAL SUKSES DENGAN PENDEKATAN JEMBATAN -->
       ${downloaded && html`
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -323,8 +334,26 @@ export function ExportPage({ navigate, profile }) {
               <div class="modal-title"><${CheckCircle2} size=${20} color="var(--success)" /><span>File berhasil diunduh!</span></div>
             </div>
             <div class="modal-body">
-              <p class="text-muted text-sm mb-4">File <b>${filename}</b> tersimpan di folder Download HP/laptop Anda.</p>
-              <div class="form-hint mb-4">Pindahkan file ke laptop yang menjalankan TKA Local Host, lalu impor.</div>
+              
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: #dcfce7; color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                  <${FileJson} size=${32} />
+                </div>
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--navy-900); margin: 0 0 8px;">File siap diimpor!</h3>
+                <p class="text-muted text-sm">File <b>${filename}</b> tersimpan di folder Download HP/laptop Anda.</p>
+              </div>
+              
+              <div style="background: var(--surface-muted); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 16px; color: var(--navy-900);">Langkah Selanjutnya di TKA Local Host:</div>
+                <div class="steps-list">
+                  <div class="step-line"><span class="step-num">1</span><div>Buka aplikasi <b>TKA Local Host</b>.</div></div>
+                  <div class="step-line"><span class="step-num">2</span><div>Masuk ke menu <b>Paket Soal</b> → Klik <b>Import JSON</b>.</div></div>
+                  <div class="step-line"><span class="step-num">3</span><div>Pilih file <b>${filename}</b> yang baru saja diunduh.</div></div>
+                  ${gambarDibutuhkan.length > 0 && html`
+                    <div class="step-line"><span class="step-num">4</span><div>Upload <b>${gambarDibutuhkan.length} file gambar</b> ke folder <code>paket/gambar/</code>.</div></div>
+                  `}
+                </div>
+              </div>
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setDownloaded(false)}>Tutup</button>
@@ -334,6 +363,7 @@ export function ExportPage({ navigate, profile }) {
         </div>
       `}
 
+      <!-- CUSTOM CONFIRM MODAL -->
       ${confirmData && html`
         <${ConfirmModal} 
           title=${confirmData.title} 
