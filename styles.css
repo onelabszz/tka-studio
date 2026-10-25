@@ -898,3 +898,250 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   gap: 8px;
 }
 .expert-card .pustaka-card-actions button { flex: 1; }
+/* =========================================================
+   DESKTOP MAXIMIZATION LAYER (v5.2)
+   Semua aturan di sini HANYA aktif di layar lebar.
+   Mobile (< 640px) tidak terpengaruh sama sekali.
+   ========================================================= */
+
+/* =========================================================
+   TABLET (≥ 640px)
+   ========================================================= */
+@media (min-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .page-shell { max-width: 720px; }
+  .page-shell-wide { max-width: 960px; }
+}
+
+/* =========================================================
+   DESKTOP (≥ 1024px) — INTI PENGOPTIMALAN
+   ========================================================= */
+@media (min-width: 1024px) {
+
+  /* ---------- LANDING PAGE ---------- */
+  .landing-header .header-container { max-width: 1400px; padding: 0 var(--space-8); }
+  .hero-container { max-width: 1400px; gap: 100px; padding: 0 var(--space-8); }
+  .landing-main { max-width: 1400px; }
+  .section-container { max-width: 1400px; padding: 0 var(--space-8); }
+
+  .hero-section { padding: 180px 0 120px; min-height: 100vh; }
+  .hero-title { font-size: 68px; line-height: 1; }
+  .hero-desc { font-size: 20px; max-width: 600px; }
+  .hero-visual { height: 500px; }
+  .v-card-math { width: 300px; }
+  .v-card-bs { width: 280px; }
+  .v-card-mcma { width: 300px; }
+
+  .section-pain { padding: 120px 0 100px; border-radius: 40px 40px 0 0; }
+  .section-steps, .section-features, .section-creator,
+  .section-faq, .section-ekosistem { padding: 100px 0; }
+  .section-header { margin-bottom: 64px; }
+  .section-header h2 { font-size: 42px; }
+  .section-header p { font-size: 17px; max-width: 700px; }
+
+  .grid-3 { gap: var(--space-6); }
+  .grid-2 { gap: var(--space-6); }
+  .step-card, .feature-card { padding: 40px 32px; }
+  .step-visual { height: 200px; }
+  .step-card h3, .feature-card h3 { font-size: 20px; }
+  .step-card p, .feature-card p { font-size: 15px; }
+
+  .faq-list { max-width: 900px; }
+  .faq-item summary { padding: 24px 32px; font-size: 17px; }
+  .faq-item p { padding: 0 32px 24px 32px; font-size: 15px; }
+
+  .bridge-flow { gap: var(--space-10); }
+  .bridge-node { max-width: 340px; padding: var(--space-8); }
+
+  .landing-footer { padding: 80px var(--space-8) 40px; }
+  .footer-container { max-width: 1400px; gap: 60px; }
+
+  /* ---------- PAGE SHELL & TYPOGRAPHY ---------- */
+  .page-shell {
+    max-width: 1000px;
+    padding: var(--space-8) var(--space-8) var(--space-12);
+  }
+  .page-shell-wide {
+    max-width: 1400px;
+    padding: var(--space-8) var(--space-8) var(--space-12);
+  }
+  .page-title { font-size: 44px; line-height: 1.1; }
+  .page-subtitle { font-size: 16px; }
+  .page-header { margin-bottom: var(--space-8); }
+  .btn-back { font-size: 14px; padding: 8px 14px; }
+
+  /* ---------- FORMS ---------- */
+  .form-section {
+    padding: 32px 40px;
+    margin-bottom: var(--space-5);
+  }
+  .form-section-header {
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+  }
+  .form-section-header h2 { font-size: 16px; }
+  .form-section-body { gap: var(--space-5); }
+
+  .form-row { grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+  .form-field { gap: 8px; }
+  .form-label { font-size: 14px; }
+  .form-hint { font-size: 13px; }
+
+  .form-input, .form-select {
+    height: 48px;
+    font-size: 15px;
+    padding: 0 18px;
+  }
+  .form-textarea {
+    font-size: 15px;
+    padding: 14px 18px;
+    min-height: 120px;
+  }
+
+  .radio-card { height: 48px; font-size: 15px; }
+  .checkbox-label { font-size: 15px; }
+
+  .stepper { height: 48px; }
+  .stepper-btn { width: 44px; height: 48px; font-size: 20px; }
+  .stepper-input { width: 70px; height: 48px; font-size: 16px; }
+
+  .komposisi-label { font-size: 15px; }
+  .komposisi-label .form-hint { font-size: 13px; }
+  .komposisi-total { font-size: 15px; }
+  .komposisi-total b { font-size: 18px; }
+
+  /* ---------- BUTTONS ---------- */
+  .btn-primary, .btn-secondary, .btn-danger, .btn-warning {
+    min-height: 48px;
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+  .btn-large { height: 56px; font-size: 16px; padding: 0 32px; }
+  .btn-sm { min-height: 36px; padding: 6px 14px; font-size: 13px; }
+  .icon-btn { width: 38px; height: 38px; }
+
+  /* ---------- STEPPER WIZARD ---------- */
+  .stepper-container {
+    padding: var(--space-3) 0;
+    margin-bottom: var(--space-8);
+    gap: 12px;
+  }
+  .stepper-item {
+    padding: var(--space-3) var(--space-5);
+    font-size: 15px;
+    max-width: 220px;
+  }
+  .stepper-circle { width: 36px; height: 36px; font-size: 14px; }
+  .stepper-label { font-size: 15px; }
+
+  /* ---------- PASTE ---------- */
+  .paste-textarea {
+    min-height: 520px;
+    padding: 28px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ---------- PREVIEW ---------- */
+  .page-shell-wide .soal-list {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+  .soal-card:has(.edit-mode) { grid-column: span 2; }
+  .soal-body { padding: 24px 28px; }
+  .soal-question { font-size: 15.5px; margin-bottom: 20px; }
+  .soal-option { padding: 14px 18px; font-size: 14.5px; gap: 14px; }
+  .soal-option-letter { width: 28px; height: 28px; font-size: 12px; }
+  .soal-explanation { padding: 16px 20px; font-size: 13.5px; }
+  .soal-header { padding: 16px 24px; }
+
+  /* Filter bar */
+  .filter-chip { padding: 10px 20px; font-size: 14px; }
+  .filter-count { font-size: 12px; padding: 2px 8px; }
+
+  /* ---------- PUSTAKA GRID ---------- */
+  .pustaka-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+  .pustaka-card { padding: 24px; }
+  .pustaka-card-actions { gap: 8px; }
+  .pustaka-q { font-size: 14.5px; line-height: 1.55; }
+
+  .search-filter-wrapper { padding: 16px; }
+  .search-main-box { padding: 14px 20px; }
+  .search-main-box input { font-size: 16px; }
+  .filter-select { padding: 8px 16px; font-size: 14px; }
+
+  /* ---------- EXPERT CARD ---------- */
+  .expert-card { padding: 24px; }
+  .expert-card-title { font-size: 17px; }
+  .expert-card-meta { font-size: 14px; }
+
+  /* ---------- MODAL ---------- */
+  .modal { max-width: 700px; }
+  .modal-header { padding: 24px 32px; }
+  .modal-body { padding: 32px; }
+  .modal-footer { padding: 20px 32px; }
+  .modal-title { font-size: 18px; }
+  .modal-close { width: 40px; height: 40px; }
+
+  .confirm-modal { padding: 48px 40px 40px; }
+  .confirm-title { font-size: 24px; }
+  .confirm-message { font-size: 15px; }
+
+  /* ---------- AUTH ---------- */
+  .auth-card { max-width: 480px; padding: 40px; }
+
+  /* ---------- EXPORT ---------- */
+  .export-section { padding: 28px 32px; }
+  .export-summary { gap: var(--space-8); }
+  .summary-value { font-size: 18px; }
+  .summary-label { font-size: 12px; }
+
+  /* ---------- TOAST ---------- */
+  .toast { min-width: 340px; max-width: 480px; padding: 16px 22px; }
+  .toast-msg { font-size: 14px; }
+}
+
+/* =========================================================
+   LARGE DESKTOP (≥ 1280px) — EKSTRA LEGA
+   ========================================================= */
+@media (min-width: 1280px) {
+  .hero-container,
+  .section-container,
+  .header-container,
+  .footer-container { max-width: 1500px; }
+  .landing-main { max-width: 1500px; }
+
+  .hero-title { font-size: 80px; }
+  .hero-desc { font-size: 22px; }
+  .hero-visual { height: 560px; }
+  .v-card-math, .v-card-mcma { width: 340px; }
+  .v-card-bs { width: 300px; }
+  .v-card { padding: 24px; }
+  .v-math-box { font-size: 24px; padding: 16px; }
+  .v-q { font-size: 14px; }
+  .v-opt { font-size: 13px; padding: 10px 14px; }
+
+  .grid-3 { gap: var(--space-8); }
+  .step-card, .feature-card { padding: 48px 40px; }
+  .step-card h3, .feature-card h3 { font-size: 22px; }
+  .step-card p, .feature-card p { font-size: 16px; }
+
+  .page-shell { max-width: 1100px; }
+  .page-shell-wide { max-width: 1500px; }
+
+  /* Preview tetap 2 kolom, tapi lebih lega */
+  .page-shell-wide .soal-list { grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+
+  /* Pustaka tetap 3 kolom di large desktop (bisa jadi 4 jika mau) */
+  .pustaka-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+
+  .form-section { padding: 36px 48px; }
+
+  .landing-footer { padding: 96px 48px 48px; }
+}
