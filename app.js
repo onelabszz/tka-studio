@@ -8,7 +8,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
-  Check, Clock, Shield, Zap, FileJson
+  Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -69,6 +69,11 @@ function Header({ profile }) {
         <${GraduationCap} size=${24} strokeWidth=${2} />
         <span>TKA Studio</span>
       </div>
+      <nav class="header-nav">
+        <a href="#/fitur" onClick=${(e) => { e.preventDefault(); document.getElementById('fitur').scrollIntoView({behavior: 'smooth'}); }}>Fitur</a>
+        <a href="#/cara" onClick=${(e) => { e.preventDefault(); document.getElementById('cara').scrollIntoView({behavior: 'smooth'}); }}>Cara Kerja</a>
+        <a href="#/faq" onClick=${(e) => { e.preventDefault(); document.getElementById('faq').scrollIntoView({behavior: 'smooth'}); }}>FAQ</a>
+      </nav>
       <div class="header-actions">
         ${profile ? html`
           <button class="btn-secondary btn-sm" onClick=${() => navigate('/build')}>
@@ -87,14 +92,30 @@ function Header({ profile }) {
 function Footer() {
   return html`
     <footer class="landing-footer">
-      <div style="margin-bottom: 16px;">
-        <b>TKA Studio</b> · Pelengkap TKA Local Host
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo-icon">TKA</div>
+          <div>
+            <div class="footer-title">TKA Studio</div>
+            <div class="footer-desc">Alat bantu guru Indonesia untuk menyusun bank soal berkualitas standar asesmen nasional. Langsung ekspor ke TKA Local Host.</div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <div class="footer-col-title">Produk</div>
+            <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank">TKA Local Host</a>
+            <a href="./panduan/">Panduan Lengkap</a>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-title">Kontak</div>
+            <a href="https://wa.me/6281234567890" target="_blank">Bantuan WhatsApp</a>
+            <a href="mailto:halo@tkastudio.id">Email</a>
+          </div>
+        </div>
       </div>
-      <div style="display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; font-size: 13px;">
-        <a href="#/panduan" onClick=${(e) => { e.preventDefault(); window.location.href = './panduan/'; }}>Panduan Lengkap</a>
-        <a href="https://wa.me/6281234567890" target="_blank">Bantuan WhatsApp</a>
+      <div class="footer-copy">
+        © 2026 Ekwan Nugroho — Wonogiri · Dibuat untuk pendidikan Indonesia
       </div>
-      © 2026 Ekwan Nugroho — Wonogiri
     </footer>
   `;
 }
@@ -104,163 +125,177 @@ function Landing({ profile }) {
     <div class="landing">
       <${Header} profile=${profile} />
       
-      <main class="landing-main" style="max-width: 1000px;">
-        
-        <!-- HERO -->
-        <section class="landing-hero">
-          <div class="landing-hero-grid">
-            <div class="landing-hero-copy">
+      <main class="landing-main">
+        <!-- HERO SECTION -->
+        <section class="hero-section">
+          <div class="hero-bg-grid"></div>
+          <div class="hero-bg-glow"></div>
+          
+          <div class="hero-grid">
+            <div class="hero-copy">
               <div class="badge-hero">
                 <span class="dot"></span> Gratis · Tanpa API Key · Tanpa Login
               </div>
-              <h1 style="font-size: 52px; line-height: 1.1; margin-bottom: 20px;">
-                Buat 40 Soal TKA<br/>
-                <span style="color: var(--amber-400);">dalam 15 Menit.</span>
+              <h1 class="hero-title">
+                Buat Paket Soal <br/>
+                <span class="highlight">Tryout TKA</span> dalam 15 Menit
               </h1>
-              <p style="font-size: 18px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
-                Alat bantu guru Indonesia untuk menyusun bank soal TKA berkualitas standar Kemendikbud. Langsung ekspor ke TKA Local Host.
+              <p class="hero-desc">
+                Alat bantu guru Indonesia untuk menyusun bank soal berkualitas standar asesmen nasional. Langsung ekspor ke TKA Local Host.
               </p>
-              <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                <button class="cta-button" onClick=${() => navigate('/build')} style="font-size: 16px; padding: 0 32px;">
+              <div class="hero-actions">
+                <button class="cta-button" onClick=${() => navigate('/build')}>
                   <${Sparkles} size=${20} /> Mulai Buat Soal
                 </button>
-                <button class="btn-secondary" onClick=${() => window.location.href = './panduan/'} style="height: 52px; border-radius: 10px; color: white; border-color: rgba(255,255,255,0.3);">
+                <button class="btn-secondary" onClick=${() => window.location.href = './panduan/'}>
                   <${BookOpen} size=${18} /> Lihat Panduan
                 </button>
               </div>
-              <div style="margin-top: 24px; display: flex; gap: 16px; font-size: 13px; color: rgba(255,255,255,0.6);">
-                <span><${Check} size=${14} style="vertical-align:-2px;" /> Tanpa daftar</span>
-                <span><${Check} size=${14} style="vertical-align:-2px;" /> Data aman</span>
-                <span><${Check} size=${14} style="vertical-align:-2px;" /> Standar Kemendikbud</span>
+              <div class="hero-trust">
+                <span><${Check} size=${16} /> Tanpa daftar</span>
+                <span><${Check} size=${16} /> Data aman</span>
+                <span><${Check} size=${16} /> Standar Asesmen</span>
               </div>
             </div>
-            
-            <!-- Ilustrasi Hero (CSS Based Placeholder) -->
-            <div class="landing-hero-visual">
-              <div class="hero-glow"></div>
-              <div class="hero-card hero-card-math">
-                <div class="hero-card-header"><span class="hero-badge badge-pg">PG · Matematika</span></div>
-                <div class="hero-card-q">Tentukan hasil dari:</div>
-                <div class="hero-math-display">3 \frac{1}{2} + 2 \frac{1}{4}</div>
-                <div class="hero-options">
-                  <div class="hero-opt correct">A. 5 \frac{3}{4}</div>
-                  <div class="hero-opt">B. 5 \frac{1}{2}</div>
+
+            <!-- VISUAL (STACKED CARDS) -->
+            <div class="hero-visual">
+              <div class="visual-glow"></div>
+              
+              <!-- Card 1: Math -->
+              <div class="v-card v-card-math">
+                <div class="v-header"><span class="v-badge badge-pg">PG · Matematika</span></div>
+                <div class="v-q">Tentukan hasil dari:</div>
+                <div class="v-math-box">3 \frac{1}{2} + 2 \frac{1}{4}</div>
+                <div class="v-opts">
+                  <div class="v-opt correct">A. 5 \frac{3}{4}</div>
+                  <div class="v-opt">B. 5 \frac{1}{2}</div>
                 </div>
               </div>
-              <div class="hero-card hero-card-bs">
-                <div class="hero-card-header"><span class="hero-badge badge-bs">B/S · IPA</span></div>
-                <div class="hero-card-q">Pernyataan tentang Bumi:</div>
-                <div class="hero-bs-row"><span>Bumi itu bulat</span><span class="hero-bs-key active">B</span></div>
-                <div class="hero-bs-row"><span>Bulan bercahaya</span><span class="hero-bs-key active">S</span></div>
+
+              <!-- Card 2: B/S -->
+              <div class="v-card v-card-bs">
+                <div class="v-header"><span class="v-badge badge-bs">B/S · IPA</span></div>
+                <div class="v-q">Tentukan Benar atau Salah:</div>
+                <div class="v-bs-row"><span>Bumi itu bulat</span><span class="v-radio active"></span></div>
+                <div class="v-bs-row"><span>Bulan bercahaya</span><span class="v-radio"></span></div>
+              </div>
+
+              <!-- Card 3: MCMA -->
+              <div class="v-card v-card-mcma">
+                <div class="v-header"><span class="v-badge badge-mcma">MCMA · B.Indo</span></div>
+                <div class="v-q">Manakah pernyataan yang benar?</div>
+                <div class="v-checkbox-row"><span class="v-checkbox active"></span> Tokoh utama adalah Kentus</div>
+                <div class="v-checkbox-row"><span class="v-checkbox"></span> Latar cerita di pantai</div>
               </div>
             </div>
           </div>
         </section>
 
         <!-- PAIN POINTS -->
-        <section style="padding: 60px 0;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Guru Bukan Malas. Guru Cuma Tidak Punya Waktu.</h2>
-            <p style="color: var(--text-muted); font-size: 16px;">Menyusun soal manual butuh 3-4 jam. TKA Studio memangkasnya jadi 15 menit.</p>
+        <section class="section-pain">
+          <div class="section-header">
+            <h2>Guru Bukan Malas. Guru Cuma Tidak Punya Waktu.</h2>
+            <p>Menyusun soal manual butuh 3-4 jam. TKA Studio memangkasnya jadi 15 menit.</p>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-            <div class="step-card" style="text-align: center; padding: 32px 20px;">
-              <div style="font-size: 40px; margin-bottom: 16px;">⏱️</div>
-              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Hemat Waktu</h3>
-              <p style="color: var(--text-muted); font-size: 14px;">Copy-paste ke AI, langsung jadi 40 soal rapi.</p>
+          <div class="grid-3">
+            <div class="feature-card">
+              <div class="feature-icon">⏱️</div>
+              <h3>Hemat Waktu</h3>
+              <p>Copy-paste ke AI, langsung jadi 40 soal rapi.</p>
             </div>
-            <div class="step-card" style="text-align: center; padding: 32px 20px;">
-              <div style="font-size: 40px; margin-bottom: 16px;">✅</div>
-              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Kualitas Terjamin</h3>
-              <p style="color: var(--text-muted); font-size: 14px;">Prompt dikunci agar sesuai standar HOTS Pusmendik.</p>
+            <div class="feature-card">
+              <div class="feature-icon">✅</div>
+              <h3>Kualitas Terjamin</h3>
+              <p>Prompt dikunci agar sesuai standar asesmen nasional.</p>
             </div>
-            <div class="step-card" style="text-align: center; padding: 32px 20px;">
-              <div style="font-size: 40px; margin-bottom: 16px;">🔒</div>
-              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Privasi Aman</h3>
-              <p style="color: var(--text-muted); font-size: 14px;">Data soal tersimpan di browser Anda, bukan di server kami.</p>
+            <div class="feature-card">
+              <div class="feature-icon">🔒</div>
+              <h3>Privasi Aman</h3>
+              <p>Data soal tersimpan di browser Anda, bukan di server kami.</p>
             </div>
           </div>
         </section>
 
         <!-- 3 LANGKAH -->
-        <section style="padding: 40px 0; border-top: 1px solid var(--border);">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Hanya 3 Langkah</h2>
+        <section class="section-steps" id="cara">
+          <div class="section-header">
+            <h2>Hanya 3 Langkah</h2>
+            <p>Tidak perlu keahlian IT. Guru biasa pun bisa menjalankannya.</p>
           </div>
-          <div class="steps-grid">
+          <div class="grid-3">
             <div class="step-card">
-              <div class="step-number">1</div>
-              <h3 class="step-title">Susun Prompt</h3>
-              <p class="step-desc">Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
+              <div class="step-num">1</div>
+              <h3>Susun Prompt</h3>
+              <p>Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
             </div>
             <div class="step-card">
-              <div class="step-number">2</div>
-              <h3 class="step-title">Tempel ke AI</h3>
-              <p class="step-desc">Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
+              <div class="step-num">2</div>
+              <h3>Tempel ke AI</h3>
+              <p>Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
             </div>
             <div class="step-card">
-              <div class="step-number">3</div>
-              <h3 class="step-title">Ekspor ke Local Host</h3>
-              <p class="step-desc">Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
+              <div class="step-num">3</div>
+              <h3>Ekspor ke Local Host</h3>
+              <p>Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
             </div>
           </div>
         </section>
 
         <!-- FITUR UNGGULAN -->
-        <section style="padding: 60px 0; border-top: 1px solid var(--border);">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Yang Membuat Berbeda</h2>
+        <section class="section-features" id="fitur">
+          <div class="section-header">
+            <h2>Yang Membuat Berbeda</h2>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-            <div class="step-card">
-              <h3 class="step-title">🎯 Mode Expert</h3>
-              <p class="step-desc">Susun soal sedikit demi sedikit (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
+          <div class="grid-2">
+            <div class="feature-card">
+              <h3>🎯 Mode Expert</h3>
+              <p>Susun soal sedikit demi sedikit (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
             </div>
-            <div class="step-card">
-              <h3 class="step-title">🤝 Pustaka Gotong Royong</h3>
-              <p class="step-desc">Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
+            <div class="feature-card">
+              <h3>🤝 Pustaka Gotong Royong</h3>
+              <p>Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
             </div>
-            <div class="step-card">
-              <h3 class="step-title">📐 Dukungan Rumus (LaTeX)</h3>
-              <p class="step-desc">Pecahan, akar, pangkat tampil cantik di preview dan file ekspor.</p>
+            <div class="feature-card">
+              <h3>📐 Dukungan Rumus (LaTeX)</h3>
+              <p>Pecahan, akar, pangkat tampil cantik di preview dan file ekspor.</p>
             </div>
-            <div class="step-card">
-              <h3 class="step-title">📤 Kompatibel Local Host</h3>
-              <p class="step-desc">File JSON langsung terbaca. Mendukung soal wacana panjang (B.Indo) dan soal bergambar.</p>
+            <div class="feature-card">
+              <h3>📤 Kompatibel Local Host</h3>
+              <p>File JSON langsung terbaca. Mendukung soal wacana panjang (B.Indo) dan soal bergambar.</p>
             </div>
           </div>
         </section>
 
         <!-- DIBUAT OLEH -->
-        <section style="padding: 60px 0; border-top: 1px solid var(--border);">
-          <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 40px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; justify-content: center;">
-            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-mid)); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; box-shadow: 0 10px 24px rgba(30,64,175,0.3);">
-              E
-            </div>
-            <div style="flex: 1; min-width: 280px;">
-              <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Dibuat oleh Guru, untuk Guru</h3>
-              <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
-                "Saya tahu rasanya menyusun soal sampai tengah malam. TKA Studio lahir dari kebutuhan saya sendiri, dan saya bagikan gratis untuk memajukan pendidikan Indonesia."
-              </p>
-              <div style="font-weight: 700; color: var(--navy-900);">Ekwan Nugroho</div>
-              <div style="color: var(--text-muted); font-size: 13px;">Guru & Pengembang — Wonogiri</div>
+        <section class="section-creator">
+          <div class="creator-card">
+            <!-- Ganti src dengan URL foto asli nanti -->
+            <img src="./assets/avatar.jpg" alt="Ekwan Nugroho" class="creator-avatar" onError=${(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }} />
+            <div class="creator-initial" style="display:none;">E</div>
+            
+            <div class="creator-content">
+              <h3>Dibuat oleh Guru, untuk Guru</h3>
+              <p>"Saya tahu rasanya menyusun soal sampai tengah malam. TKA Studio lahir dari kebutuhan saya sendiri, dan saya bagikan gratis untuk memajukan pendidikan Indonesia."</p>
+              <div class="creator-name">Ekwan Nugroho</div>
+              <div class="creator-role">Guru & Pengembang — Wonogiri</div>
             </div>
           </div>
         </section>
 
         <!-- FAQ -->
-        <section style="padding: 60px 0; border-top: 1px solid var(--border); margin-bottom: 40px;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Pertanyaan Umum</h2>
+        <section class="section-faq" id="faq">
+          <div class="section-header">
+            <h2>Pertanyaan Umum</h2>
           </div>
-          <div style="max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
+          <div class="faq-list">
             <details class="faq-item">
               <summary>Apakah ini benar-benar gratis?</summary>
               <p>Ya, 100% gratis. Kami tidak memungut biaya, tidak menjual data, dan tidak memaksa Anda mendaftar untuk menggunakan Mode Basic.</p>
             </details>
             <details class="faq-item">
-              <summary>Apakah ini terafiliasi dengan Kemendikbud?</summary>
-              <p>Tidak. TKA Studio adalah alat bantu independen. Namun, prompt kami dirancang mengikuti standar Pusmendik (seperti soal berbasis teks, HOTS, dan distribusi kognitif).</p>
+              <summary>Apakah ini terafiliasi dengan instansi pemerintah?</summary>
+              <p>Tidak. TKA Studio adalah alat bantu independen. Namun, prompt kami dirancang mengikuti standar asesmen nasional (seperti soal berbasis teks, HOTS, dan distribusi kognitif).</p>
             </details>
             <details class="faq-item">
               <summary>Soal saya aman?</summary>
@@ -272,12 +307,15 @@ function Landing({ profile }) {
             </details>
           </div>
         </section>
-
       </main>
       <${Footer} />
     </div>
   `;
 }
+
+// ... (fungsi DebugPageInner, DebugPage, PublicLayout, App tidak berubah, biarkan seperti sebelumnya) ...
+// Salin sisa kode dari app.js sebelumnya untuk bagian DebugPageInner, PublicLayout, dan App().
+
 
 function DebugPageInner() {
   const [result, setResult] = useState(null);
