@@ -6,10 +6,10 @@ import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
-  Sparkles, ArrowRight, ArrowLeft, Copy, Check, X,
+  ArrowRight, ArrowLeft, Copy, Check, X,
   BookOpen, Gauge, ListChecks, MessageSquareText, Settings2, Info, ExternalLink,
   ClipboardCheck, ChevronDown, ChevronUp, CircleDot, CheckCheck, Wand2, Image as ImageIcon,
-  Save, FolderOpen, Star // <-- ICON STAR DITAMBAHKAN DI SINI
+  Save, FolderOpen, Star
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { buildPrompt } from '../lib/prompt-template.js';
 import { Stepper } from '../components/Stepper.js';
@@ -103,6 +103,36 @@ function PromptModal({ prompt, onClose, onContinue }) {
   `;
 }
 
+function SaveRecipeModal({ defaultName, onCancel, onSave }) {
+  const [name, setName] = useState(defaultName);
+  const trimmed = name.trim();
+
+  return html`
+    <div class="modal-backdrop" onClick=${onCancel}>
+      <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 420px;">
+        <div class="modal-header">
+          <div class="modal-title"><${Save} size=${20} color="var(--primary)" /><span>Simpan Resep</span></div>
+          <button class="modal-close" onClick=${onCancel} aria-label="Tutup"><${X} size=${18} /></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted text-sm mb-4">Beri nama resep ini agar mudah dimuat kembali di sesi berikutnya.</p>
+          <div class="form-field">
+            <label class="form-label">Nama Resep</label>
+            <input class="form-input" value=${name} onInput=${(e) => setName(e.target.value)} placeholder="Contoh: Matematika Kelas 6" autoFocus />
+            <div class="form-hint">Contoh: "MTK Kelas 6 Semester 1" atau "IPA Ulangan Harian"</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onClick=${onCancel}>Batal</button>
+          <button class="btn-primary" onClick=${() => trimmed && onSave(trimmed)} disabled=${!trimmed}>
+            <${Save} size=${16} /> Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 export function BuildPage({ navigate }) {
   const [mapel, setMapel] = useState('Matematika');
   const [kelas, setKelas] = useState('6 SD');
@@ -118,22 +148,31 @@ export function BuildPage({ navigate }) {
   const [sertakanGambar, setSertakanGambar] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [promptText, setPromptText] = useState('');
-  
+  const [showSaveRecipe, setShowSaveRecipe] = useState(false);
+
   const [recipes, setRecipes] = useState([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('tka-recipes');
-    if (saved) setRecipes(JSON.parse(saved));
+    if (saved) {
+      try { setRecipes(JSON.parse(saved)); } catch { /* ignore */ }
+    }
   }, []);
 
-  const handleSaveRecipe = () => {
-    const name = prompt('Beri nama resep ini (contoh: "Matematika Kelas 6"):', topik || `${mapel} ${kelas}`);
-    if (!name) return;
-    const newRecipe = { id: Date.now().toString(), name, config: { mapel, kelas, topik, tingkat, pg, mcma, bs, instruksi, durasi, latihanMandiri, sertakanGambar } };
+  const handleRequestSaveRecipe = () => {
+    setShowSaveRecipe(true);
+  };
+
+  const handleConfirmSaveRecipe = (name) => {
+    const newRecipe = {
+      id: Date.now().toString(),
+      name,
+      config: { mapel, kelas, topik, tingkat, pg, mcma, bs, instruksi, durasi, latihanMandiri, sertakanGambar }
+    };
     const updated = [...recipes, newRecipe];
     setRecipes(updated);
     localStorage.setItem('tka-recipes', JSON.stringify(updated));
-    
+    setShowSaveRecipe(false);
     if (window.showToast) window.showToast('Resep berhasil disimpan!', 'success');
   };
 
@@ -144,6 +183,7 @@ export function BuildPage({ navigate }) {
     setMapel(c.mapel); setKelas(c.kelas); setTopik(c.topik); setTingkat(c.tingkat);
     setPg(c.pg); setMcma(c.mcma); setBs(c.bs); setInstruksi(c.instruksi);
     setDurasi(c.durasi); setLatihanMandiri(c.latihanMandiri); setSertakanGambar(c.sertakanGambar);
+    if (window.showToast) window.showToast(`Resep "${recipe.name}" dimuat.`, 'success');
   };
 
   const total = pg + mcma + bs;
@@ -156,10 +196,12 @@ export function BuildPage({ navigate }) {
       setPromptText(prompt);
       await copyText(prompt);
       setShowModal(true);
-    } catch (err) { 
+    } catch (err) {
       if (window.showToast) window.showToast('Gagal membuat prompt: ' + err.message, 'error');
     }
   };
+
+  const defaultRecipeName = topik ? `${mapel} - ${topik}` : `${mapel} ${kelas}`;
 
   return html`
     <div class="page">
@@ -186,7 +228,7 @@ export function BuildPage({ navigate }) {
               ${recipes.map(r => html`<option value=${r.id}>${r.name}</option>`)}
             </select>
           </div>
-          <button class="btn-secondary" onClick=${handleSaveRecipe}><${Save} size=${16} /> Simpan Resep</button>
+          <button class="btn-secondary" onClick=${handleRequestSaveRecipe}><${Save} size=${16} /> Simpan Resep</button>
         </div>
 
         <${Section} icon=${BookOpen} title="Detail Materi">
@@ -273,6 +315,12 @@ export function BuildPage({ navigate }) {
       </div>
 
       ${showModal && html`<${PromptModal} prompt=${promptText} onClose=${() => setShowModal(false)} onContinue=${() => { setShowModal(false); navigate('/paste'); }} />`}
+
+      ${showSaveRecipe && html`<${SaveRecipeModal}
+        defaultName=${defaultRecipeName}
+        onCancel=${() => setShowSaveRecipe(false)}
+        onSave=${handleConfirmSaveRecipe}
+      />`}
     </div>
   `;
 }
