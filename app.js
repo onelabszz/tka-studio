@@ -355,15 +355,15 @@ function App() {
     else if (route === '/paste') PageComponent = PastePage;
     else if (route === '/preview') PageComponent = PreviewPage;
     else if (route === '/export') PageComponent = ExportPage;
-    
-    // Cek apakah draft datang dari Expert Mode
+
+    // Cek apakah draft berasal dari Expert Mode
     let fromExpert = null;
     try {
       const d = JSON.parse(localStorage.getItem('tka-studio-draft-v1') || '{}');
-      fromExpert = d?._fromExpert || null;
-    } catch {}
-    
-    // Jika dari Expert dan user login → pakai AppShell (sidebar tetap)
+      fromExpert = d && d._fromExpert ? d._fromExpert : null;
+    } catch (e) { fromExpert = null; }
+
+    // Jika dari Expert dan user login → tetap pakai AppShell (sidebar muncul)
     if (fromExpert && user) {
       return html`
         <${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}>
@@ -371,8 +371,8 @@ function App() {
         </${AppShell}>
       `;
     }
-    
-    // Selain itu → PublicLayout (no sidebar)
+
+    // Selain itu (Basic / tamu) → PublicLayout (no sidebar)
     return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
