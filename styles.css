@@ -2055,3 +2055,306 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .auth-brand-mark { width: 44px; height: 44px; border-radius: 12px; }
   .auth-brand-name { font-size: 18px; }
 }
+
+/* =========================================================
+   EXPORT PAGE PREMIUM (v6.2)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* ---------- Export receipt (summary visual) ---------- */
+.export-receipt {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.export-receipt::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-mid) 0%, var(--amber-400) 100%);
+}
+.export-receipt-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+.export-receipt-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+}
+.export-receipt-headinfo { flex: 1; min-width: 0; }
+.export-receipt-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.export-receipt-filename {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy-900);
+  word-break: break-all;
+  line-height: 1.3;
+}
+.export-receipt-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 14px;
+}
+.export-receipt-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.export-receipt-stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.export-receipt-stat-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.export-receipt-compo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+/* ---------- Bridge CTA (dark premium) ---------- */
+.export-bridge {
+  position: relative;
+  background: linear-gradient(135deg, var(--navy-800) 0%, var(--primary) 100%);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  margin-bottom: 16px;
+  color: white;
+  overflow: hidden;
+}
+.export-bridge::before {
+  content: '';
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, transparent 70%);
+  top: -160px; right: -120px;
+  pointer-events: none;
+}
+.export-bridge::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  bottom: -100px; left: -80px;
+  pointer-events: none;
+}
+.export-bridge-head {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+.export-bridge-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.export-bridge-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.export-bridge-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+.export-bridge-actions .btn-primary {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  height: 52px;
+  font-size: 15px;
+}
+.export-bridge-actions .btn-primary:hover:not(:disabled) {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+.export-bridge-actions .btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  height: 44px;
+}
+.export-bridge-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.export-bridge-split {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.export-bridge-split > button {
+  flex: 1;
+  min-width: 140px;
+}
+.export-bridge-divider {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+}
+.export-bridge .save-hint {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-input);
+  padding: 14px 16px;
+  text-align: center;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+.export-bridge .save-hint .btn-primary {
+  background: white;
+  color: var(--primary);
+  margin-top: 10px;
+  height: 40px;
+  font-size: 13px;
+}
+
+/* ---------- Steps collapsible ---------- */
+.export-steps-details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.export-steps-details summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--navy-900);
+  font-size: 14px;
+  user-select: none;
+  transition: background var(--duration) var(--ease);
+}
+.export-steps-details summary:hover { background: var(--surface-muted); }
+.export-steps-details summary::-webkit-details-marker { display: none; }
+.export-steps-details summary::after {
+  content: '▾';
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+.export-steps-details[open] summary::after { transform: rotate(180deg); }
+.export-steps-details summary svg { color: var(--primary); flex-shrink: 0; }
+.export-steps-details-body {
+  padding: 0 20px 20px;
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+}
+
+/* ---------- Success modal premium ---------- */
+.export-success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 0 0 8px rgba(220, 252, 231, 0.5);
+}
+
+/* ---------- Image warning polish ---------- */
+.img-warning-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.img-warning-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  color: #92400e;
+}
+.img-warning-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 800;
+  font-size: 10px;
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+@media (max-width: 520px) {
+  .export-bridge { padding: 20px 16px; }
+  .export-receipt-stats { grid-template-columns: 1fr 1fr; }
+  .export-receipt-icon { width: 40px; height: 40px; border-radius: 10px; }
+}
+
