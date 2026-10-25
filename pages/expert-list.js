@@ -5,7 +5,10 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { ArrowLeft, Plus, FolderOpen, Trash2, Loader2 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
+import {
+  ArrowLeft, Plus, FolderOpen, Trash2, Loader2,
+  CheckCircle2, Layers, Sparkles, Target
+} from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getWorkspaces, deleteWorkspace } from '../lib/expert-workspace.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 
@@ -83,40 +86,60 @@ export function ExpertListPage({ navigate, profile }) {
               ${workspaces.map(ws => {
                 const totalSoal = ws.soal ? ws.soal.length : 0;
                 const progress = Math.min(100, Math.round((totalSoal / ws.target_soal) * 100));
-                const isDone = totalSoal >= ws.target_soal;
+                const isDone = totalSoal >= ws.target_soal || ws.status === 'completed';
 
                 return html`
                   <div class=${'expert-card' + (isDone ? ' is-done' : '')}>
+                    
                     <div class="expert-card-header">
-                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px;">
+                      <div class="expert-card-badges">
                         <span class="badge-pg">${ws.mapel}</span>
                         <span class="badge-muted">${ws.kelas}</span>
-                        <span class="badge-muted" style="background: var(--primary-light); color: var(--primary);">
-                          ${(ws.tipe_fokus || 'campur').toUpperCase()}
-                        </span>
+                        ${isDone && html`
+                          <span class="badge-done">
+                            <${CheckCircle2} size=${11} strokeWidth=${2.5} /> Selesai
+                          </span>
+                        `}
                       </div>
                     </div>
                     
-                    <div style="flex: 1;">
+                    <div class="expert-card-body">
                       <h3 class="expert-card-title">${ws.judul}</h3>
-                      <div class="expert-card-meta">
-                        Topik: ${ws.topik || '-'}
-                      </div>
+                      <p class="expert-card-meta">
+                        ${ws.topik || 'Tanpa topik spesifik'}
+                      </p>
                       
-                      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-top: 16px; margin-bottom: 6px;">
-                        <span style="color: var(--text-muted);">Progress</span>
-                        <span style="color: var(--text);">${totalSoal} / ${ws.target_soal} soal</span>
+                      <div class="expert-card-progress-header">
+                        <span>${totalSoal} / ${ws.target_soal} soal</span>
+                        <span class="expert-progress-pct">${progress}%</span>
                       </div>
                       <div class="expert-progress-bg">
-                        <div class="expert-progress-bar" style="width: ${progress}%; background: ${isDone ? 'var(--success)' : 'var(--primary-mid)'};"></div>
+                        <div class="expert-progress-bar" style="width: ${progress}%;"></div>
                       </div>
                     </div>
 
-                    <div class="pustaka-card-actions" style="margin-top: 16px;">
-                      <button class="btn-primary btn-sm" onClick=${() => navigate('/expert/' + ws.id)} style="flex: 1;">
+                    <div class="expert-card-footer">
+                      <span class="expert-stat">
+                        <${Sparkles} size=${11} />
+                        ${(ws.tipe_fokus || 'campur').toUpperCase()}
+                      </span>
+                      <span class="expert-stat">
+                        <${Layers} size=${11} />
+                        Batch ${ws.soal_per_batch || 5}
+                      </span>
+                      ${ws.level_kognitif && ws.level_kognitif !== 'auto' && html`
+                        <span class="expert-stat">
+                          <${Target} size=${11} />
+                          ${ws.level_kognitif.toUpperCase()}
+                        </span>
+                      `}
+                    </div>
+
+                    <div class="expert-card-actions">
+                      <button class="btn-primary btn-sm" onClick=${() => navigate('/expert/' + ws.id)}>
                         ${isDone ? 'Lihat Hasil' : 'Lanjutkan'}
                       </button>
-                      <button class="btn-danger btn-sm" onClick=${() => handleDelete(ws.id, ws.judul)} title="Hapus Proyek" style="padding: 6px 12px;">
+                      <button class="btn-danger btn-sm" onClick=${() => handleDelete(ws.id, ws.judul)} title="Hapus Proyek">
                         <${Trash2} size=${14} />
                       </button>
                     </div>
