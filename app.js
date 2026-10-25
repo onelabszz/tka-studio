@@ -9,7 +9,7 @@ import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
   Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
-  Save, ListChecks, MousePointerClick, Bot, Download
+  Save, ListChecks, MousePointerClick, Bot, Download, MonitorPlay
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -42,10 +42,7 @@ function useHashRoute() {
 function navigate(path) { window.location.hash = path; }
 
 class ErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { error: null };
-  }
+  constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(error) { return { error }; }
   componentDidCatch(error, info) { console.error('ErrorBoundary:', error, info); }
   render() {
@@ -65,7 +62,6 @@ class ErrorBoundary extends Component {
 
 function Header({ profile, isLanding }) {
   const [scrolled, setScrolled] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -76,28 +72,20 @@ function Header({ profile, isLanding }) {
     <header class=${'landing-header' + (scrolled || !isLanding ? ' scrolled' : '')}>
       <div class="header-container">
         <div class="logo" onClick=${() => navigate('/')}>
-          <${GraduationCap} size=${24} strokeWidth=${2} />
-          <span>TKA Studio</span>
+          <${GraduationCap} size=${24} strokeWidth=${2} /><span>TKA Studio</span>
         </div>
         
         ${isLanding && html`
           <nav class="header-nav">
             <a href="#/fitur" onClick=${(e) => { e.preventDefault(); document.getElementById('fitur')?.scrollIntoView({behavior: 'smooth'}); }}>Fitur</a>
-            <a href="#/cara" onClick=${(e) => { e.preventDefault(); document.getElementById('cara')?.scrollIntoView({behavior: 'smooth'}); }}>Cara Kerja</a>
+            <a href="#/ekosistem" onClick=${(e) => { e.preventDefault(); document.getElementById('ekosistem')?.scrollIntoView({behavior: 'smooth'}); }}>Ekosistem TKA</a>
             <a href="#/faq" onClick=${(e) => { e.preventDefault(); document.getElementById('faq')?.scrollIntoView({behavior: 'smooth'}); }}>FAQ</a>
           </nav>
         `}
 
         <div class="header-actions">
-          ${profile ? html`
-            <button class="btn-nav-login" onClick=${() => navigate('/build')}>
-              <${LayoutDashboard} size=${16} /> Dashboard
-            </button>
-          ` : html`
-            <button class="btn-nav-login" onClick=${() => navigate('/login')}>
-              <${LogIn} size=${16} /> Masuk
-            </button>
-          `}
+          ${profile ? html`<button class="btn-nav-login" onClick=${() => navigate('/build')}><${LayoutDashboard} size=${16} /> Dashboard</button>`
+          : html`<button class="btn-nav-login" onClick=${() => navigate('/login')}><${LogIn} size=${16} /> Masuk</button>`}
         </div>
       </div>
     </header>
@@ -112,7 +100,7 @@ function Footer() {
           <div class="logo-icon">TKA</div>
           <div>
             <div class="footer-title">TKA Studio</div>
-            <div class="footer-desc">Alat bantu guru Indonesia untuk menyusun bank soal berkualitas standar asesmen nasional. Langsung ekspor ke TKA Local Host.</div>
+            <div class="footer-desc">Alat bantu guru Indonesia untuk menyusun bank soal berkualitas. Langsung ekspor ke TKA Local Host.</div>
           </div>
         </div>
         <div class="footer-links">
@@ -128,9 +116,7 @@ function Footer() {
           </div>
         </div>
       </div>
-      <div class="footer-copy">
-        © 2026 Ekwan Nugroho — Wonogiri · Dibuat untuk pendidikan Indonesia
-      </div>
+      <div class="footer-copy">© 2026 Ekwan Nugroho — Wonogiri · Dibuat untuk pendidikan Indonesia</div>
     </footer>
   `;
 }
@@ -148,27 +134,22 @@ function Landing({ profile }) {
         
         <div class="hero-container">
           <div class="hero-copy">
-            <div class="badge-hero">
-              <span class="dot"></span> Gratis · Tanpa API Key · Tanpa Login
-            </div>
+            <div class="badge-hero"><span class="dot"></span> Gratis · Tanpa API Key · Tanpa Login</div>
             <h1 class="hero-title">
               Buat Paket Soal <br/>
               <span class="highlight">Tryout TKA</span> dalam 15 Menit
             </h1>
             <p class="hero-desc">
-              Alat bantu guru Indonesia untuk menyusun bank soal berkualitas standar asesmen nasional. Langsung ekspor ke TKA Local Host.
+              Alat bantu guru Indonesia untuk menyusun bank soal berkualitas. Langsung ekspor ke TKA Local Host.
             </p>
             <div class="hero-actions">
               <button class="cta-button" onClick=${() => navigate('/build')}>
                 <${Sparkles} size=${20} /> Mulai Buat Soal
               </button>
             </div>
-            
-            <!-- Tombol Panduan dipindah ke sini (link teks kecil) -->
             <div class="hero-guide-link">
               Belum tahu cara pakai? <a href="./panduan/">Baca Panduan Lengkap →</a>
             </div>
-
             <div class="hero-trust" style="margin-top: 24px;">
               <span><${Check} size=${16} /> Tanpa daftar</span>
               <span><${Check} size=${16} /> Data aman</span>
@@ -176,10 +157,8 @@ function Landing({ profile }) {
             </div>
           </div>
 
-          <!-- VISUAL (STACKED CARDS) -->
           <div class="hero-visual">
             <div class="visual-glow"></div>
-            
             <div class="v-card v-card-math">
               <div class="v-header"><span class="v-badge badge-pg">PG · Matematika</span></div>
               <div class="v-q">Tentukan hasil dari:</div>
@@ -189,14 +168,12 @@ function Landing({ profile }) {
                 <div class="v-opt">B. 5 \frac{1}{2}</div>
               </div>
             </div>
-
             <div class="v-card v-card-bs">
               <div class="v-header"><span class="v-badge badge-bs">B/S · IPA</span></div>
               <div class="v-q">Tentukan Benar atau Salah:</div>
               <div class="v-bs-row"><span>Bumi itu bulat</span><span class="v-radio active"></span></div>
               <div class="v-bs-row"><span>Bulan bercahaya</span><span class="v-radio"></span></div>
             </div>
-
             <div class="v-card v-card-mcma">
               <div class="v-header"><span class="v-badge badge-mcma">MCMA · B.Indo</span></div>
               <div class="v-q">Manakah pernyataan yang benar?</div>
@@ -208,34 +185,40 @@ function Landing({ profile }) {
       </section>
 
       <main class="landing-main">
-        <!-- PAIN POINTS -->
-        <section class="section-pain">
+        <!-- EKOSISTEM TKA (Jembatan) -->
+        <section class="section-ekosistem" id="ekosistem" style="background: white; border-bottom: 1px solid var(--border);">
           <div class="section-container">
             <div class="section-header">
-              <h2>Guru Bukan Malas. Guru Cuma Tidak Punya Waktu.</h2>
-              <p>Menyusun soal manual butuh 3-4 jam. TKA Studio memangkasnya jadi 15 menit.</p>
+              <h2>Ekosistem TKA</h2>
+              <p>Bagaimana TKA Studio terhubung dengan aplikasi ujian offline Anda.</p>
             </div>
-            <div class="grid-3">
-              <div class="feature-card">
-                <div class="feature-icon-wrapper"><${Clock} size=${28} /></div>
-                <h3>Hemat Waktu</h3>
-                <p>Copy-paste ke AI, langsung jadi 40 soal rapi.</p>
+            
+            <div class="bridge-flow">
+              <div class="bridge-node">
+                <div class="bridge-icon" style="background: #dbeafe; color: #1e40af;"><${Sparkles} size=${32} /></div>
+                <h3>TKA Studio</h3>
+                <p>Menyusun soal dengan AI (Online)</p>
               </div>
-              <div class="feature-card">
-                <div class="feature-icon-wrapper"><${CheckCircle2} size=${28} /></div>
-                <h3>Kualitas Terjamin</h3>
-                <p>Prompt dikunci agar sesuai standar asesmen nasional.</p>
+              <div class="bridge-arrow">
+                <${FileJson} size=${24} color="#64748b" />
+                <span>File .json</span>
+                <${ArrowRight} size=${24} color="#cbd5e1" />
               </div>
-              <div class="feature-card">
-                <div class="feature-icon-wrapper"><${Shield} size=${28} /></div>
-                <h3>Privasi Aman</h3>
-                <p>Data soal tersimpan di browser Anda, bukan di server kami.</p>
+              <div class="bridge-node">
+                <div class="bridge-icon" style="background: #fef3c7; color: #92400e;"><${MonitorPlay} size=${32} /></div>
+                <h3>TKA Local Host</h3>
+                <p>Menjalankan ujian (Offline)</p>
               </div>
+            </div>
+            <div style="text-align: center; margin-top: 32px;">
+              <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank" class="btn-secondary" style="text-decoration: none;">
+                Pelajari TKA Local Host <${ArrowRight} size=${16} />
+              </a>
             </div>
           </div>
         </section>
 
-        <!-- 3 LANGKAH DENGAN VISUAL MOCKUP -->
+        <!-- 3 LANGKAH -->
         <section class="section-steps" id="cara">
           <div class="section-container">
             <div class="section-header">
@@ -243,69 +226,31 @@ function Landing({ profile }) {
               <p>Tidak perlu keahlian IT. Guru biasa pun bisa menjalankannya.</p>
             </div>
             <div class="grid-3">
-              
-              <!-- Step 1 -->
               <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-form">
-                    <div class="mock-input"></div>
-                    <div class="mock-input"></div>
-                    <div class="mock-btn">Buat Prompt</div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num">1</div>
-                  <h3>Susun Prompt</h3>
-                  <p>Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
-                </div>
+                <div class="step-visual"><div class="mock-form"><div class="mock-input"></div><div class="mock-input"></div><div class="mock-btn">Buat Prompt</div></div></div>
+                <div class="step-content"><div class="step-num">1</div><h3>Susun Prompt</h3><p>Isi form, AI siapkan prompt khusus untuk Anda copy.</p></div>
               </div>
-
-              <!-- Step 2 -->
               <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-chat">
-                    <div class="mock-chat-bubble user"></div>
-                    <div class="mock-chat-bubble bot"></div>
-                    <div class="mock-chat-bubble bot short"></div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num">2</div>
-                  <h3>Tempel ke AI</h3>
-                  <p>Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
-                </div>
+                <div class="step-visual"><div class="mock-chat"><div class="mock-chat-bubble user"></div><div class="mock-chat-bubble bot"></div><div class="mock-chat-bubble bot short"></div></div></div>
+                <div class="step-content"><div class="step-num">2</div><h3>Tempel ke AI</h3><p>Buka ChatGPT/Gemini, paste prompt, copy hasil JSON-nya.</p></div>
               </div>
-
-              <!-- Step 3 -->
               <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-export">
-                    <${FileJson} size=${32} color="var(--primary)" />
-                    <div class="mock-download-btn"><${Download} size=${14} /> .json</div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num">3</div>
-                  <h3>Ekspor ke Local Host</h3>
-                  <p>Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
-                </div>
+                <div class="step-visual"><div class="mock-export"><${FileJson} size=${32} color="#1e40af" /><div class="mock-download-btn"><${Download} size=${14} /> .json</div></div></div>
+                <div class="step-content"><div class="step-num">3</div><h3>Ekspor ke Local Host</h3><p>Paste di TKA Studio, download .json, impor ke Local Host.</p></div>
               </div>
-
             </div>
           </div>
         </section>
 
-        <!-- FITUR UNGGULAN -->
+        <!-- FITUR -->
         <section class="section-features" id="fitur">
           <div class="section-container">
-            <div class="section-header">
-              <h2>Yang Membuat Berbeda</h2>
-            </div>
+            <div class="section-header"><h2>Yang Membuat Berbeda</h2></div>
             <div class="grid-2">
               <div class="feature-card">
                 <div class="feature-icon-wrapper"><${Star} size=${28} /></div>
                 <h3>Mode Expert</h3>
-                <p>Susun soal sedikit demi sedikit (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
+                <p>Susun soal bertahap (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
               </div>
               <div class="feature-card">
                 <div class="feature-icon-wrapper"><${Users} size=${28} /></div>
@@ -319,25 +264,8 @@ function Landing({ profile }) {
               </div>
               <div class="feature-card">
                 <div class="feature-icon-wrapper"><${Save} size=${28} /></div>
-                <h3>Kompatibel Local Host</h3>
-                <p>File JSON langsung terbaca. Mendukung soal wacana panjang (B.Indo) dan soal bergambar.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- DIBUAT OLEH -->
-        <section class="section-creator">
-          <div class="section-container">
-            <div class="creator-card">
-              <!-- Nanti ganti src dengan link foto asli Anda -->
-              <img src="./assets/avatar.jpg" alt="Ekwan Nugroho" class="creator-avatar" onError=${(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }} />
-              <div class="creator-initial" style="display:none;">E</div>
-              <div class="creator-content">
-                <h3>Dibuat oleh Guru, untuk Guru</h3>
-                <p>"Saya tahu rasanya menyusun soal sampai tengah malam. TKA Studio lahir dari kebutuhan saya sendiri, dan saya bagikan gratis untuk memajukan pendidikan Indonesia."</p>
-                <div class="creator-name">Ekwan Nugroho</div>
-                <div class="creator-role">Guru & Pengembang — Wonogiri</div>
+                <h3>Format Standar</h3>
+                <p>File JSON langsung terbaca. Mendukung soal wacana panjang dan soal bergambar.</p>
               </div>
             </div>
           </div>
@@ -346,26 +274,11 @@ function Landing({ profile }) {
         <!-- FAQ -->
         <section class="section-faq" id="faq">
           <div class="section-container">
-            <div class="section-header">
-              <h2>Pertanyaan Umum</h2>
-            </div>
+            <div class="section-header"><h2>Pertanyaan Umum</h2></div>
             <div class="faq-list">
-              <details class="faq-item">
-                <summary>Apakah ini benar-benar gratis?</summary>
-                <p>Ya, 100% gratis. Kami tidak memungut biaya, tidak menjual data, dan tidak memaksa Anda mendaftar untuk menggunakan Mode Basic.</p>
-              </details>
-              <details class="faq-item">
-                <summary>Apakah ini terafiliasi dengan instansi pemerintah?</summary>
-                <p>Tidak. TKA Studio adalah alat bantu independen. Namun, prompt kami dirancang mengikuti standar asesmen nasional (seperti soal berbasis teks, HOTS, dan distribusi kognitif).</p>
-              </details>
-              <details class="faq-item">
-                <summary>Soal saya aman?</summary>
-                <p>Sangat aman. Soal tersimpan di browser (LocalStorage) Anda. Hanya soal yang Anda klik "Terbitkan" yang akan masuk ke server Pustaka.</p>
-              </details>
-              <details class="faq-item">
-                <summary>Saya tidak paham AI, apakah bisa pakai?</summary>
-                <p>Bisa. TKA Studio sudah menyiapkan prompt khusus. Anda hanya perlu copy, paste ke ChatGPT/Gemini, lalu copy hasilnya kembali ke sini.</p>
-              </details>
+              <details class="faq-item"><summary>Apakah ini benar-benar gratis?</summary><p>Ya, 100% gratis untuk fitur dasar.</p></details>
+              <details class="faq-item"><summary>Apakah ini terafiliasi dengan instansi pemerintah?</summary><p>Tidak. TKA Studio adalah alat bantu independen.</p></details>
+              <details class="faq-item"><summary>Soal saya aman?</summary><p>Soal tersimpan di browser Anda. Hanya yang Anda bagikan ke Pustaka yang masuk server.</p></details>
             </div>
           </div>
         </section>
@@ -375,33 +288,20 @@ function Landing({ profile }) {
   `;
 }
 
-// ... (Fungsi DebugPageInner, DebugPage, PublicLayout, App tetap sama seperti sebelumnya) ...
 function DebugPageInner() {
   const [result, setResult] = useState(null);
   useEffect(() => {
-    try {
-      const r = runSchemaTests();
-      setResult(r);
-    } catch (e) {
-      console.error('runSchemaTests fatal:', e);
-      setResult({ error: String(e?.stack || e), passed: 0, failed: 0, results: [] });
-    }
+    try { setResult(runSchemaTests()); } catch (e) { setResult({ error: String(e), passed: 0, failed: 0, results: [] }); }
   }, []);
-
   if (!result) return html`<div class="landing"><${Header} isLanding=${false} /><main class="landing-main"><p style="text-align:center;padding:40px;">Menjalankan test...</p></main></div>`;
-  const results = result.results || [];
   return html`
     <div class="landing">
       <${Header} isLanding=${false} />
       <main class="landing-main" style="padding: 40px 20px;">
-        <div class="section-container" style="text-align: left; max-width: 900px; background: white; padding: 32px; border-radius: 16px; box-shadow: var(--shadow-sm);">
-          <h1 style="font-size: 24px; margin-bottom: var(--space-4);">Schema Tests</h1>
-          ${result.error && html`<p style="color: var(--danger);"><b>Fatal:</b> ${result.error}</p>`}
+        <div class="section-container" style="text-align: left; max-width: 900px; background: white; padding: 32px; border-radius: 16px;">
+          <h1>Schema Tests</h1>
           <p><b style="color: var(--success);">${result.passed} lulus</b> ${result.failed > 0 && html` · <b style="color: var(--danger);">${result.failed} gagal</b>`}</p>
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            ${results.map((r) => html`<div style="padding: 12px; border: 1px solid ${r.ok ? '#BBF7D0' : '#FECACA'}; background: ${r.ok ? '#F0FDF4' : '#FEF2F2'}; border-radius: 8px; font-size: 13px;"><b>${r.ok ? '✓' : '✗'} ${r.name}</b>${!r.ok && html`<div style="color: #7F1D1D; font-size:12px;">${r.message}</div>`}</div>`)}
-          </div>
-          <button class="cta-button" style="margin-top: var(--space-6);" onClick=${() => navigate('/')}>Kembali</button>
+          <button class="cta-button" style="margin-top: 20px;" onClick=${() => navigate('/')}>Kembali</button>
         </div>
       </main>
     </div>
@@ -409,13 +309,7 @@ function DebugPageInner() {
 }
 
 function PublicLayout({ children, profile }) {
-  return html`
-    <div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);">
-      <${Header} profile=${profile} isLanding=${false} />
-      <main style="flex: 1; position: relative; padding-top: 80px;">${children}</main>
-      <${Footer} />
-    </div>
-  `;
+  return html`<div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);"><${Header} profile=${profile} isLanding=${false} /><main style="flex: 1; padding-top: 80px;">${children}</main><${Footer} /></div>`;
 }
 
 function App() {
@@ -428,11 +322,7 @@ function App() {
     (async () => {
       try {
         const session = await getSession();
-        if (session) {
-          setUser(session.user);
-          const prof = await getProfile(session.user.id);
-          setProfile(prof);
-        }
+        if (session) { setUser(session.user); setProfile(await getProfile(session.user.id)); }
       } catch (e) { console.error(e); } finally { setAuthLoading(false); }
     })();
   }, []);
@@ -440,12 +330,7 @@ function App() {
   const handleLogout = async () => { await signOut(); setUser(null); setProfile(null); navigate('/'); };
   const handleLoginSuccess = async () => {
     const session = await getSession();
-    if (session) {
-      setUser(session.user);
-      const prof = await getProfile(session.user.id);
-      setProfile(prof);
-      navigate(prof?.status === 'pending' ? '/pending' : '/build');
-    }
+    if (session) { setUser(session.user); const prof = await getProfile(session.user.id); setProfile(prof); navigate(prof?.status === 'pending' ? '/pending' : '/build'); }
   };
 
   if (authLoading) return html`<div style="padding: 40px; text-align: center;">Memuat...</div>`;
@@ -457,23 +342,19 @@ function App() {
   
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
-    let pageProps = { navigate, profile };
     if (route === '/build') PageComponent = BuildPage;
     else if (route === '/paste') PageComponent = PastePage;
     else if (route === '/preview') PageComponent = PreviewPage;
     else if (route === '/export') PageComponent = ExportPage;
-    return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
+    return html`<${PublicLayout} profile=${profile}><${PageComponent} navigate=${navigate} profile=${profile} /></${PublicLayout}>`;
   }
 
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
-  const isAuthRoute = AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'));
-
-  if (isAuthRoute) {
+  if (AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'))) {
     if (!user) { navigate('/login'); return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`; }
-    let PageComponent = null;
-    let pageProps = { navigate, profile };
+    let PageComponent = null; let pageProps = { navigate, profile };
     if (route === '/bank-soal') PageComponent = BankSoalPage;
     else if (route === '/pustaka') PageComponent = PustakaPage;
     else if (route === '/kotak') PageComponent = KotakPage;
