@@ -9,7 +9,7 @@ import {
   ArrowRight, ArrowLeft, Copy, Check, X,
   BookOpen, Gauge, ListChecks, MessageSquareText, Settings2, Info, ExternalLink,
   ClipboardCheck, ChevronDown, ChevronUp, CircleDot, CheckCheck, Wand2, Image as ImageIcon,
-  Save, FolderOpen, Star
+  Save, FolderOpen, Star, Sparkles, Target, Layers, Clock, CheckCircle2, Zap
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { buildPrompt } from '../lib/prompt-template.js';
 import { Stepper } from '../components/Stepper.js';
@@ -19,16 +19,23 @@ const html = htm.bind(h);
 const MAPEL_OPTIONS = ['Matematika', 'IPA', 'IPS', 'Bahasa Indonesia', 'Bahasa Inggris', 'PPKn', 'Seni Budaya', 'PJOK', 'Informatika', 'Prakarya'];
 const KELAS_OPTIONS = ['1 SD', '2 SD', '3 SD', '4 SD', '5 SD', '6 SD', '7 SMP', '8 SMP', '9 SMP', '10 SMA', '11 SMA', '12 SMA'];
 
+const DIFFICULTY_OPTIONS = [
+  { v: 'mudah', l: 'Mudah', code: 'C1–C2', desc: 'Mengingat & memahami' },
+  { v: 'sedang', l: 'Sedang', code: 'C3',     desc: 'Menerapkan konsep' },
+  { v: 'sulit',  l: 'Sulit',  code: 'C4–C6',  desc: 'Analisis & evaluasi' },
+];
+
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch { return false; }
 }
 
-function Section({ icon: Icon, title, children }) {
+function Section({ icon: Icon, title, badge, children }) {
   return html`
     <section class="form-section">
       <div class="form-section-header">
         <${Icon} size=${18} strokeWidth=${2} />
         <h2>${title}</h2>
+        ${badge && html`<span class="section-badge" style="margin-left: auto;">${badge}</span>`}
       </div>
       <div class="form-section-body">${children}</div>
     </section>
@@ -159,9 +166,7 @@ export function BuildPage({ navigate }) {
     }
   }, []);
 
-  const handleRequestSaveRecipe = () => {
-    setShowSaveRecipe(true);
-  };
+  const handleRequestSaveRecipe = () => setShowSaveRecipe(true);
 
   const handleConfirmSaveRecipe = (name) => {
     const newRecipe = {
@@ -188,6 +193,7 @@ export function BuildPage({ navigate }) {
 
   const total = pg + mcma + bs;
   const isValid = total > 0 && topik.trim().length > 0;
+  const detikPerSoal = total > 0 ? Math.round((durasi * 60) / total) : 0;
 
   const handleGenerate = async () => {
     if (!isValid) return;
@@ -207,30 +213,60 @@ export function BuildPage({ navigate }) {
     <div class="page">
       <div class="page-shell">
         <${Stepper} current="build" />
-        <div class="page-header">
+
+        <!-- Build Top Nav -->
+        <div class="build-topnav">
           <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+          <button class="btn-secondary btn-sm" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
+            <${Star} size=${14} /> Mode Expert
+          </button>
+        </div>
+
+        <!-- Build Hero -->
+        <div class="build-hero">
+          <div class="build-hero-main">
+            <div class="build-hero-icon"><${Sparkles} size=${22} /></div>
             <div>
-              <h1 class="page-title" style="margin: 0;">Buat Soal (Basic)</h1>
-              <p class="page-subtitle">Langkah cepat membuat paket soal dalam sekali jalan.</p>
+              <h1 class="build-hero-title">Buat Soal Basic</h1>
+              <p class="build-hero-sub">Isi form → salin prompt → tempel ke AI → impor ke Local Host.</p>
             </div>
-            <button class="btn-secondary btn-sm" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
-              <${Star} size=${14} /> Pindah ke Mode Expert
+          </div>
+          <div class="build-chips">
+            <span class="config-chip"><${BookOpen} size=${12} /> ${mapel}</span>
+            <span class="config-chip"><${Target} size=${12} /> ${kelas}</span>
+            <span class="config-chip"><${Layers} size=${12} /> ${total} soal</span>
+            <span class="config-chip"><${Clock} size=${12} /> ${durasi} menit</span>
+          </div>
+        </div>
+
+        <!-- Recipe Bar -->
+        <div class="recipe-bar">
+          <div class="recipe-bar-icon"><${FolderOpen} size=${18} /></div>
+          <div class="recipe-bar-content">
+            <div class="recipe-bar-title">Resep Tersimpan</div>
+            <div class="recipe-bar-sub">
+              ${recipes.length > 0
+                ? `${recipes.length} resep siap dimuat kembali`
+                : 'Belum ada resep — simpan konfigurasi Anda'}
+            </div>
+          </div>
+          <div class="recipe-bar-actions">
+            <select
+              class="form-select"
+              onChange=${(e) => { if (e.target.value) handleLoadRecipe(e.target.value); e.target.value = ''; }}
+              value=""
+              disabled=${recipes.length === 0}
+            >
+              <option value="" disabled>${recipes.length === 0 ? 'Belum ada resep' : 'Muat resep…'}</option>
+              ${recipes.map(r => html`<option value=${r.id}>${r.name}</option>`)}
+            </select>
+            <button class="btn-secondary btn-sm" onClick=${handleRequestSaveRecipe}>
+              <${Save} size=${14} /> Simpan
             </button>
           </div>
         </div>
 
-        <div class="recipe-bar">
-          <div class="recipe-select">
-            <${FolderOpen} size=${18} color="var(--brand-700)" />
-            <select class="form-select" onChange=${(e) => e.target.value && handleLoadRecipe(e.target.value)} value="">
-              <option value="" disabled>Muat Resep Tersimpan...</option>
-              ${recipes.map(r => html`<option value=${r.id}>${r.name}</option>`)}
-            </select>
-          </div>
-          <button class="btn-secondary" onClick=${handleRequestSaveRecipe}><${Save} size=${16} /> Simpan Resep</button>
-        </div>
-
+        <!-- Detail Materi -->
         <${Section} icon=${BookOpen} title="Detail Materi">
           <${Field} label="Mata Pelajaran">
             <select class="form-select" value=${mapel} onChange=${(e) => setMapel(e.target.value)}>
@@ -249,15 +285,39 @@ export function BuildPage({ navigate }) {
           </div>
         </${Section}>
 
+        <!-- Tingkat Kesulitan -->
         <${Section} icon=${Gauge} title="Tingkat Kesulitan">
-          <div class="radio-group">
-            ${[{ v: 'mudah', l: 'Mudah' }, { v: 'sedang', l: 'Sedang' }, { v: 'sulit', l: 'Sulit' }].map(({ v, l }) => html`
-              <button type="button" class=${`radio-card ${tingkat === v ? 'active' : ''}`} onClick=${() => setTingkat(v)}>${l}</button>
+          <div class="difficulty-grid">
+            ${DIFFICULTY_OPTIONS.map(({ v, l, code, desc }) => html`
+              <button
+                type="button"
+                class=${'difficulty-card' + (tingkat === v ? ' active' : '')}
+                onClick=${() => setTingkat(v)}
+              >
+                <div class="difficulty-card-head">
+                  <span class="difficulty-card-title">${l}</span>
+                  <span class="difficulty-card-code">${code}</span>
+                </div>
+                <div class="difficulty-card-desc">${desc}</div>
+              </button>
             `)}
           </div>
         </${Section}>
 
-        <${Section} icon=${ListChecks} title="Komposisi Soal">
+        <!-- Komposisi Soal -->
+        <${Section} icon=${ListChecks} title="Komposisi Soal" badge=${`${total} butir`}>
+          ${total > 0 && html`
+            <div class="komposisi-bar" aria-hidden="true">
+              ${pg > 0 && html`<div class="komposisi-bar-seg is-pg" style=${`flex: ${pg};`}></div>`}
+              ${mcma > 0 && html`<div class="komposisi-bar-seg is-mcma" style=${`flex: ${mcma};`}></div>`}
+              ${bs > 0 && html`<div class="komposisi-bar-seg is-bs" style=${`flex: ${bs};`}></div>`}
+            </div>
+            <div class="komposisi-legend">
+              <div class="komposisi-legend-item"><span class="dot is-pg"></span>PG <b>${pg}</b></div>
+              <div class="komposisi-legend-item"><span class="dot is-mcma"></span>MCMA <b>${mcma}</b></div>
+              <div class="komposisi-legend-item"><span class="dot is-bs"></span>B/S <b>${bs}</b></div>
+            </div>
+          `}
           <div class="komposisi-list">
             <div class="komposisi-row">
               <div class="komposisi-label"><${CircleDot} size=${16} /> PG <span class="form-hint">Pilihan ganda, 1 benar</span></div>
@@ -272,13 +332,14 @@ export function BuildPage({ navigate }) {
               <${NumberStepper} value=${bs} onChange=${setBs} max=${30} />
             </div>
           </div>
-          <div class="komposisi-total">Total: <b>${total}</b> soal</div>
         </${Section}>
 
+        <!-- Instruksi Tambahan -->
         <${Section} icon=${MessageSquareText} title="Instruksi Tambahan (opsional)">
           <textarea class="form-textarea" rows=${3} value=${instruksi} onInput=${(e) => setInstruksi(e.target.value)} placeholder="Contoh: Soal kontekstual, hindari desimal…" />
         </${Section}>
 
+        <!-- Advanced Toggle -->
         <div class="advanced-toggle">
           <button class="accordion-toggle" onClick=${() => setShowAdvanced(!showAdvanced)}>
             ${showAdvanced ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} <${Settings2} size=${14} /> Pengaturan lanjutan
@@ -306,11 +367,42 @@ export function BuildPage({ navigate }) {
           </${Section}>
         `}
 
+        <!-- Build Summary -->
+        ${isValid && html`
+          <div class="build-summary">
+            <div class="build-summary-head">
+              <${CheckCircle2} size=${15} />
+              <span>Konfigurasi siap</span>
+            </div>
+            <div class="build-summary-body">
+              <div class="build-summary-stat">
+                <span>Total Soal</span>
+                <b>${total} butir</b>
+              </div>
+              <div class="build-summary-stat">
+                <span>Durasi</span>
+                <b>${durasi} menit</b>
+              </div>
+              <div class="build-summary-stat">
+                <span>Kecepatan</span>
+                <b>~${detikPerSoal} dtk/soal</b>
+              </div>
+            </div>
+          </div>
+        `}
+
+        <!-- CTA -->
         <div class="form-actions">
           <button class="btn-primary btn-large" disabled=${!isValid} onClick=${handleGenerate}>
             <${Wand2} size=${18} /> Buat & Salin Prompt <${ArrowRight} size=${18} />
           </button>
           ${!topik.trim() && html`<div class="form-warning"><${Info} size=${14} /> Isi topik dulu untuk melanjutkan</div>`}
+          ${topik.trim() && total === 0 && html`<div class="form-warning"><${Info} size=${14} /> Tambahkan minimal 1 soal di komposisi</div>`}
+          ${isValid && html`
+            <div class="build-cta-hint">
+              <${Zap} size=${12} /> Prompt otomatis tersalin ke clipboard saat Anda klik tombol.
+            </div>
+          `}
         </div>
       </div>
 
