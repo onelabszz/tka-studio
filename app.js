@@ -328,7 +328,7 @@ function Landing({ profile }) {
 
               <div class="feature-card tone-amber">
                 <div class="feature-icon-wrapper"><${Users} size=${28} /></div>
-                <h3>Pustaka Gotong Royong</h3>
+                <h3>Pustaka Kolaborasi</h3>
                 <p>Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
               </div>
 
