@@ -8,7 +8,8 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
-  Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle
+  Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
+  Save, ListChecks, MousePointerClick, Bot, Download
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -62,7 +63,6 @@ class ErrorBoundary extends Component {
   }
 }
 
-// HEADER DENGAN EFEK STICKY & GLASSMORPHISM
 function Header({ profile, isLanding }) {
   const [scrolled, setScrolled] = useState(false);
 
@@ -162,11 +162,14 @@ function Landing({ profile }) {
               <button class="cta-button" onClick=${() => navigate('/build')}>
                 <${Sparkles} size=${20} /> Mulai Buat Soal
               </button>
-              <button class="btn-secondary-hero" onClick=${() => window.location.href = './panduan/'}>
-                <${BookOpen} size=${18} /> Lihat Panduan
-              </button>
             </div>
-            <div class="hero-trust">
+            
+            <!-- Tombol Panduan dipindah ke sini (link teks kecil) -->
+            <div class="hero-guide-link">
+              Belum tahu cara pakai? <a href="./panduan/">Baca Panduan Lengkap →</a>
+            </div>
+
+            <div class="hero-trust" style="margin-top: 24px;">
               <span><${Check} size=${16} /> Tanpa daftar</span>
               <span><${Check} size=${16} /> Data aman</span>
               <span><${Check} size=${16} /> Standar Asesmen</span>
@@ -214,17 +217,17 @@ function Landing({ profile }) {
             </div>
             <div class="grid-3">
               <div class="feature-card">
-                <div class="feature-icon">⏱️</div>
+                <div class="feature-icon-wrapper"><${Clock} size=${28} /></div>
                 <h3>Hemat Waktu</h3>
                 <p>Copy-paste ke AI, langsung jadi 40 soal rapi.</p>
               </div>
               <div class="feature-card">
-                <div class="feature-icon">✅</div>
+                <div class="feature-icon-wrapper"><${CheckCircle2} size=${28} /></div>
                 <h3>Kualitas Terjamin</h3>
                 <p>Prompt dikunci agar sesuai standar asesmen nasional.</p>
               </div>
               <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+                <div class="feature-icon-wrapper"><${Shield} size=${28} /></div>
                 <h3>Privasi Aman</h3>
                 <p>Data soal tersimpan di browser Anda, bukan di server kami.</p>
               </div>
@@ -232,7 +235,7 @@ function Landing({ profile }) {
           </div>
         </section>
 
-        <!-- 3 LANGKAH -->
+        <!-- 3 LANGKAH DENGAN VISUAL MOCKUP -->
         <section class="section-steps" id="cara">
           <div class="section-container">
             <div class="section-header">
@@ -240,21 +243,54 @@ function Landing({ profile }) {
               <p>Tidak perlu keahlian IT. Guru biasa pun bisa menjalankannya.</p>
             </div>
             <div class="grid-3">
+              
+              <!-- Step 1 -->
               <div class="step-card">
-                <div class="step-num">1</div>
-                <h3>Susun Prompt</h3>
-                <p>Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
+                <div class="step-visual">
+                  <div class="mock-form">
+                    <div class="mock-input"></div>
+                    <div class="mock-input"></div>
+                    <div class="mock-btn">Buat Prompt</div>
+                  </div>
+                </div>
+                <div class="step-content">
+                  <div class="step-num">1</div>
+                  <h3>Susun Prompt</h3>
+                  <p>Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
+                </div>
               </div>
+
+              <!-- Step 2 -->
               <div class="step-card">
-                <div class="step-num">2</div>
-                <h3>Tempel ke AI</h3>
-                <p>Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
+                <div class="step-visual">
+                  <div class="mock-chat">
+                    <div class="mock-chat-bubble user"></div>
+                    <div class="mock-chat-bubble bot"></div>
+                    <div class="mock-chat-bubble bot short"></div>
+                  </div>
+                </div>
+                <div class="step-content">
+                  <div class="step-num">2</div>
+                  <h3>Tempel ke AI</h3>
+                  <p>Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
+                </div>
               </div>
+
+              <!-- Step 3 -->
               <div class="step-card">
-                <div class="step-num">3</div>
-                <h3>Ekspor ke Local Host</h3>
-                <p>Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
+                <div class="step-visual">
+                  <div class="mock-export">
+                    <${FileJson} size=${32} color="var(--primary)" />
+                    <div class="mock-download-btn"><${Download} size=${14} /> .json</div>
+                  </div>
+                </div>
+                <div class="step-content">
+                  <div class="step-num">3</div>
+                  <h3>Ekspor ke Local Host</h3>
+                  <p>Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
+                </div>
               </div>
+
             </div>
           </div>
         </section>
@@ -267,19 +303,23 @@ function Landing({ profile }) {
             </div>
             <div class="grid-2">
               <div class="feature-card">
-                <h3>🎯 Mode Expert</h3>
+                <div class="feature-icon-wrapper"><${Star} size=${28} /></div>
+                <h3>Mode Expert</h3>
                 <p>Susun soal sedikit demi sedikit (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
               </div>
               <div class="feature-card">
-                <h3>🤝 Pustaka Gotong Royong</h3>
+                <div class="feature-icon-wrapper"><${Users} size=${28} /></div>
+                <h3>Pustaka Gotong Royong</h3>
                 <p>Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
               </div>
               <div class="feature-card">
-                <h3>📐 Dukungan Rumus (LaTeX)</h3>
+                <div class="feature-icon-wrapper"><${FileJson} size=${28} /></div>
+                <h3>Dukungan Rumus (LaTeX)</h3>
                 <p>Pecahan, akar, pangkat tampil cantik di preview dan file ekspor.</p>
               </div>
               <div class="feature-card">
-                <h3>📤 Kompatibel Local Host</h3>
+                <div class="feature-icon-wrapper"><${Save} size=${28} /></div>
+                <h3>Kompatibel Local Host</h3>
                 <p>File JSON langsung terbaca. Mendukung soal wacana panjang (B.Indo) dan soal bergambar.</p>
               </div>
             </div>
@@ -290,6 +330,7 @@ function Landing({ profile }) {
         <section class="section-creator">
           <div class="section-container">
             <div class="creator-card">
+              <!-- Nanti ganti src dengan link foto asli Anda -->
               <img src="./assets/avatar.jpg" alt="Ekwan Nugroho" class="creator-avatar" onError=${(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }} />
               <div class="creator-initial" style="display:none;">E</div>
               <div class="creator-content">
@@ -334,7 +375,7 @@ function Landing({ profile }) {
   `;
 }
 
-// ... (Fungsi DebugPageInner, DebugPage, PublicLayout, App tetap sama) ...
+// ... (Fungsi DebugPageInner, DebugPage, PublicLayout, App tetap sama seperti sebelumnya) ...
 function DebugPageInner() {
   const [result, setResult] = useState(null);
   useEffect(() => {
