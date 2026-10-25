@@ -1,11 +1,7 @@
-/**
- * TKA Studio — pages/expert-new.js
- * © 2026 Ekwan Nugroho — Wonogiri
- */
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { ArrowLeft, Save, Loader2 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
+import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { createWorkspace } from '../lib/expert-workspace.js';
 
 const html = htm.bind(h);
@@ -17,13 +13,14 @@ export function ExpertNewPage({ navigate, profile }) {
   const [judul, setJudul] = useState('');
   const [mapel, setMapel] = useState('Matematika');
   const [kelas, setKelas] = useState('6 SD');
-  const [topik, setTopik] = useState('');
+  const [submateri, setSubmateri] = useState('');
+  const [kompetensi, setKompetensi] = useState('');
   const [target, setTarget] = useState(30);
   const [batch, setBatch] = useState(5);
   
-  // State untuk fitur fokus
   const [tipeFokus, setTipeFokus] = useState('campur');
   const [levelKognitif, setLevelKognitif] = useState('auto');
+  const [sertakanGambar, setSertakanGambar] = useState(false);
   
   const [loading, setLoading] = useState(false);
 
@@ -33,15 +30,18 @@ export function ExpertNewPage({ navigate, profile }) {
     setLoading(true);
     try {
       const res = await createWorkspace(profile.id, {
-        judul, mapel, kelas, topik, 
+        judul, mapel, kelas, 
+        topik: submateri, // Kita simpan di 'topik' agar kompatibel dengan DB lama
+        kompetensi,
         target_soal: target, 
         soal_per_batch: batch,
         tipe_fokus: tipeFokus,
-        level_kognitif: levelKognitif
+        level_kognitif: levelKognitif,
+        sertakan_gambar: sertakanGambar
       });
       navigate('/expert/' + res.id);
     } catch (err) {
-      alert('Gagal membuat proyek: ' + err.message);
+      if (window.showToast) window.showToast('Gagal membuat proyek: ' + err.message, 'error');
       setLoading(false);
     }
   };
@@ -77,8 +77,14 @@ export function ExpertNewPage({ navigate, profile }) {
           </div>
 
           <div class="form-field">
-            <label class="form-label">Topik Spesifik</label>
-            <input class="form-input" value=${topik} onInput=${(e) => setTopik(e.target.value)} placeholder="Contoh: Operasi Hitung Pecahan" />
+            <label class="form-label">Submateri</label>
+            <input class="form-input" value=${submateri} onInput=${(e) => setSubmateri(e.target.value)} placeholder="Contoh: Operasi Hitung Pecahan" />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Kompetensi (Pusmendik)</label>
+            <input class="form-input" value=${kompetensi} onInput=${(e) => setKompetensi(e.target.value)} placeholder="Contoh: Memahami, mengaplikasikan, dan bernalar..." />
+            <div class="form-hint">Sesuaikan dengan Matriks Asesmen Kemendikbud.</div>
           </div>
 
           <div class="form-row">
@@ -90,7 +96,6 @@ export function ExpertNewPage({ navigate, profile }) {
                 <option value="mcma">Khusus MCMA (Kompleks)</option>
                 <option value="bs">Khusus B/S (Benar/Salah)</option>
               </select>
-              <div class="form-hint">Pilih satu tipe untuk hasil paling konsisten.</div>
             </div>
             <div class="form-field">
               <label class="form-label">Level Kognitif</label>
@@ -100,7 +105,6 @@ export function ExpertNewPage({ navigate, profile }) {
                 <option value="c3">C3 (Penerapan)</option>
                 <option value="c4c6">C4-C6 (Analisis/Evaluasi)</option>
               </select>
-              <div class="form-hint">HOTS = C4-C6.</div>
             </div>
           </div>
 
@@ -112,11 +116,17 @@ export function ExpertNewPage({ navigate, profile }) {
             <div class="form-field">
               <label class="form-label">Soal per Tahap (Batch)</label>
               <input class="form-input" type="number" min="2" max="10" value=${batch} onInput=${(e) => setBatch(Number(e.target.value))} />
-              <div class="form-hint">Disarankan 5 soal per tahap.</div>
             </div>
           </div>
 
-          <div class="form-actions">
+          <div class="form-field mt-3">
+            <label class="checkbox-label">
+              <input type="checkbox" checked=${sertakanGambar} onChange=${(e) => setSertakanGambar(e.target.checked)} />
+              <${ImageIcon} size=${16} class="mr-1" /> Sertakan soal bergambar (AI akan membuat keyword gambar)
+            </label>
+          </div>
+
+          <div class="form-actions mt-4">
             <button class="btn-primary btn-large" type="submit" disabled=${loading || !judul.trim()}>
               ${loading ? html`<${Loader2} class="spin" />` : html`<${Save} size=${18} /> Buat Ruang Kerja`}
             </button>
