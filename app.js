@@ -130,6 +130,23 @@ function Footer() {
   `;
 }
 
+function CreatorAvatar() {
+  const [imgError, setImgError] = useState(false);
+  return html`
+    <div class="creator-avatar">
+      ${!imgError && html`
+        <img
+          src="./assets/avatar-ekwan.webp"
+          alt="Ekwan Nugroho"
+          onError=${() => setImgError(true)}
+          loading="lazy"
+        />
+      `}
+      ${imgError && html`<span>EN</span>`}
+    </div>
+  `;
+}
+
 function Landing({ profile }) {
   return html`
     <div class="landing">
