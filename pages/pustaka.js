@@ -3,7 +3,7 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, Search, Loader2, BookOpen, User, ShoppingCart, Check,
-  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle, Filter
+  Eye, X, Download, MessageCircle, SlidersHorizontal, AlertTriangle
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getPustakaItems, addToKotak, getKotak, incrementDownload } from '../lib/pustaka.js';
 
@@ -46,6 +46,15 @@ export function PustakaPage({ navigate, profile }) {
     loadData(true);
   }, [debouncedSearch, mapel, kelas, tipe]);
 
+  // Render KaTeX saat modal preview dibuka
+  useEffect(() => {
+    if (previewItem) {
+      setTimeout(() => {
+        if (window.renderMath) window.renderMath();
+      }, 100);
+    }
+  }, [previewItem]);
+
   const loadData = async (reset) => {
     if (reset) { setLoading(true); setPage(1); } else { setLoadingMore(true); }
     setError(null);
@@ -61,7 +70,7 @@ export function PustakaPage({ navigate, profile }) {
     } catch (e) {
       console.error(e);
       setError('Gagal memuat data.');
-      window.showToast('Koneksi terputus. Gagal memuat Pustaka.', 'error');
+      if (window.showToast) window.showToast('Koneksi terputus. Gagal memuat Pustaka.', 'error');
     }
     setLoading(false);
     setLoadingMore(false);
@@ -73,10 +82,10 @@ export function PustakaPage({ navigate, profile }) {
     if (success) {
       setCartCount(getKotak().length);
       setAdded({ ...added, [item.id]: true });
-      window.showToast('Soal berhasil dimasukkan ke Kotak Saya.', 'success');
+      if (window.showToast) window.showToast('Soal berhasil dimasukkan ke Kotak Saya.', 'success');
       incrementDownload(item.id).catch(console.error);
     } else {
-      window.showToast('Soal ini sudah ada di Kotak Anda.', 'info');
+      if (window.showToast) window.showToast('Soal ini sudah ada di Kotak Anda.', 'info');
     }
   };
 
@@ -92,26 +101,20 @@ export function PustakaPage({ navigate, profile }) {
             <h1 class="page-title">Pustaka Soal</h1>
             <p class="page-subtitle">Kumpulan soal berkualitas dari guru Indonesia.</p>
           </div>
-          
-          <!-- TOMBOL KERANJANG DENGAN BADGE DI DALAM -->
           <button class="btn-primary" onClick=${() => navigate('/kotak')} style="display:flex; align-items:center; gap:8px;">
             <${ShoppingCart} size=${18} /> Kotak Saya 
             ${cartCount > 0 && html`<span class="cart-badge-inline">${cartCount}</span>`}
           </button>
         </div>
 
-        <!-- SEARCH & FILTER TERPADU -->
         <div class="search-filter-wrapper">
           <div class="search-main-box">
             <${Search} size=${20} color="var(--text-muted)" />
-            <input type="text" placeholder="Cari topik, soal, atau kata kunci..." 
-                   value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
+            <input type="text" placeholder="Cari topik, soal, atau kata kunci..." value=${searchTerm} onInput=${(e) => setSearchTerm(e.target.value)} />
           </div>
           
           <div class="filter-chips-row">
-            <div class="filter-chip-group">
-              <${Filter} size=${14} /> Filter:
-            </div>
+            <div class="filter-chip-group"><${Filter} size=${14} /> Filter:</div>
             <select class="filter-select" value=${mapel} onChange=${e => setMapel(e.target.value)}>
               <option value="">Semua Mapel</option>
               ${['Matematika', 'IPA', 'IPS', 'Bahasa Indonesia', 'Bahasa Inggris'].map(m => html`<option value=${m}>${m}</option>`)}
@@ -126,11 +129,7 @@ export function PustakaPage({ navigate, profile }) {
               <option value="mcma">MCMA</option>
               <option value="bs">B/S</option>
             </select>
-            ${(mapel || kelas || tipe) && html`
-              <button class="btn-reset-filter" onClick=${() => { setMapel(''); setKelas(''); setTipe(''); }}>
-                Reset
-              </button>
-            `}
+            ${(mapel || kelas || tipe) && html`<button class="btn-reset-filter" onClick=${() => { setMapel(''); setKelas(''); setTipe(''); }}>Reset</button>`}
           </div>
         </div>
 
@@ -183,7 +182,7 @@ export function PustakaPage({ navigate, profile }) {
         `}
       </div>
 
-      <!-- MODAL PREVIEW -->
+      <!-- MODAL PREVIEW TERBARU -->
       ${previewItem && html`
         <div class="modal-backdrop" onClick=${() => setPreviewItem(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -197,23 +196,58 @@ export function PustakaPage({ navigate, profile }) {
                 ${previewItem.kelas && html`<span class="badge-muted">${previewItem.kelas}</span>`}
                 <span class=${'soal-badge badge-' + previewItem.tipe}>${previewItem.tipe.toUpperCase()}</span>
               </div>
+              
               <div class="soal-question" style="margin-top: 16px; font-size: 15px;">${previewItem.konten.q}</div>
+              
               ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
                 <div class="soal-options" style="margin-top: 12px;">
                   ${previewItem.konten.options.map((opt, oi) => {
                     const isCorrect = previewItem.tipe === 'pg' ? previewItem.konten.key === oi : (previewItem.konten.key || []).includes(oi);
-                    return html`<div class=${'soal-option' + (isCorrect ? ' correct' : '')}><span class="soal-option-letter">${'ABCD'[oi]}</span><span class="soal-option-text">${opt}</span>${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}</div>`;
+                    const isPG = previewItem.tipe === 'pg';
+                    return html`
+                      <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                        <span class=${'option-indicator ' + (isPG ? 'radio' : 'checkbox') + (isCorrect ? ' active' : '')}>
+                          ${!isPG && isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+                        </span>
+                        <span class="soal-option-text">${'ABCD'[oi]}. ${opt}</span>
+                      </div>
+                    `;
                   })}
                 </div>
               `}
+
               ${previewItem.tipe === 'bs' && previewItem.konten.pernyataan && html`
-                <div class="soal-bs-list" style="margin-top: 12px;">
-                  ${previewItem.konten.pernyataan.map((p, pi) => html`
-                    <div class="soal-bs-item"><span class="soal-bs-num">${pi + 1}.</span><span class="soal-bs-text">${p.teks}</span><span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>${p.key ? 'Benar' : 'Salah'}</span></div>
-                  `)}
+                <div class="bs-table-wrapper" style="margin-top: 12px;">
+                  <table class="bs-table">
+                    <thead>
+                      <tr>
+                        <th width="40">#</th>
+                        <th>Pernyataan</th>
+                        <th width="60" style="text-align: center;">Benar</th>
+                        <th width="60" style="text-align: center;">Salah</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${previewItem.konten.pernyataan.map((p, pi) => html`
+                        <tr>
+                          <td class="bs-letter">${'ABCDEFG'[pi]}.</td>
+                          <td class="bs-text">${p.teks}</td>
+                          <td class="bs-radio"><span class=${'radio-circle ' + (p.key === true ? 'active' : '')}></span></td>
+                          <td class="bs-radio"><span class=${'radio-circle ' + (p.key === false ? 'active' : '')}></span></td>
+                        </tr>
+                      `)}
+                    </tbody>
+                  </table>
                 </div>
               `}
-              ${previewItem.konten.pembahasan && html`<div class="soal-explanation" style="margin-top: 12px;"><${MessageCircle} size=${13} /><span>${previewItem.konten.pembahasan}</span></div>`}
+
+              ${previewItem.konten.pembahasan && html`
+                <div class="soal-explanation" style="margin-top: 12px;">
+                  <${MessageCircle} size=${13} />
+                  <span>${previewItem.konten.pembahasan}</span>
+                </div>
+              `}
+
               <div class="pustaka-preview-footer">
                 <div><${User} size=${13} /> <b>${previewItem.contributor_nama}</b> <span style="opacity: 0.7;">· ${previewItem.contributor_sekolah || 'Indonesia'}</span></div>
                 <div><${Download} size=${13} /> ${previewItem.download_count || 0} kali diambil</div>
