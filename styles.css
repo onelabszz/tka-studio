@@ -508,6 +508,47 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; }
 
 /* Filter Bar & Chips */
 .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 8px; flex-wrap: wrap; }
+
+/* =========================================================
+   12. LAYOUT FIXES (PAGE WRAPPER & STICKY HEADER)
+   ========================================================= */
+/* Memperbaiki Halaman Dalam (Build, Paste, Preview, Export) */
+.page {
+  min-height: 100dvh;
+  background: var(--surface);
+  padding-top: 80px; /* Memberi ruang untuk Header sticky */
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-12);
+}
+
+.page-shell-wide {
+  max-width: 1120px;
+}
+
+/* Memperbaiki Header di PublicLayout agar solid saat di halaman dalam */
+.landing-header.scrolled,
+.public-header-fix {
+  background: var(--navy-900) !important;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 0;
+}
+
+/* Memperbaiki tampilan Step Card di Landing agar tidak terlalu sempit */
+.step-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.step-visual {
+  min-height: 140px;
+  flex-shrink: 0;
+}
 .filter-chips { display: flex; gap: 6px; overflow-x: auto; flex: 1; }
 .filter-chip { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text-muted); background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-pill); }
 .filter-chip.active { color: white; background: var(--primary); border-color: transparent; }
