@@ -1214,3 +1214,342 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* =========================================================
+   BUILD PAGE POLISH (v5.5)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Top nav */
+.build-topnav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* Hero card */
+.build-hero {
+  position: relative;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.build-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-mid) 0%, var(--amber-400) 100%);
+}
+.build-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.build-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  flex-shrink: 0;
+}
+.build-hero-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin: 0 0 2px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.build-hero-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Config chips */
+.build-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.config-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid rgba(30, 64, 175, 0.1);
+  white-space: nowrap;
+}
+.config-chip svg { opacity: 0.85; flex-shrink: 0; }
+
+/* Recipe bar */
+.recipe-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.recipe-bar-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.recipe-bar-content {
+  flex: 1;
+  min-width: 140px;
+}
+.recipe-bar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy-900);
+  line-height: 1.2;
+}
+.recipe-bar-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.recipe-bar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.recipe-bar-actions .form-select {
+  min-width: 160px;
+  padding: 8px 12px;
+  font-size: 13px;
+  height: auto;
+}
+
+/* Section badge */
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Difficulty cards */
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.difficulty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-input);
+  text-align: left;
+  transition: all var(--duration) var(--ease);
+  cursor: pointer;
+  font-family: inherit;
+}
+.difficulty-card:hover {
+  border-color: var(--primary-mid);
+  background: var(--primary-light);
+}
+.difficulty-card.active {
+  background: var(--primary-light);
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.difficulty-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+.difficulty-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy-900);
+  line-height: 1.2;
+}
+.difficulty-card.active .difficulty-card-title {
+  color: var(--primary-dark);
+}
+.difficulty-card-code {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.difficulty-card.active .difficulty-card-code {
+  background: var(--primary);
+  color: white;
+}
+.difficulty-card-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Komposisi visual bar */
+.komposisi-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  margin-bottom: 12px;
+}
+.komposisi-bar-seg {
+  transition: flex-basis 0.3s var(--ease);
+  min-width: 2px;
+}
+.komposisi-bar-seg.is-pg   { background: linear-gradient(90deg, #3b82f6, #1e40af); }
+.komposisi-bar-seg.is-mcma { background: linear-gradient(90deg, #fbbf24, #d97706); }
+.komposisi-bar-seg.is-bs   { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+
+.komposisi-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+.komposisi-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.komposisi-legend-item b {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.komposisi-legend-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.komposisi-legend-item .dot.is-pg   { background: #3b82f6; }
+.komposisi-legend-item .dot.is-mcma { background: #f59e0b; }
+.komposisi-legend-item .dot.is-bs   { background: #7c3aed; }
+
+/* Build summary */
+.build-summary {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.build-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #065f46;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.build-summary-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.build-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 80px;
+}
+.build-summary-stat span {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.build-summary-stat b {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* CTA hint */
+.build-cta-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  padding-top: 4px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 520px) {
+  .difficulty-grid { grid-template-columns: 1fr; }
+  .recipe-bar-actions { width: 100%; }
+  .recipe-bar-actions .form-select { flex: 1; }
+  .build-summary-body { gap: 14px; }
+  .build-hero-main { gap: 12px; }
+  .build-hero-icon { width: 40px; height: 40px; border-radius: 10px; }
+  .build-hero-title { font-size: 18px; }
+}
+
+@media (min-width: 1024px) {
+  .build-hero { padding: 22px 24px; }
+  .build-hero-icon { width: 48px; height: 48px; }
+  .build-hero-title { font-size: 22px; }
+  .difficulty-card { padding: 16px; }
+}
