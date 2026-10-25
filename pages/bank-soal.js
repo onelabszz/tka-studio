@@ -1,7 +1,8 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { ArrowLeft, FolderOpen, Trash2, Share2, Eye, Loader2 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
+import { ArrowLeft, FolderOpen, Trash2, Share2, Eye, Loader2, ShoppingCart } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
+import { getKotak } from '../lib/pustaka.js';
 import { getMyBank, deleteFromBank, togglePublic } from '../lib/bank-soal.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 
@@ -84,10 +85,16 @@ export function BankSoalPage({ navigate, profile }) {
   return html`
     <div class="page">
       <div class="page-shell">
-        <div class="page-header">
-          <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-          <h1 class="page-title">Bank Soal Saya</h1>
-          <p class="page-subtitle">Koleksi paket soal yang tersimpan di akun Anda.</p>
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+          <div>
+            <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
+            <h1 class="page-title">Koleksi Saya</h1>
+            <p class="page-subtitle">Paket soal yang tersimpan di akun Anda.</p>
+          </div>
+          <button class="btn-secondary" onClick=${() => navigate('/kotak')} style="position: relative; white-space: nowrap;">
+            <${ShoppingCart} size=${18} /> Keranjang Soal
+            ${getKotak().length > 0 && html`<span class="cart-badge-inline" style="margin-left: 8px;">${getKotak().length}</span>`}
+          </button>
         </div>
 
         ${loading ? html`<div class="text-center mt-4"><${Loader2} class="spin" /></div>` : html`
