@@ -154,11 +154,11 @@ export function ExportPage({ navigate, profile }) {
   };
 
   const handleFinish = () => {
-    const fromExpert = draft?._fromExpert;
+    const fromExpert = draft && draft._fromExpert;
     clearDraft();
     if (fromExpert) {
-      navigate('/expert/' + fromExpert.id);
       if (window.showToast) window.showToast('Paket berhasil diekspor. Kembali ke Expert Mode.', 'success');
+      navigate('/expert/' + fromExpert.id);
     } else {
       navigate('/');
     }
