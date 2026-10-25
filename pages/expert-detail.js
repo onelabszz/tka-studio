@@ -150,11 +150,8 @@ export function ExpertDetailPage({ navigate, profile, id }) {
   };
 
   const handleSelesai = () => {
-    // Clone soal agar tidak mengubah state asli di database
     const finalSoal = JSON.parse(JSON.stringify(ws.soal || []));
     
-    // Pindahkan soal ke draft standard (Format JSON v1.1)
-    // Wacana sekarang terpisah dari soal (tidak dicampur ke dalam 'q')
     localStorage.setItem('tka-studio-draft-v1', JSON.stringify({ 
       paket: { 
         version: '1.1',
@@ -168,7 +165,8 @@ export function ExpertDetailPage({ navigate, profile, id }) {
         wacana_judul: ws.topik || null,
         soal: finalSoal 
       }, 
-      warnings: [] 
+      warnings: [],
+      _fromExpert: { id: ws.id, judul: ws.judul }  // ← TANDAI ASAL DRAFT
     }));
     navigate('/preview');
   };
