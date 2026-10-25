@@ -16,6 +16,7 @@ import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib
 import { downloadCSV } from '../lib/csv-export.js';
 import { saveToBank } from '../lib/bank-soal.js';
 import { Stepper } from '../components/Stepper.js';
+import { ConfirmModal } from '../components/ConfirmModal.js';
 
 const html = htm.bind(h);
 
@@ -34,6 +35,7 @@ export function ExportPage({ navigate, profile }) {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
 
   if (!draft || !paket) {
     return html`
@@ -136,9 +138,17 @@ export function ExportPage({ navigate, profile }) {
   };
 
   const handleDuplicateDraft = () => {
-    if (!confirm('Duplikat paket ini menjadi draf baru? Anda bisa mengubah topik atau mapel dari awal tanpa kehilangan paket ini.')) return;
-    saveDraft({ ...draft, originalText: '', savedAt: Date.now() });
-    navigate('/build');
+    setConfirmData({
+      title: 'Duplikat Draf?',
+      message: 'Paket ini akan disalin ke draf baru. Anda bisa mengubah topik tanpa kehilangan paket aslinya.',
+      confirmText: 'Ya, Duplikat',
+      isDanger: false,
+      onConfirm: () => {
+        setConfirmData(null);
+        saveDraft({ ...draft, originalText: '', savedAt: Date.now() });
+        navigate('/build');
+      }
+    });
   };
 
   const handleFinish = () => {
@@ -373,6 +383,17 @@ export function ExportPage({ navigate, profile }) {
             </div>
           </div>
         </div>
+      `}
+
+      ${confirmData && html`
+        <${ConfirmModal} 
+          title=${confirmData.title} 
+          message=${confirmData.message} 
+          confirmText=${confirmData.confirmText}
+          isDanger=${confirmData.isDanger}
+          onConfirm=${confirmData.onConfirm} 
+          onCancel=${() => setConfirmData(null)} 
+        />
       `}
     </div>
   `;
