@@ -1,14 +1,14 @@
 /**
  * TKA Studio — app.js
  * © 2026 Ekwan Nugroho — Wonogiri
- * All rights reserved.
  */
 import { h, render, Component } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Sparkles, ArrowRight, FlaskConical, ClipboardPaste,
-  FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon
+  FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
+  Check, Clock, Shield, Zap, FileJson
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -24,8 +24,8 @@ import { ExpertListPage } from './pages/expert-list.js';
 import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
 import { AppShell } from './components/AppShell.js';
-import './components/Toast.js'; // <-- TAMBAHKAN BARIS INI
 import { getSession, getProfile, signOut } from './supabase/auth.js';
+import './components/Toast.js';
 
 const html = htm.bind(h);
 
@@ -54,9 +54,7 @@ class ErrorBoundary extends Component {
           <h1 style="color: #DC2626; font-size: 20px;">Terjadi Kesalahan</h1>
           <p style="color: #78716C; font-size: 14px;">Ada bug di aplikasi. Silakan laporkan dengan salinan pesan di bawah.</p>
           <pre style="background: #F5F4F0; padding: 12px; border-radius: 8px; overflow: auto; font-size: 12px; white-space: pre-wrap;">${String(this.state.error?.stack || this.state.error)}</pre>
-          <button onClick=${() => window.location.reload()} style="padding: 10px 16px; background: #0F766E; color: white; border: none; border-radius: 8px; cursor: pointer;">
-            Muat Ulang
-          </button>
+          <button onClick=${() => window.location.reload()} style="padding: 10px 16px; background: #0F766E; color: white; border: none; border-radius: 8px; cursor: pointer;">Muat Ulang</button>
         </div>
       `;
     }
@@ -64,7 +62,6 @@ class ErrorBoundary extends Component {
   }
 }
 
-// === HEADER STICKY GLOBAL ===
 function Header({ profile }) {
   return html`
     <header class="landing-header">
@@ -90,142 +87,194 @@ function Header({ profile }) {
 function Footer() {
   return html`
     <footer class="landing-footer">
-      © 2026 Ekwan Nugroho — Wonogiri · TKA Studio · Pelengkap TKA Local Host
+      <div style="margin-bottom: 16px;">
+        <b>TKA Studio</b> · Pelengkap TKA Local Host
+      </div>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; font-size: 13px;">
+        <a href="#/panduan" onClick=${(e) => { e.preventDefault(); window.location.href = './panduan/'; }}>Panduan Lengkap</a>
+        <a href="https://wa.me/6281234567890" target="_blank">Bantuan WhatsApp</a>
+      </div>
+      © 2026 Ekwan Nugroho — Wonogiri
     </footer>
   `;
 }
 
-// === LANDING PAGE DENGAN HERO BARU ===
 function Landing({ profile }) {
   return html`
     <div class="landing">
       <${Header} profile=${profile} />
-      <main class="landing-main">
-        <div class="landing-hero">
+      
+      <main class="landing-main" style="max-width: 1000px;">
+        
+        <!-- HERO -->
+        <section class="landing-hero">
           <div class="landing-hero-grid">
-            
             <div class="landing-hero-copy">
-              <div class="badge-hero" style="display:inline-flex; align-items:center; gap:8px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); color:var(--amber-400); padding:6px 14px; border-radius:99px; font-size:13px; font-weight:600; margin-bottom:20px;">
-                <span style="width:8px; height:8px; border-radius:50%; background:var(--amber-400); box-shadow:0 0 0 0 rgba(251,191,36,.7); animation:pulse-ring 2s infinite;"></span>
-                Gratis & Tanpa API Key
+              <div class="badge-hero">
+                <span class="dot"></span> Gratis · Tanpa API Key · Tanpa Login
               </div>
-              <h1>Buat Bank Soal <br/><span style="color:var(--amber-400);">Tanpa Batas.</span></h1>
-              <p>Tempel prompt ke AI (ChatGPT/Gemini), olah hasilnya dengan rapi, dan ekspor ke TKA Local Host. Standar Kemendikbud.</p>
-              <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:28px;">
-                <button class="cta-button" onClick=${() => navigate('/build')}>
-                  <${Sparkles} size=${18} /> Mulai Buat Soal
+              <h1 style="font-size: 52px; line-height: 1.1; margin-bottom: 20px;">
+                Buat 40 Soal TKA<br/>
+                <span style="color: var(--amber-400);">dalam 15 Menit.</span>
+              </h1>
+              <p style="font-size: 18px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
+                Alat bantu guru Indonesia untuk menyusun bank soal TKA berkualitas standar Kemendikbud. Langsung ekspor ke TKA Local Host.
+              </p>
+              <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <button class="cta-button" onClick=${() => navigate('/build')} style="font-size: 16px; padding: 0 32px;">
+                  <${Sparkles} size=${20} /> Mulai Buat Soal
                 </button>
-                <button class="btn-secondary" onClick=${() => navigate('/paste')} style="height:52px; padding:0 24px; border-radius:10px;">
-                  <${ClipboardPaste} size=${18} /> Langsung Tempel
+                <button class="btn-secondary" onClick=${() => window.location.href = './panduan/'} style="height: 52px; border-radius: 10px; color: white; border-color: rgba(255,255,255,0.3);">
+                  <${BookOpen} size=${18} /> Lihat Panduan
                 </button>
+              </div>
+              <div style="margin-top: 24px; display: flex; gap: 16px; font-size: 13px; color: rgba(255,255,255,0.6);">
+                <span><${Check} size=${14} style="vertical-align:-2px;" /> Tanpa daftar</span>
+                <span><${Check} size=${14} style="vertical-align:-2px;" /> Data aman</span>
+                <span><${Check} size=${14} style="vertical-align:-2px;" /> Standar Kemendikbud</span>
               </div>
             </div>
-
-            <!-- ILUSTRASI PREVIEW PREMIUM (STACKED CARDS) -->
+            
+            <!-- Ilustrasi Hero (CSS Based Placeholder) -->
             <div class="landing-hero-visual">
               <div class="hero-glow"></div>
-              
-              <!-- Card 1: Matematika (LaTeX) -->
               <div class="hero-card hero-card-math">
-                <div class="hero-card-header">
-                  <span class="hero-badge badge-pg">PG · Matematika</span>
-                </div>
-                <div class="hero-card-q">Tentukan akar dari persamaan berikut:</div>
-                <div class="hero-math-display">
-                  x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-                </div>
+                <div class="hero-card-header"><span class="hero-badge badge-pg">PG · Matematika</span></div>
+                <div class="hero-card-q">Tentukan hasil dari:</div>
+                <div class="hero-math-display">3 \frac{1}{2} + 2 \frac{1}{4}</div>
                 <div class="hero-options">
-                  <div class="hero-opt">A. 2</div>
-                  <div class="hero-opt correct">B. 4</div>
-                  <div class="hero-opt">C. 6</div>
+                  <div class="hero-opt correct">A. 5 \frac{3}{4}</div>
+                  <div class="hero-opt">B. 5 \frac{1}{2}</div>
                 </div>
               </div>
-
-              <!-- Card 2: Benar/Salah Mini -->
               <div class="hero-card hero-card-bs">
-                <div class="hero-card-header">
-                  <span class="hero-badge badge-bs">B/S · IPA</span>
-                </div>
-                <div class="hero-card-q" style="margin-bottom:8px;">Pernyataan tentang Bumi:</div>
-                <div class="hero-bs-row">
-                  <span>Bumi itu bulat</span>
-                  <span class="hero-bs-key active">B</span>
-                  <span class="hero-bs-key">S</span>
-                </div>
-                <div class="hero-bs-row">
-                  <span>Bulan bercahaya</span>
-                  <span class="hero-bs-key">B</span>
-                  <span class="hero-bs-key active">S</span>
-                </div>
+                <div class="hero-card-header"><span class="hero-badge badge-bs">B/S · IPA</span></div>
+                <div class="hero-card-q">Pernyataan tentang Bumi:</div>
+                <div class="hero-bs-row"><span>Bumi itu bulat</span><span class="hero-bs-key active">B</span></div>
+                <div class="hero-bs-row"><span>Bulan bercahaya</span><span class="hero-bs-key active">S</span></div>
               </div>
-
-              <!-- Card 3: Gambar & Referensi -->
-              <div class="hero-card hero-card-img">
-                <div class="hero-card-header">
-                  <span class="hero-badge badge-mcma">MCMA · Geometri</span>
-                </div>
-                <div style="display:flex; gap:8px; align-items:center; font-size:12px; color:var(--primary); font-weight:600; margin-bottom:4px;">
-                  <${ImageIcon} size=${14} /> peta-indonesia.png
-                </div>
-                <div class="hero-img-preview">
-                  <div class="hero-img-placeholder"></div>
-                </div>
-              </div>
-
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- STEPS & LAINNYA -->
-        <div class="steps-grid">
-          <div class="step-card">
-            <div class="step-number">1</div>
-            <h3 class="step-title">Susun Prompt</h3>
-            <p class="step-desc">Isi form, dapatkan prompt siap pakai untuk AI kesayangan Anda.</p>
+        <!-- PAIN POINTS -->
+        <section style="padding: 60px 0;">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Guru Bukan Malas. Guru Cuma Tidak Punya Waktu.</h2>
+            <p style="color: var(--text-muted); font-size: 16px;">Menyusun soal manual butuh 3-4 jam. TKA Studio memangkasnya jadi 15 menit.</p>
           </div>
-          <div class="step-card">
-            <div class="step-number">2</div>
-            <h3 class="step-title">Tempel Hasil AI</h3>
-            <p class="step-desc">Copy hasil dari AI, paste ke TKA Studio. JSON otomatis dikenali.</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div class="step-card" style="text-align: center; padding: 32px 20px;">
+              <div style="font-size: 40px; margin-bottom: 16px;">⏱️</div>
+              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Hemat Waktu</h3>
+              <p style="color: var(--text-muted); font-size: 14px;">Copy-paste ke AI, langsung jadi 40 soal rapi.</p>
+            </div>
+            <div class="step-card" style="text-align: center; padding: 32px 20px;">
+              <div style="font-size: 40px; margin-bottom: 16px;">✅</div>
+              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Kualitas Terjamin</h3>
+              <p style="color: var(--text-muted); font-size: 14px;">Prompt dikunci agar sesuai standar HOTS Pusmendik.</p>
+            </div>
+            <div class="step-card" style="text-align: center; padding: 32px 20px;">
+              <div style="font-size: 40px; margin-bottom: 16px;">🔒</div>
+              <h3 style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Privasi Aman</h3>
+              <p style="color: var(--text-muted); font-size: 14px;">Data soal tersimpan di browser Anda, bukan di server kami.</p>
+            </div>
           </div>
-          <div class="step-card">
-            <div class="step-number">3</div>
-            <h3 class="step-title">Ekspor ke Local Host</h3>
-            <p class="step-desc">Download file .json, impor ke TKA Local Host. Siap untuk ujian.</p>
-          </div>
-        </div>
+        </section>
 
-        <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; justify-content: center;">
-            <button class="btn-secondary" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
-              <${Sparkles} size=${16} /> Mode Expert (Bertahap)
-            </button>
-            <button class="btn-secondary" onClick=${() => navigate('/bank-soal')}>
-              <${FolderOpen} size=${16} /> Bank Soal Saya
-            </button>
-            <button class="btn-secondary" onClick=${() => navigate('/pustaka')}>
-              <${BookOpen} size=${16} /> Pustaka Soal
-            </button>
-        </div>
+        <!-- 3 LANGKAH -->
+        <section style="padding: 40px 0; border-top: 1px solid var(--border);">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Hanya 3 Langkah</h2>
+          </div>
+          <div class="steps-grid">
+            <div class="step-card">
+              <div class="step-number">1</div>
+              <h3 class="step-title">Susun Prompt</h3>
+              <p class="step-desc">Isi form (mapel, kelas, topik). AI siapkan prompt khusus untuk Anda copy.</p>
+            </div>
+            <div class="step-card">
+              <div class="step-number">2</div>
+              <h3 class="step-title">Tempel ke AI</h3>
+              <p class="step-desc">Buka ChatGPT/Gemini, paste prompt tadi. Copy hasil JSON-nya.</p>
+            </div>
+            <div class="step-card">
+              <div class="step-number">3</div>
+              <h3 class="step-title">Ekspor ke Local Host</h3>
+              <p class="step-desc">Paste hasil di TKA Studio, download file .json, impor ke Local Host.</p>
+            </div>
+          </div>
+        </section>
 
-        <div style="margin-top: var(--space-8); font-size: 12px; color: var(--text-subtle);">
-          <a href="#/debug" style="display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none;">
-            <${FlaskConical} size=${14} /> Developer tools (test)
-          </a>
-        </div>
+        <!-- FITUR UNGGULAN -->
+        <section style="padding: 60px 0; border-top: 1px solid var(--border);">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Yang Membuat Berbeda</h2>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div class="step-card">
+              <h3 class="step-title">🎯 Mode Expert</h3>
+              <p class="step-desc">Susun soal sedikit demi sedikit (5 soal/batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
+            </div>
+            <div class="step-card">
+              <h3 class="step-title">🤝 Pustaka Gotong Royong</h3>
+              <p class="step-desc">Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
+            </div>
+            <div class="step-card">
+              <h3 class="step-title">📐 Dukungan Rumus (LaTeX)</h3>
+              <p class="step-desc">Pecahan, akar, pangkat tampil cantik di preview dan file ekspor.</p>
+            </div>
+            <div class="step-card">
+              <h3 class="step-title">📤 Kompatibel Local Host</h3>
+              <p class="step-desc">File JSON langsung terbaca. Mendukung soal wacana panjang (B.Indo) dan soal bergambar.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- DIBUAT OLEH -->
+        <section style="padding: 60px 0; border-top: 1px solid var(--border);">
+          <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 40px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; justify-content: center;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-mid)); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; box-shadow: 0 10px 24px rgba(30,64,175,0.3);">
+              E
+            </div>
+            <div style="flex: 1; min-width: 280px;">
+              <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Dibuat oleh Guru, untuk Guru</h3>
+              <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
+                "Saya tahu rasanya menyusun soal sampai tengah malam. TKA Studio lahir dari kebutuhan saya sendiri, dan saya bagikan gratis untuk memajukan pendidikan Indonesia."
+              </p>
+              <div style="font-weight: 700; color: var(--navy-900);">Ekwan Nugroho</div>
+              <div style="color: var(--text-muted); font-size: 13px;">Guru & Pengembang — Wonogiri</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section style="padding: 60px 0; border-top: 1px solid var(--border); margin-bottom: 40px;">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 28px; font-weight: 800; color: var(--navy-900);">Pertanyaan Umum</h2>
+          </div>
+          <div style="max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
+            <details class="faq-item">
+              <summary>Apakah ini benar-benar gratis?</summary>
+              <p>Ya, 100% gratis. Kami tidak memungut biaya, tidak menjual data, dan tidak memaksa Anda mendaftar untuk menggunakan Mode Basic.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Apakah ini terafiliasi dengan Kemendikbud?</summary>
+              <p>Tidak. TKA Studio adalah alat bantu independen. Namun, prompt kami dirancang mengikuti standar Pusmendik (seperti soal berbasis teks, HOTS, dan distribusi kognitif).</p>
+            </details>
+            <details class="faq-item">
+              <summary>Soal saya aman?</summary>
+              <p>Sangat aman. Soal tersimpan di browser (LocalStorage) Anda. Hanya soal yang Anda klik "Terbitkan" yang akan masuk ke server Pustaka.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Saya tidak paham AI, apakah bisa pakai?</summary>
+              <p>Bisa. TKA Studio sudah menyiapkan prompt khusus. Anda hanya perlu copy, paste ke ChatGPT/Gemini, lalu copy hasilnya kembali ke sini.</p>
+            </details>
+          </div>
+        </section>
+
       </main>
       <${Footer} />
-    </div>
-  `;
-}
-
-// === LAYOUT UNTUK TAMU / MODE BASIC ===
-function PublicLayout({ children, profile }) {
-  return html`
-    <div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);">
-      <${Header} profile=${profile} />
-      <main style="flex: 1; position: relative;">
-        ${children}
-      </main>
     </div>
   `;
 }
@@ -254,7 +303,18 @@ function DebugPageInner() {
         <div style="display: flex; flex-direction: column; gap: 8px;">
           ${results.map((r) => html`<div style="padding: 12px; border: 1px solid ${r.ok ? '#BBF7D0' : '#FECACA'}; background: ${r.ok ? '#F0FDF4' : '#FEF2F2'}; border-radius: 8px; font-size: 13px;"><b>${r.ok ? '✓' : '✗'} ${r.name}</b>${!r.ok && html`<div style="color: #7F1D1D; font-size:12px;">${r.message}</div>`}</div>`)}
         </div>
+        <button class="cta-button" style="margin-top: var(--space-6);" onClick=${() => navigate('/')}>Kembali</button>
       </main>
+      <${Footer} />
+    </div>
+  `;
+}
+
+function PublicLayout({ children, profile }) {
+  return html`
+    <div style="min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface);">
+      <${Header} profile=${profile} />
+      <main style="flex: 1; position: relative;">${children}</main>
       <${Footer} />
     </div>
   `;
@@ -279,10 +339,7 @@ function App() {
     })();
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(); setUser(null); setProfile(null); navigate('/');
-  };
-
+  const handleLogout = async () => { await signOut(); setUser(null); setProfile(null); navigate('/'); };
   const handleLoginSuccess = async () => {
     const session = await getSession();
     if (session) {
@@ -300,50 +357,32 @@ function App() {
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
   if (route === '/debug') return html`<${ErrorBoundary}><${DebugPageInner} /></${ErrorBoundary}>`;
   
-  // === RUTE PUBLIK (Dibungkus PublicLayout dengan Sticky Header) ===
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
     let pageProps = { navigate, profile };
-    
     if (route === '/build') PageComponent = BuildPage;
     else if (route === '/paste') PageComponent = PastePage;
     else if (route === '/preview') PageComponent = PreviewPage;
     else if (route === '/export') PageComponent = ExportPage;
-
     return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
-  // === RUTE WAJIB LOGIN (AppShell / Sidebar) ===
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
   const isAuthRoute = AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'));
 
   if (isAuthRoute) {
-    if (!user) {
-      navigate('/login');
-      return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`;
-    }
+    if (!user) { navigate('/login'); return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`; }
     let PageComponent = null;
     let pageProps = { navigate, profile };
-
     if (route === '/bank-soal') PageComponent = BankSoalPage;
     else if (route === '/pustaka') PageComponent = PustakaPage;
     else if (route === '/kotak') PageComponent = KotakPage;
     else if (route === '/expert') PageComponent = ExpertListPage;
     else if (route === '/expert/new') PageComponent = ExpertNewPage;
-    else if (route.startsWith('/expert/')) {
-      PageComponent = ExpertDetailPage;
-      pageProps = { navigate, profile, id: route.split('/')[2] };
-    }
-
-    if (PageComponent) {
-      return html`
-        <${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}>
-          <${PageComponent} ...${pageProps} />
-        </${AppShell}>
-      `;
-    }
+    else if (route.startsWith('/expert/')) { PageComponent = ExpertDetailPage; pageProps = { navigate, profile, id: route.split('/')[2] }; }
+    if (PageComponent) return html`<${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}><${PageComponent} ...${pageProps} /></${AppShell}>`;
   }
 
   return html`<div style="text-align:center; padding:50px;"><h1>404</h1><button class="btn-primary" onClick=${() => navigate('/')}>Kembali</button></div>`;
