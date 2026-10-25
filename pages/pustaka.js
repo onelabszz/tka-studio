@@ -99,7 +99,7 @@ export function PustakaPage({ navigate, profile }) {
           <div>
             <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
             <h1 class="page-title">Pustaka Soal</h1>
-            <p class="page-subtitle">Kumpulan soal berkualitas dari guru Indonesia.</p>
+            <p class="page-subtitle">Berbagi dan ambil soal dari guru lain. Ingin menyimpan soal pribadi? Buka <b>Koleksi Saya</b>.</p>
           </div>
           <button class="btn-primary" onClick=${() => navigate('/kotak')} style="display:flex; align-items:center; gap:8px;">
             <${ShoppingCart} size=${18} /> Kotak Saya 
