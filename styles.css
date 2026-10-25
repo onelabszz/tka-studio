@@ -32,6 +32,10 @@
   --text-muted: #64748b;
   --text-subtle: #94a3b8;
   --text-invert: #ffffff;
+    /* v5.3 additions */
+  --brand-50: #eff6ff;
+  --brand-700: #1d4ed8;
+  --danger-light: #fee2e2;
 
   --radius-sm: 8px;
   --radius-card: 16px;
@@ -88,7 +92,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .font-monospace, .font-mono { font-family: 'SF Mono', Menlo, Consolas, monospace; }
 .pre-wrap { white-space: pre-wrap; }
 .w-full { width: 100%; }
-.mt-2 { margin-top: var(--space-2); } .mt-3 { margin-top: var(--space-3); } .mt-4 { margin-top: var(--space-4); }
+.mt-1 { margin-top: var(--space-1); } .mt-2 { margin-top: var(--space-2); } .mt-3 { margin-top: var(--space-3); } .mt-4 { margin-top: var(--space-4); }
 .mb-2 { margin-bottom: var(--space-2); } .mb-3 { margin-bottom: var(--space-3); } .mb-4 { margin-bottom: var(--space-4); }
 .mr-1 { margin-right: var(--space-1); } .ml-6 { margin-left: var(--space-6); }
 
@@ -1144,4 +1148,179 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .form-section { padding: 36px 48px; }
 
   .landing-footer { padding: 96px 48px 48px; }
+}
+
+/* =========================================================
+   v5.3 PATCH — RECIPE, ACCORDION, FORM-WARNING, SUMMARY
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Recipe bar (build.js) */
+.recipe-bar {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+.recipe-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+}
+.recipe-select .form-select {
+  flex: 1;
+  margin: 0;
+}
+
+/* Accordion (build.js modal, expert-new.js advanced) */
+.accordion {
+  margin-top: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.accordion-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--surface-muted);
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration) var(--ease);
+  font-family: inherit;
+}
+.accordion-toggle:hover { background: var(--primary-light); }
+.accordion-toggle svg { flex-shrink: 0; }
+
+/* Advanced toggle wrapper */
+.advanced-toggle {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-3) 0;
+}
+.advanced-toggle .accordion-toggle {
+  width: auto;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  font-size: 13px;
+}
+.advanced-toggle .accordion-toggle:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-mid);
+}
+
+/* Prompt textarea (build.js modal) */
+.prompt-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 14px 16px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface);
+  border: none;
+  border-top: 1px solid var(--border);
+  resize: vertical;
+  outline: none;
+  display: block;
+}
+.prompt-textarea:focus { background: white; }
+
+/* Form warning (build.js) */
+.form-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-2);
+}
+
+/* Result summary (paste.js) */
+.result-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-3);
+}
+.result-summary .summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+.result-summary .summary-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.result-summary .summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Warnings detail (paste.js) */
+.warnings-detail {
+  margin-top: var(--space-3);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  background: #fffbeb;
+  padding: 10px 14px;
+}
+.warnings-detail summary {
+  font-weight: 700;
+  font-size: 13px;
+  color: #92400e;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.warnings-detail summary::-webkit-details-marker { display: none; }
+.warnings-detail summary::after {
+  content: ' ▾';
+  color: var(--warning);
+}
+.warnings-detail[open] summary::after { content: ' ▴'; }
+.warnings-detail ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.5;
+}
+.warnings-detail li { margin-bottom: 4px; }
+.warnings-detail li:last-child { margin-bottom: 0; }
+
+/* Responsive adjustments */
+@media (min-width: 1024px) {
+  .recipe-bar { padding: var(--space-4) var(--space-5); gap: var(--space-4); }
+  .accordion-toggle { padding: 12px 18px; font-size: 14px; }
+  .advanced-toggle .accordion-toggle { padding: 12px 24px; font-size: 14px; }
 }
