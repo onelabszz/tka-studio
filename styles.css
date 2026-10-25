@@ -1,5 +1,5 @@
 /**
- * TKA Studio — styles.css (Ultimate Design System v3.0)
+ * TKA Studio — styles.css (Ultimate Design System v3.1)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 
@@ -147,8 +147,8 @@ h1, h2, h3, h4 { color: var(--navy); font-weight: 800; line-height: 1.2; letter-
 .btn-back:hover { color: var(--primary); }
 
 /* App Shell (Sidebar) */
-.app-layout { display: flex; min-height: 100vh; }
-.app-sidebar { width: 260px; background: var(--navy); color: #cbd5e1; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; display: flex; flex-direction: column; padding: 24px 16px; transform: translateX(-100%); transition: transform 0.3s ease; }
+.app-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
+.app-sidebar { width: 260px; background: var(--navy); color: #cbd5e1; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; display: flex; flex-direction: column; padding: 24px 16px; transform: translateX(-100%); transition: transform 0.3s ease; overflow-y: auto; }
 .app-sidebar.open { transform: translateX(0); }
 .app-main { flex: 1; width: 100%; display: flex; flex-direction: column; }
 @media (min-width: 1024px) {
@@ -157,19 +157,60 @@ h1, h2, h3, h4 { color: var(--navy); font-weight: 800; line-height: 1.2; letter-
   .app-main .page { padding-top: 40px; }
 }
 
+/* Sidebar Internal (Fix Overlap) */
+.sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 16px; }
+.sidebar-logo { width: 38px; height: 38px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.sidebar-brand-name { color: white; font-weight: 800; font-size: 15px; line-height: 1.2; }
+.sidebar-brand-sub { color: #94a3b8; font-size: 11px; }
+
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 8px; margin-bottom: 8px; }
+.sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 8px; color: #cbd5e1; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; }
+.sidebar-item:hover { background: rgba(255,255,255,0.05); color: white; }
+.sidebar-item.active { background: var(--primary); color: white; }
+.sidebar-item svg { flex-shrink: 0; }
+
+.sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 12px; }
+.sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-mid); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { color: white; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-sub { color: #94a3b8; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* =========================================================
-   6. COMPONENTS (EXPORT, PASTE, PREVIEW)
+   6. COMPONENTS (EXPERT LIST, PUSTAKA, PREVIEW)
    ========================================================= */
-/* Memperbaiki list angka di Export & Paste */
+
+/* --- A. GRID & CARDS (Pustaka / Expert List) --- */
+.pustaka-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 768px) { .pustaka-grid { grid-template-columns: 1fr 1fr; } }
+
+.pustaka-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 20px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; transition: all 0.2s;
+}
+.pustaka-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--primary-light); }
+
+.pustaka-card-header { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.badge-pg { background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.badge-muted { background: var(--bg-muted); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+
+.pustaka-card-body { flex: 1; margin-bottom: 16px; }
+.pustaka-card-body h3 { font-size: 16px; margin-bottom: 8px; }
+.pustaka-card-body p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+.pustaka-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); padding-top: 16px; border-top: 1px dashed var(--border); margin-bottom: 16px; }
+.pustaka-card-actions { display: flex; gap: 8px; }
+.pustaka-card-actions button { flex: 1; }
+
+/* --- B. EXPORT & PASTE (Steps List) --- */
 .steps-list { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .step-line { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.5; }
 .step-num { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; font-size: 12px; font-weight: 700; margin-top: 2px; }
 
-/* Paste Textarea */
 .paste-textarea { width: 100%; min-height: 350px; padding: 20px; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; background: #f8fafc; border: 1.5px solid var(--border-strong); border-radius: var(--radius-lg); transition: all 0.2s; outline: none; resize: vertical; }
 .paste-textarea:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
 
-/* Preview Cards */
+/* --- C. PREVIEW SOAL CARDS --- */
 .soal-list { display: flex; flex-direction: column; gap: 20px; }
 .soal-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: hidden; transition: all 0.2s; }
 .soal-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-lg); }
@@ -184,7 +225,7 @@ h1, h2, h3, h4 { color: var(--navy); font-weight: 800; line-height: 1.2; letter-
 .soal-option.correct .soal-option-letter { background: var(--success); color: white; }
 .soal-explanation { padding: 16px; background: #f8fafc; border-left: 4px solid var(--primary-light); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 13px; color: var(--text-muted); }
 
-/* Tabel B/S */
+/* --- D. TABEL B/S --- */
 .bs-table-wrapper { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 20px; }
 .bs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .bs-table th { background: #f1f5f9; padding: 12px 16px; text-align: left; font-weight: 700; color: var(--text-muted); font-size: 12px; border-bottom: 1px solid var(--border); }
