@@ -169,8 +169,15 @@ export function BuildPage({ navigate }) {
         <${Stepper} current="build" />
         <div class="page-header">
           <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-          <h1 class="page-title">Buat Soal (Basic)</h1>
-          <p class="page-subtitle">Langkah cepat membuat paket soal dalam sekali jalan.</p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+            <div>
+              <h1 class="page-title" style="margin: 0;">Buat Soal (Basic)</h1>
+              <p class="page-subtitle">Langkah cepat membuat paket soal dalam sekali jalan.</p>
+            </div>
+            <button class="btn-secondary btn-sm" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
+              <${Star} size=${14} /> Pindah ke Mode Expert
+            </button>
+          </div>
         </div>
 
         <div class="recipe-bar">
