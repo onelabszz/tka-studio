@@ -2888,4 +2888,98 @@ h1, h2, h3, h4 {
   .landing-hero-visual { display: none; }
 }
 
+/* =========================================================
+   AUDIT FIXES: LANDING PAGE POLISH
+   ========================================================= */
+
+/* 1. Perbaikan Jarak Hero & Konten */
+.section-pain {
+  background: var(--surface);
+  padding-top: 100px; /* Memberi ruang napas setelah hero gelap */
+  border-radius: 32px 32px 0 0; /* Efek kartu menimpa hero */
+  margin-top: -40px; /* Tarik ke atas menimpa hero */
+  position: relative;
+  z-index: 10;
+}
+
+/* 2. Link Panduan di Bawah Tombol Utama */
+.hero-guide-link {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.hero-guide-link a {
+  color: var(--amber-400);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.hero-guide-link a:hover { color: white; }
+
+/* 3. Ikon Lucide di Fitur */
+.feature-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+/* 4. Visual Mockup di 3 Langkah */
+.step-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.step-visual {
+  height: 140px;
+  background: var(--surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.step-content {
+  padding: 24px;
+  text-align: center;
+  flex: 1;
+}
+
+/* Mockup 1: Form */
+.mock-form { width: 80%; display: flex; flex-direction: column; gap: 8px; }
+.mock-input { height: 24px; background: white; border: 1px solid var(--border-strong); border-radius: 4px; }
+.mock-btn { height: 28px; background: var(--primary); border-radius: 4px; margin-top: 4px; }
+
+/* Mockup 2: Chat AI */
+.mock-chat { width: 80%; display: flex; flex-direction: column; gap: 8px; }
+.mock-chat-bubble { height: 24px; border-radius: 12px; }
+.mock-chat-bubble.user { width: 60%; background: var(--primary-light); align-self: flex-end; border-bottom-right-radius: 4px; }
+.mock-chat-bubble.bot { width: 90%; background: white; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.mock-chat-bubble.bot.short { width: 70%; }
+
+/* Mockup 3: Export */
+.mock-export { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.mock-download-btn { 
+  display: flex; align-items: center; gap: 6px; 
+  background: white; border: 1px solid var(--primary); color: var(--primary); 
+  padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; 
+}
+
+/* Perbaikan Step Number */
+.step-num {
+  width: 36px; height: 36px; font-size: 16px; margin: 0 auto 12px;
+}
+
+/* 5. Responsive Tweaks */
+@media (max-width: 768px) {
+  .section-pain { padding-top: 60px; margin-top: -20px; }
+  .hero-guide-link { text-align: center; }
+}
 
