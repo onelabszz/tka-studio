@@ -322,9 +322,9 @@ export function PreviewPage({ navigate, profile }) {
   };
 
   const handleDelete = function (index) {
-    if (paket.soal.length <= 1) { 
+    if (paket.soal.length <= 1) {
       if (window.showToast) window.showToast('Minimal harus ada 1 soal.', 'info');
-      return; 
+      return;
     }
     setConfirmData({
       title: 'Hapus Soal?',
@@ -348,6 +348,15 @@ export function PreviewPage({ navigate, profile }) {
     if (window.showToast) window.showToast('Soal berhasil diduplikasi.', 'success');
   };
 
+  // ✅ Infer kelas: paket.kelas > draft.kelas > regex judul > '-'
+  const inferKelas = function () {
+    if (paket.kelas) return paket.kelas;
+    if (draft && draft.kelas) return draft.kelas;
+    const m = String(paket.judul || '').match(/\b(\d{1,2})\s*(SD|SMP|SMA|SMK)\b/i);
+    if (m) return `${m[1]} ${m[2].toUpperCase()}`;
+    return '-';
+  };
+
   const handlePublish = function (index, soal) {
     if (!profile) {
       if (window.showToast) window.showToast('Silakan login terlebih dahulu untuk menerbitkan soal.', 'info');
@@ -363,10 +372,10 @@ export function PreviewPage({ navigate, profile }) {
         setConfirmData(null);
         setPublishingIdx(index);
         try {
-          await publishSoal(profile, paket, soal, { 
-            mapel: paket.mapel, 
-            kelas: '6 SD', 
-            topik: paket.judul 
+          await publishSoal(profile, paket, soal, {
+            mapel: paket.mapel,
+            kelas: inferKelas(),
+            topik: paket.judul
           });
           if (window.showToast) window.showToast('Soal berhasil diterbitkan ke Pustaka!', 'success');
         } catch (e) {
@@ -448,16 +457,16 @@ export function PreviewPage({ navigate, profile }) {
           `}
           ${filtered.map(function (item) {
             const warnMessages = allWarnings.filter(function (w) { return w.index === item.index; }).map(function (w) { return w.message; });
-            return html`<${SoalCard} 
-              key=${item.soal.id} 
-              soal=${item.soal} 
-              index=${item.index} 
-              warnings=${warnMessages} 
-              onUpdate=${handleUpdate} 
-              onDelete=${handleDelete} 
-              onDuplicate=${handleDuplicate} 
-              onPublish=${handlePublish} 
-              isPublishing=${publishingIdx === item.index} 
+            return html`<${SoalCard}
+              key=${item.soal.id}
+              soal=${item.soal}
+              index=${item.index}
+              warnings=${warnMessages}
+              onUpdate=${handleUpdate}
+              onDelete=${handleDelete}
+              onDuplicate=${handleDuplicate}
+              onPublish=${handlePublish}
+              isPublishing=${publishingIdx === item.index}
             />`;
           })}
         </div>
@@ -468,13 +477,13 @@ export function PreviewPage({ navigate, profile }) {
       </div>
 
       ${confirmData && html`
-        <${ConfirmModal} 
-          title=${confirmData.title} 
-          message=${confirmData.message} 
+        <${ConfirmModal}
+          title=${confirmData.title}
+          message=${confirmData.message}
           confirmText=${confirmData.confirmText}
           isDanger=${confirmData.isDanger}
-          onConfirm=${confirmData.onConfirm} 
-          onCancel=${() => setConfirmData(null)} 
+          onConfirm=${confirmData.onConfirm}
+          onCancel=${() => setConfirmData(null)}
         />
       `}
     </div>
