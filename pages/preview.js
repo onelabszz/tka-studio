@@ -86,23 +86,35 @@ function ViewMode({ soal }) {
       `}
 
       ${(soal.tipe === 'pg' || soal.tipe === 'mcma') && html`
-  <div class="soal-options">
-    ${soal.options.map(function (opt, oi) {
-      const isCorrect = soal.tipe === 'pg'
-        ? soal.key === oi
-        : soal.key.indexOf(oi) !== -1;
-      const isPG = soal.tipe === 'pg';
-      return html`
-        <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-          <span class=${'option-indicator ' + (isPG ? 'radio' : 'checkbox') + (isCorrect ? ' active' : '')}>
-            ${!isPG && isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
-          </span>
-          <span class="soal-option-text">${'ABCD'[oi]}. ${opt}</span>
+        <div class="soal-options">
+          ${soal.options.map(function (opt, oi) {
+            const isCorrect = soal.tipe === 'pg'
+              ? soal.key === oi
+              : soal.key.indexOf(oi) !== -1;
+            
+            if (soal.tipe === 'pg') {
+              // PG: Huruf A, B, C, D tanpa bulatan
+              return html`
+                <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                  <span class="soal-option-letter">${'ABCD'[oi]}</span>
+                  <span class="soal-option-text">${opt}</span>
+                  ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
+                </div>
+              `;
+            } else {
+              // MCMA: Checkbox tanpa huruf
+              return html`
+                <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                  <span class=${'option-indicator checkbox' + (isCorrect ? ' active' : '')}>
+                    ${isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+                  </span>
+                  <span class="soal-option-text">${opt}</span>
+                </div>
+              `;
+            }
+          })}
         </div>
-      `;
-    })}
-  </div>
-`}
+      `}
 
       ${soal.pembahasan && html`
         <div class="soal-explanation">
@@ -263,8 +275,6 @@ export function PreviewPage({ navigate, profile }) {
   const [baseWarnings] = useState(draft && draft.warnings ? draft.warnings : []);
   const [filter, setFilter] = useState('all');
   const [publishingIdx, setPublishingIdx] = useState(null);
-  
-  // STATE INI YANG SEBELUMNYA HILANG
   const [confirmData, setConfirmData] = useState(null);
 
   const qualityWarnings = useMemo(function () { return paket ? checkQuality(paket) : []; }, [paket]);
