@@ -3,7 +3,7 @@
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { 
   ArrowLeft, Trash2, Sparkles, FolderOpen, Eye, X, Check, MessageCircle 
@@ -19,8 +19,18 @@ export function KotakPage({ navigate }) {
   const [previewItem, setPreviewItem] = useState(null);
   const [confirmData, setConfirmData] = useState(null);
 
+  // Render KaTeX saat modal preview dibuka
+  useEffect(() => {
+    if (previewItem) {
+      const timer = setTimeout(() => {
+        if (window.renderMath) window.renderMath();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [previewItem]);
+
   // --- LOGIKA HAPUS ---
-  const handleRemove = (id, index) => {
+  const handleRemove = (id) => {
     setConfirmData({
       title: 'Hapus dari Kotak?',
       message: 'Soal ini akan dihapus dari daftar Kotak Saya Anda.',
@@ -106,7 +116,7 @@ export function KotakPage({ navigate }) {
           </div>
         ` : html`
           <div class="pustaka-grid">
-            ${items.map((item, index) => html`
+            ${items.map((item) => html`
               <div class="pustaka-card">
                 <div class="pustaka-card-header">
                   <span class="badge-pg">${item.mapel}</span>
@@ -122,7 +132,7 @@ export function KotakPage({ navigate }) {
                   <button class="btn-secondary btn-sm" onClick=${() => setPreviewItem(item)}>
                     <${Eye} size=${14} /> Preview
                   </button>
-                  <button class="btn-danger btn-sm" onClick=${() => handleRemove(item.id, index)} style="flex: 1; border-color: transparent;">
+                  <button class="btn-danger btn-sm" onClick=${() => handleRemove(item.id)} style="flex: 1; border-color: transparent;">
                     <${Trash2} size=${14} /> Hapus
                   </button>
                 </div>
@@ -165,14 +175,16 @@ export function KotakPage({ navigate }) {
               ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
                 <div class="soal-options" style="margin-top: 12px;">
                   ${previewItem.konten.options.map((opt, oi) => {
-                    const isCorrect = previewItem.tipe === 'pg'
-                      ? previewItem.konten.key === oi
+                    const isCorrect = previewItem.tipe === 'pg' 
+                      ? previewItem.konten.key === oi 
                       : (previewItem.konten.key || []).includes(oi);
+                    const isPG = previewItem.tipe === 'pg';
                     return html`
                       <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-                        <span class="soal-option-letter">${'ABCD'[oi]}</span>
-                        <span class="soal-option-text">${opt}</span>
-                        ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
+                        <span class=${'option-indicator ' + (isPG ? 'radio' : 'checkbox') + (isCorrect ? ' active' : '')}>
+                          ${!isPG && isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+                        </span>
+                        <span class="soal-option-text">${'ABCD'[oi]}. ${opt}</span>
                       </div>
                     `;
                   })}
@@ -180,16 +192,27 @@ export function KotakPage({ navigate }) {
               `}
 
               ${previewItem.tipe === 'bs' && previewItem.konten.pernyataan && html`
-                <div class="soal-bs-list" style="margin-top: 12px;">
-                  ${previewItem.konten.pernyataan.map((p, pi) => html`
-                    <div class="soal-bs-item">
-                      <span class="soal-bs-num">${pi + 1}.</span>
-                      <span class="soal-bs-text">${p.teks}</span>
-                      <span class=${'soal-bs-key ' + (p.key ? 'key-true' : 'key-false')}>
-                        ${p.key ? 'Benar' : 'Salah'}
-                      </span>
-                    </div>
-                  `)}
+                <div class="bs-table-wrapper" style="margin-top: 12px;">
+                  <table class="bs-table">
+                    <thead>
+                      <tr>
+                        <th width="40">#</th>
+                        <th>Pernyataan</th>
+                        <th width="60" style="text-align: center;">Benar</th>
+                        <th width="60" style="text-align: center;">Salah</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${previewItem.konten.pernyataan.map((p, pi) => html`
+                        <tr>
+                          <td class="bs-letter">${'ABCDEFG'[pi]}.</td>
+                          <td class="bs-text">${p.teks}</td>
+                          <td class="bs-radio"><span class=${'radio-circle ' + (p.key === true ? 'active' : '')}></span></td>
+                          <td class="bs-radio"><span class=${'radio-circle ' + (p.key === false ? 'active' : '')}></span></td>
+                        </tr>
+                      `)}
+                    </tbody>
+                  </table>
                 </div>
               `}
 
