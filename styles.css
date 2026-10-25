@@ -715,3 +715,186 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 @media (display-mode: standalone) {
   body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* =========================================================
+   FIX v5.1 — STEPPER, PUSTAKA SEARCH, EXPERT CARD
+   ========================================================= */
+
+/* --- 1. STEPPER KONSISTEN --- */
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--space-6);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stepper-container::-webkit-scrollbar { display: none; }
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  flex: 1;
+  max-width: 180px;
+  transition: all var(--duration) var(--ease);
+}
+.stepper-item:hover:not(.locked) { background: var(--surface-muted); }
+
+/* --- 2. PUSTAKA SEARCH & FILTER (YANG HILANG) --- */
+.search-filter-wrapper {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 12px;
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.search-main-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-input);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.search-main-box:focus-within {
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.search-main-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+}
+.filter-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 4px;
+}
+.filter-chip-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+.filter-select {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+.filter-select:hover { background: var(--border); }
+.filter-select:focus { border-color: var(--primary-mid); background: white; }
+.btn-reset-filter {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-light);
+  transition: background 0.2s;
+}
+.btn-reset-filter:hover { background: #fca5a5; }
+.cart-badge-inline {
+  background: var(--amber-400);
+  color: var(--navy-900);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+/* --- 3. EXPERT CARD (LEBIH PREMIUM) --- */
+.expert-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: all var(--duration) var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.expert-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
+}
+.expert-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 4px;
+  background: var(--primary-mid);
+}
+.expert-card.is-done::before {
+  background: var(--success);
+}
+.expert-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.expert-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+.expert-card-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.expert-progress-bg {
+  height: 8px;
+  background: var(--surface-muted);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+.expert-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease-out;
+}
+
+/* Fix tombol di expert card */
+.expert-card .pustaka-card-actions {
+  display: flex;
+  gap: 8px;
+}
+.expert-card .pustaka-card-actions button { flex: 1; }
