@@ -5,21 +5,29 @@
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { 
-  ArrowLeft, Trash2, Sparkles, FolderOpen, Eye, X, Check, MessageCircle 
+import {
+  ArrowLeft, Trash2, Sparkles, FolderOpen, Eye, X, Check, MessageCircle,
+  ShoppingCart, User, Download, Layers, Clock, BookOpen
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getKotak, removeFromKotak, clearKotak } from '../lib/pustaka.js';
 import { saveDraft } from '../stores/studio.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
+import { PageHero } from '../components/PageHero.js';
 
 const html = htm.bind(h);
+
+function initials(name) {
+  if (!name) return '?';
+  const parts = String(name).trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export function KotakPage({ navigate }) {
   const [items, setItems] = useState(getKotak());
   const [previewItem, setPreviewItem] = useState(null);
   const [confirmData, setConfirmData] = useState(null);
 
-  // Render KaTeX saat modal preview dibuka
   useEffect(() => {
     if (previewItem) {
       const timer = setTimeout(() => {
@@ -29,18 +37,17 @@ export function KotakPage({ navigate }) {
     }
   }, [previewItem]);
 
-  // --- LOGIKA HAPUS ---
   const handleRemove = (id) => {
     setConfirmData({
       title: 'Hapus dari Kotak?',
-      message: 'Soal ini akan dihapus dari daftar Kotak Saya Anda.',
+      message: 'Soal ini akan dihapus dari daftar Keranjang Soal Anda.',
       confirmText: 'Ya, Hapus',
       isDanger: true,
       onConfirm: () => {
         setConfirmData(null);
         removeFromKotak(id);
         setItems(getKotak());
-        if (window.showToast) window.showToast('Soal dihapus dari Kotak.', 'info');
+        if (window.showToast) window.showToast('Soal dihapus dari keranjang.', 'info');
       }
     });
   };
@@ -48,29 +55,26 @@ export function KotakPage({ navigate }) {
   const handleClear = () => {
     if (items.length === 0) return;
     setConfirmData({
-      title: 'Kosongkan Kotak?',
-      message: 'Semua soal di dalam Kotak Saya akan dihapus.',
+      title: 'Kosongkan Keranjang?',
+      message: 'Semua soal di dalam Keranjang Soal akan dihapus. Tindakan ini tidak bisa dibatalkan.',
       confirmText: 'Ya, Kosongkan',
       isDanger: true,
       onConfirm: () => {
         setConfirmData(null);
         clearKotak();
         setItems([]);
-        if (window.showToast) window.showToast('Kotak berhasil dikosongkan.', 'info');
+        if (window.showToast) window.showToast('Keranjang berhasil dikosongkan.', 'info');
       }
     });
   };
 
-  // --- LOGIKA RAKIT PAKET ---
   const handleRakit = () => {
     if (items.length === 0) return;
-    
-    // Ambil mapel terbanyak sebagai default judul
+
     const mapelCounts = {};
     items.forEach(i => { mapelCounts[i.mapel] = (mapelCounts[i.mapel] || 0) + 1; });
     const topMapel = Object.keys(mapelCounts).reduce((a, b) => mapelCounts[a] > mapelCounts[b] ? a : b, 'Campuran');
 
-    // Gabungkan soal dari properti 'konten'
     const soalGabungan = items.map((item, idx) => ({ ...item.konten, id: `s${idx + 1}` }));
 
     const paketBaru = {
@@ -78,41 +82,56 @@ export function KotakPage({ navigate }) {
       id: 'paket-rakitan-' + Date.now(),
       judul: 'Paket Rakitan Pustaka',
       mapel: topMapel,
-      durasiMenit: soalGabungan.length * 2, 
+      durasiMenit: soalGabungan.length * 2,
       acakMode: 'per-tipe',
       latihanMandiri: true,
       soal: soalGabungan
     };
 
     saveDraft({ paket: paketBaru, warnings: [], originalText: '', savedAt: Date.now() });
-    if (window.showToast) window.showToast('Paket berhasil dirakit!', 'success');
+    if (window.showToast) window.showToast('Paket berhasil dirakit! Lanjut preview.', 'success');
     navigate('/preview');
   };
 
   const truncate = (text, max) => (!text ? '' : (text.length > max ? text.slice(0, max) + '...' : text));
 
+  const mapelUnique = new Set(items.map(i => i.mapel)).size;
+  const estimasiMenit = items.length * 2;
+
+  const chips = items.length > 0
+    ? [
+        { icon: ShoppingCart, text: `${items.length} soal` },
+        { icon: BookOpen, text: `${mapelUnique} mapel` },
+        { icon: Clock, text: `~${estimasiMenit} menit` }
+      ]
+    : null;
+
   return html`
     <div class="page">
-      <div class="page-shell" style="padding-bottom: 100px;">
-        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
-          <div>
+      <div class="page-shell page-shell-wide" style="padding-bottom: 20px;">
+        <${PageHero}
+          icon=${ShoppingCart}
+          title="Keranjang Soal"
+          subtitle="Soal-soal pilihan dari Pustaka. Rakit menjadi paket ujian sekali klik."
+          chips=${chips}
+          topnav=${html`
             <button class="btn-back" onClick=${() => navigate('/pustaka')}><${ArrowLeft} size=${16} /> Pustaka</button>
-            <h1 class="page-title">Keranjang Soal</h1>
-            <p class="page-subtitle">${items.length} soal diambil dari Pustaka. Siap dirakit menjadi paket ujian.</p>
-          </div>
-          ${items.length > 0 && html`
-            <button class="btn-secondary" onClick=${handleClear} style="color: var(--danger); border-color: #fecaca;">
-              <${Trash2} size=${16} /> Kosongkan
-            </button>
+            ${items.length > 0 && html`
+              <button class="btn-secondary btn-sm" onClick=${handleClear} style="color: var(--danger); border-color: #fecaca;">
+                <${Trash2} size=${14} /> Kosongkan
+              </button>
+            `}
           `}
-        </div>
+        />
 
         ${items.length === 0 ? html`
-          <div class="empty-state mt-4">
-            <${FolderOpen} size=${48} strokeWidth=${1.5} color="var(--text-subtle)" style="margin-bottom: 16px;" />
-            <h3 style="margin: 0 0 8px; font-size: 18px; color: var(--text);">Kotak masih kosong</h3>
+          <div class="empty-state">
+            <div class="empty-state-icon"><${ShoppingCart} size=${32} strokeWidth=${1.5} /></div>
+            <h3>Keranjang masih kosong</h3>
             <p>Jelajahi Pustaka dan ambil soal-soal terbaik untuk dirakit menjadi paket ujian.</p>
-            <button class="btn-primary mt-3" onClick=${() => navigate('/pustaka')}>Ke Pustaka Soal</button>
+            <button class="btn-primary" onClick=${() => navigate('/pustaka')} style="margin-top: 8px;">
+              <${Sparkles} size=${16} /> Ke Pustaka Soal
+            </button>
           </div>
         ` : html`
           <div class="pustaka-grid">
@@ -123,7 +142,19 @@ export function KotakPage({ navigate }) {
                   <span class="badge-muted">${item.kelas || '-'}</span>
                   <span class=${'soal-badge badge-' + item.tipe}>${item.tipe.toUpperCase()}</span>
                 </div>
-                
+
+                <div class="pustaka-meta-row">
+                  <span class="author-pill" title=${item.contributor_nama || 'Anonim'}>
+                    <span class="author-avatar">${initials(item.contributor_nama)}</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">${item.contributor_nama || 'Anonim'}</span>
+                  </span>
+                  ${(item.download_count != null) && html`
+                    <span class="download-count" title="${item.download_count} kali diambil">
+                      <${Download} size=${11} /> ${item.download_count}
+                    </span>
+                  `}
+                </div>
+
                 <div class="pustaka-card-body">
                   <div class="pustaka-q">${truncate(item.konten.q, 120)}</div>
                 </div>
@@ -142,18 +173,34 @@ export function KotakPage({ navigate }) {
         `}
       </div>
 
-      <!-- STICKY BOTTOM BAR -->
+      <!-- STICKY BAR -->
       ${items.length > 0 && html`
-        <div class="sticky-bottom no-print">
-          <div class="page-shell" style="padding: 0 var(--space-4) var(--space-4); max-width: 860px;">
-            <button class="btn-primary btn-large w-full" onClick=${handleRakit} style="box-shadow: 0 8px 24px rgba(30, 64, 175, 0.3);">
-              <${Sparkles} size=${20} /> Susun ${items.length} Soal Jadi Paket Ujian
-            </button>
+        <div class="cart-sticky-bar no-print">
+          <div class="page-shell page-shell-wide" style="padding: 0 var(--space-4) var(--space-4);">
+            <div class="cart-sticky-inner">
+              <div class="cart-sticky-stats">
+                <div class="cart-sticky-stat">
+                  <span>Total Soal</span>
+                  <b>${items.length}</b>
+                </div>
+                <div class="cart-sticky-stat">
+                  <span>Mapel</span>
+                  <b>${mapelUnique}</b>
+                </div>
+                <div class="cart-sticky-stat">
+                  <span>Estimasi</span>
+                  <b>${estimasiMenit} mnt</b>
+                </div>
+              </div>
+              <button class="btn-primary btn-large" onClick=${handleRakit}>
+                <${Sparkles} size=${18} /> Rakit Jadi Paket
+              </button>
+            </div>
           </div>
         </div>
       `}
 
-      <!-- MODAL PREVIEW SOAL -->
+      <!-- MODAL PREVIEW -->
       ${previewItem && html`
         <div class="modal-backdrop" onClick=${() => setPreviewItem(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -175,8 +222,8 @@ export function KotakPage({ navigate }) {
               ${previewItem.tipe !== 'bs' && previewItem.konten.options && html`
                 <div class="soal-options" style="margin-top: 12px;">
                   ${previewItem.konten.options.map((opt, oi) => {
-                    const isCorrect = previewItem.tipe === 'pg' 
-                      ? previewItem.konten.key === oi 
+                    const isCorrect = previewItem.tipe === 'pg'
+                      ? previewItem.konten.key === oi
                       : (previewItem.konten.key || []).includes(oi);
                     if (previewItem.tipe === 'pg') {
                       return html`
@@ -231,6 +278,21 @@ export function KotakPage({ navigate }) {
                   <span>${previewItem.konten.pembahasan}</span>
                 </div>
               `}
+
+              <div class="pustaka-preview-footer">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="author-avatar" style="width: 24px; height: 24px; font-size: 11px;">${initials(previewItem.contributor_nama)}</span>
+                  <div>
+                    <b>${previewItem.contributor_nama || 'Anonim'}</b>
+                    <div style="font-size: 11px; opacity: 0.7;">${previewItem.contributor_sekolah || 'Indonesia'}</div>
+                  </div>
+                </div>
+                ${(previewItem.download_count != null) && html`
+                  <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #c2410c;">
+                    <${Download} size=${13} /> ${previewItem.download_count} kali diambil
+                  </div>
+                `}
+              </div>
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setPreviewItem(null)}>Tutup</button>
@@ -239,15 +301,14 @@ export function KotakPage({ navigate }) {
         </div>
       `}
 
-      <!-- CUSTOM CONFIRM MODAL -->
       ${confirmData && html`
-        <${ConfirmModal} 
-          title=${confirmData.title} 
-          message=${confirmData.message} 
+        <${ConfirmModal}
+          title=${confirmData.title}
+          message=${confirmData.message}
           confirmText=${confirmData.confirmText}
           isDanger=${confirmData.isDanger}
-          onConfirm=${confirmData.onConfirm} 
-          onCancel=${() => setConfirmData(null)} 
+          onConfirm=${confirmData.onConfirm}
+          onCancel=${() => setConfirmData(null)}
         />
       `}
     </div>
