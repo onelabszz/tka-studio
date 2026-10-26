@@ -3,18 +3,20 @@
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState, useMemo, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useMemo, useEffect, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, CircleDot, ListChecks, CheckCheck,
   Pencil, Trash2, CopyPlus, X, Check, AlertTriangle, MessageCircle,
   Image as ImageIcon, Printer, Send, Loader2, Copy, Search, Save,
+  Upload, ZoomIn
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft } from '../stores/studio.js';
 import { checkQuality } from '../lib/quality-checks.js';
 import { Stepper } from '../components/Stepper.js';
 import { publishSoal } from '../lib/pustaka.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
+import { ImageLightbox } from '../components/ImageLightbox.js';
 
 const html = htm.bind(h);
 
@@ -35,11 +37,36 @@ function SoalBadge({ tipe }) {
 }
 
 // =====================================================
-// CopyChip — pill salin dengan feedback visual
+// Helper: resolve image src
+// =====================================================
+function resolveImageSrc(soal) {
+  if (!soal) return null;
+  if (soal.img_data && String(soal.img_data).startsWith('data:image/')) return soal.img_data;
+  if (soal.img && String(soal.img).startsWith('data:image/')) return soal.img;
+  return null;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function fmtFileSize(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+// =====================================================
+// CopyChip
 // =====================================================
 function CopyChip({ text, label = 'Salin' }) {
-  const [state, setState] = useState('idle'); // 'idle' | 'copied' | 'error'
-
+  const [state, setState] = useState('idle');
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
@@ -50,7 +77,6 @@ function CopyChip({ text, label = 'Salin' }) {
       setTimeout(() => setState('idle'), 2000);
     }
   };
-
   return html`
     <button type="button" class=${'copy-chip ' + state} onClick=${handleCopy}>
       ${state === 'copied'
@@ -63,27 +89,61 @@ function CopyChip({ text, label = 'Salin' }) {
 }
 
 // =====================================================
-// ViewMode — tampilan read-only dengan CopyChip
+// ImagePreview — tampil base64 / placeholder
+// =====================================================
+function ImagePreview({ soal, onZoom }) {
+  const [zoom, setZoom] = useState(false);
+
+  if (!soal.img && !soal.img_data) return null;
+
+  const src = resolveImageSrc(soal);
+
+  if (src) {
+    return html`
+      <div class="soal-img-preview">
+        <img
+          src=${src}
+          alt=${soal.img_caption || 'Gambar soal'}
+          class="soal-img-thumb"
+          onClick=${() => setZoom(true)}
+          loading="lazy"
+        />
+        <div class="soal-img-info">
+          ${soal.img_caption && html`<div class="soal-img-caption-text">${soal.img_caption}</div>`}
+          ${soal.img && html`<div class="soal-img-filename">📁 ${soal.img}</div>`}
+        </div>
+        ${zoom && html`<${ImageLightbox} src=${src} alt=${soal.img_caption} onClose=${() => setZoom(false)} />`}
+      </div>
+    `;
+  }
+
+  // Placeholder (img ada tapi no base64, atau img_ref saja)
+  return html`
+    <div class="soal-img-badge">
+      <div class="soal-img-row">
+        <${ImageIcon} size=${14} />
+        <span>Butuh gambar: <b>${soal.img || '-'}</b></span>
+      </div>
+      ${soal.img_ref && html`
+        <div class="soal-img-ref">
+          <span class="soal-img-ref-text">
+            <${Search} size=${11} /> Cari: <i>"${soal.img_ref}"</i>
+          </span>
+          <${CopyChip} text=${soal.img_ref} label="Salin keyword" />
+        </div>
+      `}
+    </div>
+  `;
+}
+
+// =====================================================
+// ViewMode
 // =====================================================
 function ViewMode({ soal }) {
   return html`
     <div class="soal-body">
-      ${soal.img && html`
-        <div class="soal-img-badge">
-          <div class="soal-img-row">
-            <${ImageIcon} size=${14} />
-            <span>Butuh gambar: <b>${soal.img}</b></span>
-          </div>
-          ${soal.img_ref && html`
-            <div class="soal-img-ref">
-              <span class="soal-img-ref-text">
-                <${Search} size=${11} /> Cari: <i>"${soal.img_ref}"</i>
-              </span>
-              <${CopyChip} text=${soal.img_ref} label="Salin keyword" />
-            </div>
-          `}
-        </div>
-      `}
+      <${ImagePreview} soal=${soal} />
+
       <div class="soal-question">${soal.q}</div>
 
       ${soal.tipe === 'bs' && html`
@@ -98,20 +158,14 @@ function ViewMode({ soal }) {
               </tr>
             </thead>
             <tbody>
-              ${soal.pernyataan.map(function (p, pi) {
-                return html`
-                  <tr>
-                    <td class="bs-letter">${'ABCDEFG'[pi]}.</td>
-                    <td class="bs-text">${p.teks}</td>
-                    <td class="bs-radio">
-                      <span class=${'radio-circle ' + (p.key === true ? 'active' : '')}></span>
-                    </td>
-                    <td class="bs-radio">
-                      <span class=${'radio-circle ' + (p.key === false ? 'active' : '')}></span>
-                    </td>
-                  </tr>
-                `;
-              })}
+              ${soal.pernyataan.map((p, pi) => html`
+                <tr key=${pi}>
+                  <td class="bs-letter">${'ABCDEFG'[pi]}.</td>
+                  <td class="bs-text">${p.teks}</td>
+                  <td class="bs-radio"><span class=${'radio-circle ' + (p.key === true ? 'active' : '')}></span></td>
+                  <td class="bs-radio"><span class=${'radio-circle ' + (p.key === false ? 'active' : '')}></span></td>
+                </tr>
+              `)}
             </tbody>
           </table>
         </div>
@@ -119,29 +173,27 @@ function ViewMode({ soal }) {
 
       ${(soal.tipe === 'pg' || soal.tipe === 'mcma') && html`
         <div class="soal-options">
-          ${soal.options.map(function (opt, oi) {
+          ${soal.options.map((opt, oi) => {
             const isCorrect = soal.tipe === 'pg'
               ? soal.key === oi
               : soal.key.indexOf(oi) !== -1;
-
             if (soal.tipe === 'pg') {
               return html`
-                <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
+                <div class=${'soal-option' + (isCorrect ? ' correct' : '')} key=${oi}>
                   <span class="soal-option-letter">${'ABCD'[oi]}</span>
                   <span class="soal-option-text">${opt}</span>
                   ${isCorrect && html`<${Check} size=${14} class="soal-option-check" />`}
                 </div>
               `;
-            } else {
-              return html`
-                <div class=${'soal-option' + (isCorrect ? ' correct' : '')}>
-                  <span class=${'option-indicator checkbox' + (isCorrect ? ' active' : '')}>
-                    ${isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
-                  </span>
-                  <span class="soal-option-text">${opt}</span>
-                </div>
-              `;
             }
+            return html`
+              <div class=${'soal-option' + (isCorrect ? ' correct' : '')} key=${oi}>
+                <span class=${'option-indicator checkbox' + (isCorrect ? ' active' : '')}>
+                  ${isCorrect && html`<${Check} size=${14} strokeWidth=${3} />`}
+                </span>
+                <span class="soal-option-text">${opt}</span>
+              </div>
+            `;
           })}
         </div>
       `}
@@ -157,11 +209,16 @@ function ViewMode({ soal }) {
 }
 
 // =====================================================
-// SoalEditModal — edit soal dalam modal
+// SoalEditModal — dengan upload gambar
 // =====================================================
 function SoalEditModal({ soal, index, onSave, onCancel }) {
   const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(soal)));
   const [confirmClose, setConfirmClose] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showImgEditor, setShowImgEditor] = useState(
+    !!(soal.img || soal.img_data || soal.img_ref)
+  );
+  const fileInputRef = useRef(null);
 
   const setField = (patch) => setDraft(d => ({ ...d, ...patch }));
 
@@ -170,22 +227,52 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
     opts[idx] = val;
     setField({ options: opts });
   };
-
   const handlePGCorrect = (idx) => setField({ key: idx });
-
   const handleMCMAToggle = (idx) => {
     const set = new Set(draft.key || []);
     if (set.has(idx)) set.delete(idx); else set.add(idx);
     const keys = Array.from(set).sort((a, b) => a - b);
     setField({ key: keys });
   };
-
   const handleBSPernyataan = (idx, patch) => {
     const list = draft.pernyataan.map((p, i) => (i !== idx ? p : { ...p, ...patch }));
     setField({ pernyataan: list });
   };
 
-  // Validasi
+  // Image upload
+  const handleImageUpload = async (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      if (window.showToast) window.showToast('File harus gambar', 'error');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      if (window.showToast) window.showToast('Gambar terlalu besar (max 2 MB). Kompres dulu.', 'error');
+      return;
+    }
+    setUploading(true);
+    try {
+      const base64 = await readFileAsDataURL(file);
+      setField({
+        img_data: base64,
+        img: draft.img || file.name,
+      });
+    } catch (e) {
+      if (window.showToast) window.showToast('Gagal upload gambar', 'error');
+    }
+    setUploading(false);
+  };
+
+  const handleRemoveImage = () => {
+    const newDraft = { ...draft };
+    delete newDraft.img_data;
+    delete newDraft.img_ref;
+    delete newDraft.img_caption;
+    // Keep img as filename if user set it manually? No — hapus semua
+    delete newDraft.img;
+    setDraft(newDraft);
+  };
+
+  // Validation
   let canSave = false;
   if (draft.q && draft.q.trim()) {
     if (draft.tipe === 'pg' || draft.tipe === 'mcma') {
@@ -207,7 +294,6 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
     }
   }
 
-  // Detect unsaved changes
   const hasChanges = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(soal),
     [draft, soal]
@@ -218,17 +304,12 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
     else onCancel();
   };
 
-  const confirmDiscard = () => {
-    setConfirmClose(false);
-    onCancel();
-  };
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) requestClose();
-  };
+  const imageSrc = resolveImageSrc(draft);
+  const imgSizeKb = draft.img_data ? Math.round(draft.img_data.length / 1024) : 0;
+  const bigImageWarning = imgSizeKb > 500;
 
   return html`
-    <div class="modal-backdrop soal-edit-backdrop" onClick=${handleBackdropClick}>
+    <div class="modal-backdrop soal-edit-backdrop" onClick=${(e) => { if (e.target === e.currentTarget) requestClose(); }}>
       <div class="modal soal-edit-modal" onClick=${(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div class="modal-header">
           <div class="modal-title">
@@ -243,6 +324,127 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
 
         <div class="modal-body">
           <div class="edit-mode">
+
+            <!-- IMAGE EDITOR -->
+            <div class="form-field">
+              <label class="form-label">
+                Gambar Soal
+                <span class="form-hint" style="display:inline; font-weight:400; margin-left:6px;">
+                  (opsional)
+                </span>
+                ${!showImgEditor && html`
+                  <button
+                    type="button"
+                    class="btn-back"
+                    style="margin-left:auto; font-size:11.5px; color:var(--primary); padding:2px 8px;"
+                    onClick=${() => setShowImgEditor(true)}
+                  >
+                    + Tambah gambar
+                  </button>
+                `}
+              </label>
+
+              ${showImgEditor && html`
+                <div class="edit-img-editor">
+                  ${imageSrc ? html`
+                    <div class="edit-img-preview">
+                      <img src=${imageSrc} alt="Preview" />
+                      <div class="edit-img-actions">
+                        <button
+                          type="button"
+                          class="icon-btn"
+                          onClick=${() => fileInputRef.current?.click()}
+                          title="Ganti gambar"
+                        >
+                          <${Upload} size=${14} />
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-danger"
+                          onClick=${handleRemoveImage}
+                          title="Hapus gambar"
+                        >
+                          <${Trash2} size=${14} />
+                        </button>
+                      </div>
+                    </div>
+                    ${imgSizeKb > 0 && html`
+                      <div class="edit-img-meta">
+                        <span>📁 ${draft.img || '(tanpa nama)'}</span>
+                        <span>💾 ${fmtFileSize(imgSizeKb * 1024)}</span>
+                      </div>
+                    `}
+                    ${bigImageWarning && html`
+                      <div class="edit-img-warning">
+                        <${AlertTriangle} size=${12} /> Gambar cukup besar (${fmtFileSize(imgSizeKb * 1024)}). Kompres ke WebP max 100KB untuk JSON ringan.
+                      </div>
+                    `}
+                  ` : html`
+                    <button
+                      type="button"
+                      class="edit-img-upload-btn"
+                      onClick=${() => fileInputRef.current?.click()}
+                      disabled=${uploading}
+                    >
+                      ${uploading
+                        ? html`<${Loader2} size=${18} class="spin" /> Uploading...`
+                        : html`<${Upload} size=${18} /> Upload Gambar`}
+                    </button>
+                    <div class="form-hint" style="text-align:center; margin-top:6px;">
+                      Format: JPG/PNG/WebP · Maks 2 MB
+                    </div>
+                  `}
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref=${fileInputRef}
+                    onChange=${(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleImageUpload(f);
+                      e.target.value = '';
+                    }}
+                    style="display:none;"
+                  />
+                </div>
+
+                <div class="form-field" style="margin-top:10px;">
+                  <label class="form-label" style="font-size:12px;">Nama File (untuk Local Host)</label>
+                  <input
+                    class="edit-input"
+                    value=${draft.img || ''}
+                    onInput=${(e) => setField({ img: e.target.value })}
+                    placeholder="segitiga.png"
+                  />
+                  <span class="form-hint" style="font-size:11px;">
+                    Guru perlu copy file ini ke folder <code>paket/gambar/</code> saat impor ke Local Host.
+                  </span>
+                </div>
+
+                <div class="form-row" style="margin-top:6px;">
+                  <div class="form-field">
+                    <label class="form-label" style="font-size:12px;">Keyword Pencarian</label>
+                    <input
+                      class="edit-input"
+                      value=${draft.img_ref || ''}
+                      onInput=${(e) => setField({ img_ref: e.target.value })}
+                      placeholder="segitiga siku-siku"
+                    />
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label" style="font-size:12px;">Caption</label>
+                    <input
+                      class="edit-input"
+                      value=${draft.img_caption || ''}
+                      onInput=${(e) => setField({ img_caption: e.target.value })}
+                      placeholder="Gambar segitiga ABC"
+                    />
+                  </div>
+                </div>
+              `}
+            </div>
+
+            <!-- PERTANYAAN -->
             <div class="form-field">
               <label class="form-label">Pertanyaan</label>
               <textarea
@@ -272,13 +474,11 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
                         type="button"
                         class=${'edit-bs-toggle ' + (p.key ? 'active-true' : '')}
                         onClick=${() => handleBSPernyataan(pi, { key: true })}
-                        title="Benar"
                       >B</button>
                       <button
                         type="button"
                         class=${'edit-bs-toggle ' + (!p.key ? 'active-false' : '')}
                         onClick=${() => handleBSPernyataan(pi, { key: false })}
-                        title="Salah"
                       >S</button>
                     </div>
                   `)}
@@ -291,7 +491,7 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
                 <label class="form-label">
                   Pilihan Jawaban
                   <span class="form-hint" style="display:inline; margin-left:6px;">
-                    ${draft.tipe === 'pg' ? '(klik huruf untuk kunci)' : '(klik huruf untuk pilih minimal 2 kunci)'}
+                    ${draft.tipe === 'pg' ? '(klik huruf untuk kunci)' : '(pilih min 2)'}
                   </span>
                 </label>
                 <div class="edit-options">
@@ -323,7 +523,9 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
             `}
 
             <div class="form-field">
-              <label class="form-label">Pembahasan <span class="form-hint" style="display:inline; font-weight:400;">(opsional)</span></label>
+              <label class="form-label">
+                Pembahasan <span class="form-hint" style="display:inline; font-weight:400;">(opsional)</span>
+              </label>
               <textarea
                 class="edit-textarea"
                 value=${draft.pembahasan || ''}
@@ -341,7 +543,7 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
           </button>
           <button
             class="btn-primary"
-            disabled=${!canSave || !hasChanges}
+            disabled=${!canSave || !hasChanges || uploading}
             onClick=${() => onSave(draft)}
           >
             <${Save} size=${16} /> Simpan Perubahan
@@ -355,7 +557,7 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
               <p>Perubahan yang belum disimpan akan hilang.</p>
               <div class="soal-edit-confirm-actions">
                 <button class="btn-secondary" onClick=${() => setConfirmClose(false)}>Lanjut Edit</button>
-                <button class="btn-danger" onClick=${confirmDiscard}>Ya, Batalkan</button>
+                <button class="btn-danger" onClick=${() => { setConfirmClose(false); onCancel(); }}>Ya, Batalkan</button>
               </div>
             </div>
           </div>
@@ -366,7 +568,7 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
 }
 
 // =====================================================
-// SoalCard — read-only, tombol edit pemicu modal
+// SoalCard
 // =====================================================
 function SoalCard({ soal, index, warnings, onEdit, onDelete, onDuplicate, onPublish, isPublishing }) {
   const hasWarning = warnings && warnings.length > 0;
@@ -379,7 +581,7 @@ function SoalCard({ soal, index, warnings, onEdit, onDelete, onDuplicate, onPubl
           <${SoalBadge} tipe=${soal.tipe} />
         </div>
         <div class="soal-actions">
-          <button class="icon-btn" onClick=${() => onPublish(index, soal)} aria-label="Terbitkan" title="Terbitkan ke Pustaka" disabled=${isPublishing}>
+          <button class="icon-btn" onClick=${() => onPublish(index, soal)} aria-label="Terbitkan" disabled=${isPublishing}>
             ${isPublishing ? html`<${Loader2} size=${15} class="spin"/>` : html`<${Send} size=${15} />`}
           </button>
           <button class="icon-btn" onClick=${() => onEdit(index)} aria-label="Edit" title="Edit soal">
@@ -578,7 +780,7 @@ export function PreviewPage({ navigate, profile }) {
         <div class="filter-bar no-print">
           <div class="filter-chips">
             ${filters.map(f => html`
-              <button class=${'filter-chip' + (filter === f.k ? ' active' : '')} onClick=${() => setFilter(f.k)}>
+              <button class=${'filter-chip' + (filter === f.k ? ' active' : '')} onClick=${() => setFilter(f.k)} key=${f.k}>
                 ${f.label} <span class="filter-count">${f.n}</span>
               </button>
             `)}
