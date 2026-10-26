@@ -26,6 +26,7 @@ import { ExpertListPage } from './pages/expert-list.js';
 import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
 import { PlayPage } from './pages/play.js';
+import { ExamListPage } from './pages/exam-list.js';
 import { AppShell } from './components/AppShell.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 import './components/Toast.js';
@@ -561,11 +562,12 @@ function App() {
   if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
-  const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
+  const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new', '/exam-list'];
   if (AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'))) {
     if (!user) { navigate('/login'); return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`; }
     let PageComponent = null; let pageProps = { navigate, profile };
     if (route === '/bank-soal') PageComponent = BankSoalPage;
+    else if (route === '/exam-list') PageComponent = ExamListPage;
     else if (route === '/pustaka') PageComponent = PustakaPage;
     else if (route === '/kotak') PageComponent = KotakPage;
     else if (route === '/expert') PageComponent = ExpertListPage;
