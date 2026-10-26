@@ -20,7 +20,7 @@ import {
   loadSession, saveSession, clearSession,
   loadHistory, pushHistory, deleteHistoryItem
 } from '../lib/player-storage.js';
-import { addImageFiles, getImageCount, clearImages } from '../lib/player-image.js';
+import { addImageFiles, getImageCount, clearImages } from '../lib/player-image.js'; import { getSupabase } from '../supabase/client.js';
 import { QuestionRunner } from '../components/QuestionRunner.js';
 import { DoneView, ReviewView } from '../components/ScoreReport.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
@@ -58,39 +58,44 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [examCodeInput, setExamCodeInput] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [studentIdNum, setStudentIdNum] = useState('');
   const [loadingCode, setLoadingCode] = useState(false);
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
     const code = examCodeInput.trim().toUpperCase();
-    if (code.length < 6) return;
+    if (code.length < 6 || !studentName.trim() || !studentIdNum.trim()) return;
     
     setLoadingCode(true);
     setError(null);
     try {
-      const url = `https://raw.githubusercontent.com/onelabszz/tka-exams/main/exams/${code}.json`;
-      console.log("Mengunduh dari:", url); // <-- Cek URL ini di Console
+      const client = await getSupabase();
       
+      // 1. Verifikasi Siswa via Supabase
+      const { data, error } = await client.functions.invoke('verify-student', {
+        body: { code, studentName, studentIdNum }
+      });
+
+      if (error) throw new Error('Gagal terhubung ke server verifikasi.');
+      if (data.error) throw new Error(data.error);
+
+      // Simpan rosterId ke localStorage
+      localStorage.setItem('tka-player-roster-id', data.rosterId);
+
+      // 2. Unduh Soal dari GitHub
+      const url = `https://raw.githubusercontent.com/onelabszz/tka-exams/main/exams/${code}.json`;
       const res = await fetch(url);
       
-      if (!res.ok) {
-        throw new Error(`Kode tidak ditemukan di GitHub (Status: ${res.status}). Pastikan repo Public dan file benar-benar ada.`);
-      }
+      if (!res.ok) throw new Error(`Kode tidak ditemukan (HTTP ${res.status})`);
       
-      const textData = await res.text();
-      let paketJson;
-      
-      try {
-        paketJson = JSON.parse(textData);
-      } catch (err) {
-        throw new Error('File yang diunduh dari GitHub bukan format JSON yang valid.');
-      }
+      const paketJson = await res.json();
       
       if (!paketJson.soal || !Array.isArray(paketJson.soal)) {
-        throw new Error('Format soal di dalam file rusak (tidak ada array "soal").');
+        throw new Error('Format soal di dalam file rusak.');
       }
 
-      onLoaded(paketJson);
+      onLoaded(paketJson, { studentName, studentIdNum });
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -181,15 +186,32 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
             <${Key} size=${16} />
             <span>Punya Kode Ujian dari Guru?</span>
           </div>
-          <form onSubmit=${handleCodeSubmit} class="player-code-form">
-            <input 
-              type="text" 
-              placeholder="KETIK 6 HURUF..." 
-              value=${examCodeInput}
-              onInput=${(e) => setExamCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-              maxLength="6"
-              class="player-code-input"
-            />
+          <form onSubmit=${handleCodeSubmit} style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; gap: 8px;">
+              <input 
+                type="text" 
+                placeholder="Nama Lengkap" 
+                value=${studentName} 
+                onInput=${(e) => setStudentName(e.target.value)}
+                class="player-code-input" style="font-size: 14px; letter-spacing: 0; text-align: left; text-transform: none;"
+              />
+              <input 
+                type="text" 
+                placeholder="NISN" 
+                value=${studentIdNum} 
+                onInput=${(e) => setStudentIdNum(e.target.value)}
+                class="player-code-input" style="font-size: 14px; letter-spacing: 0; text-align: left; text-transform: none;"
+              />
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input 
+                type="text" 
+                placeholder="KETIK 6 HURUF KODE..." 
+                value=${examCodeInput}
+                onInput=${(e) => setExamCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                maxLength="6"
+                class="player-code-input"
+              />
             <button 
               type="submit" 
               class="btn-primary" 
@@ -741,8 +763,9 @@ export function PlayPage() {
   }, [answers, flagged, currentIndex, view]);
 
   // Handlers
-  const handleLoaded = (p) => {
+  const handleLoaded = (p, extraData = {}) => {
     setPaket(p);
+    if (extraData.studentName) setStudentName(extraData.studentName);
     setView('briefing');
     setPendingResume(null);
     clearSession();
@@ -804,10 +827,20 @@ export function PlayPage() {
     });
   };
 
-  const finishAttempt = (finalAnswers, finalFlagged) => {
+  const finishAttempt = async (finalAnswers, finalFlagged) => {
     const scored = scoreAttempt(paket, finalAnswers);
     const nowIso = new Date().toISOString();
     const dur = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+
+    // Tandai selesai di Supabase jika ada rosterId
+    const rosterId = localStorage.getItem('tka-player-roster-id');
+    if (rosterId) {
+      try {
+        const client = await getSupabase();
+        await client.from('exam_rosters').update({ has_finished: true }).eq('id', rosterId);
+        localStorage.removeItem('tka-player-roster-id');
+      } catch (e) { console.error("Gagal update status siswa:", e); }
+    }
 
     setResult(scored);
     setSubmittedAt(nowIso);
