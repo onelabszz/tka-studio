@@ -120,6 +120,7 @@ function Footer() {
           <div class="footer-col">
             <div class="footer-col-title">Ekosistem</div>
             <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank">TKA Local Host</a>
+            <a href="#/image-tool" onClick=${(e) => { e.preventDefault(); navigate('/image-tool'); }}>Embed Gambar</a>
             <a href="#/debug" onClick=${(e) => { e.preventDefault(); navigate('/debug'); }}>Schema Tests</a>
           </div>
         </div>
@@ -557,6 +558,7 @@ function App() {
   }
 
   if (route === '/play') return html`<${PlayPage} />`;
+  if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
