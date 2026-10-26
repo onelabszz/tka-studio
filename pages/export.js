@@ -472,80 +472,106 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
-        <!-- Bridge: 2 Download Options -->
-        <div class="export-bridge">
-          <div class="export-bridge-head">
-            <div class="export-bridge-title">
-              <${Zap} size=${18} color="var(--amber-400)" />
-              Pilih Tujuan Download
+        <!-- Bridge: Pilih Tujuan Download -->
+        <div class="export-download-panel">
+          <div class="export-download-header">
+            <div class="export-download-header-icon">
+              <${Zap} size=${20} />
             </div>
-            <div class="export-bridge-sub">
-              Dua varian untuk dua kebutuhan. Pilih sesuai target Anda.
+            <div>
+              <h3 class="export-download-title">Pilih Tujuan Download</h3>
+              <p class="export-download-sub">Dua varian untuk dua kebutuhan berbeda</p>
             </div>
           </div>
 
-          <div class="export-bridge-actions">
-            <!-- Option 1: Local Host -->
+          <div class="export-download-cards">
+
+            <!-- Card 1: TKA Local Host -->
             <button
-              class="export-variant-btn is-local"
+              type="button"
+              class="export-download-card is-primary"
               onClick=${() => handleDownload('local')}
+              aria-label="Download untuk TKA Local Host"
             >
-              <div class="export-variant-icon"><${MonitorPlay} size=${22} /></div>
-              <div class="export-variant-body">
-                <div class="export-variant-title">
-                  <${Download} size=${14} /> Download untuk Local Host
-                </div>
-                <div class="export-variant-desc">
-                  Ringan · gambar via folder <code>paket/gambar/</code>
-                </div>
-                ${base64Count > 0 && html`
-                  <div class="export-variant-tag">
-                    <${Shield} size=${10} /> 100% kompatibel
-                  </div>
-                `}
+              <div class="export-download-card-badge">
+                <${Shield} size=${10} /> Rekomendasi
               </div>
-              <${ArrowRight} size=${16} class="export-variant-arrow" />
+              <div class="export-download-card-icon">
+                <${MonitorPlay} size=${22} />
+              </div>
+              <h4 class="export-download-card-title">TKA Local Host</h4>
+              <p class="export-download-card-desc">Untuk ujian offline di lab sekolah</p>
+              <div class="export-download-card-features">
+                <span class="export-download-feature is-success">
+                  <${Check} size=${10} strokeWidth=${3} /> Kompatibel
+                </span>
+                <span class="export-download-feature">
+                  <${FileJson} size=${10} /> JSON ringan
+                </span>
+              </div>
+              <div class="export-download-card-cta">
+                <${Download} size=${15} /> Download
+                <${ArrowRight} size=${14} class="export-download-card-cta-arrow" />
+              </div>
             </button>
 
-            <!-- Option 2: Player -->
+            <!-- Card 2: TKA Player -->
             <button
-              class=${'export-variant-btn is-player' + (hasBase64Images ? ' is-ready' : '')}
+              type="button"
+              class=${'export-download-card is-secondary' + (hasBase64Images ? ' is-ready' : '')}
               onClick=${() => handleDownload('player')}
+              aria-label="Download untuk TKA Player (Siswa)"
             >
-              <div class="export-variant-icon"><${Smartphone} size=${22} /></div>
-              <div class="export-variant-body">
-                <div class="export-variant-title">
-                  <${Download} size=${14} /> Download untuk Siswa (Player)
-                </div>
-                <div class="export-variant-desc">
-                  Standalone · gambar base64 embedded · 1 file
-                </div>
-                ${hasBase64Images && html`
-                  <div class="export-variant-tag is-success">
-                    <${Check} size=${10} /> ${base64Count} gambar siap
-                  </div>
-                `}
-                ${!hasBase64Images && gambarDibutuhkan.length > 0 && html`
-                  <div class="export-variant-tag is-warning">
-                    <${AlertTriangle} size=${10} /> Belum ada gambar
-                  </div>
-                `}
+              <div class="export-download-card-badge is-success">
+                <${Smartphone} size=${10} /> Standalone
               </div>
-              <${ArrowRight} size=${16} class="export-variant-arrow" />
+              <div class="export-download-card-icon">
+                <${Smartphone} size=${22} />
+              </div>
+              <h4 class="export-download-card-title">TKA Player</h4>
+              <p class="export-download-card-desc">Untuk tryout mandiri di HP siswa</p>
+              <div class="export-download-card-features">
+                ${hasBase64Images
+                  ? html`
+                    <span class="export-download-feature is-success">
+                      <${Check} size=${10} strokeWidth=${3} /> ${base64Count} gambar siap
+                    </span>
+                  `
+                  : gambarDibutuhkan.length > 0
+                    ? html`
+                      <span class="export-download-feature is-warning">
+                        <${AlertTriangle} size=${10} /> Belum ada gambar
+                      </span>
+                    `
+                    : html`
+                      <span class="export-download-feature">
+                        <${Check} size=${10} /> Tanpa gambar
+                      </span>
+                    `}
+                <span class="export-download-feature">
+                  <${Layers} size=${10} /> 1 file JSON
+                </span>
+              </div>
+              <div class="export-download-card-cta">
+                <${Download} size=${15} /> Download
+                <${ArrowRight} size=${14} class="export-download-card-cta-arrow" />
+              </div>
             </button>
 
-            <!-- Secondary: CSV + Kode -->
-            <div class="export-bridge-split">
-              <button class="btn-glass" onClick=${handleDownloadCSV}>
-                <${FileJson} size=${16} /> CSV
-              </button>
-              <button class="btn-glass" onClick=${handleCopyCode}>
-                ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
-                ${copied ? 'Tersalin!' : 'Salin Kode'}
-              </button>
-            </div>
           </div>
 
+          <!-- Secondary actions: CSV & Salin Kode -->
+          <div class="export-download-secondary">
+            <button type="button" class="export-secondary-btn" onClick=${handleDownloadCSV}>
+              <${FileJson} size=${14} /> CSV untuk Excel
+            </button>
+            <button type="button" class="export-secondary-btn" onClick=${handleCopyCode}>
+              ${copied ? html`<${Check} size=${14} />` : html`<${Copy} size=${14} />`}
+              ${copied ? 'Tersalin!' : 'Salin Kode'}
+            </button>
+          </div>
+
+          <!-- Save to cloud / login hint -->
           <div class="export-bridge-divider">
             ${isActive ? html`
               <button class="btn-glass w-full" onClick=${handleSaveToCloud} disabled=${saving}>
