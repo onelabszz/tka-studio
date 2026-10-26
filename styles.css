@@ -5083,3 +5083,68 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .soal-img-thumb { width: 100%; height: auto; max-height: 200px; }
   .edit-img-preview img { max-height: 180px; }
 }
+/* =========================================================
+   AUTO-COMPRESS UI (v9.2)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Compress info di edit modal */
+.edit-img-compress-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #065f46;
+  line-height: 1.4;
+  flex-wrap: wrap;
+}
+.edit-img-compress-info svg { flex-shrink: 0; color: var(--success); }
+.edit-img-compress-info b {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.edit-img-compress-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--success);
+  color: white;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.edit-img-skip-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+/* Compress badge di image-tool card */
+.imgtool-save-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px;
+  background: var(--success);
+  color: white;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 1px;
+}
