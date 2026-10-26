@@ -556,7 +556,7 @@ function App() {
     return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
-  if (route === '/play') return html`<${PlayPage} navigate=${navigate} />`;
+  if (route === '/play') return html`<${PlayPage} />`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
