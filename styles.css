@@ -4593,3 +4593,166 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .player-resume-card { flex-wrap: wrap; }
   .player-resume-actions { width: 100%; }
 }
+/* =========================================================
+   STANDALONE PLAYER HINT + SHARE CARD (v8.2)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Hint di bottom WelcomeView (pengganti tombol kembali) */
+.player-standalone-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin-top: 14px;
+  padding: 8px;
+  border-top: 1px dashed var(--border);
+  letter-spacing: 0.02em;
+}
+.player-standalone-hint svg { opacity: 0.7; }
+
+/* ---------- Export: Bagikan ke Siswa ---------- */
+.export-share-card {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid rgba(30, 64, 175, 0.15);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.export-share-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.export-share-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary-mid), var(--primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.2);
+}
+.export-share-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin-bottom: 3px;
+  line-height: 1.2;
+}
+.export-share-desc {
+  font-size: 12px;
+  color: var(--primary-dark);
+  line-height: 1.5;
+}
+.export-share-desc b { color: var(--primary); }
+
+.export-share-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: white;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.08);
+}
+.export-share-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+}
+.export-share-step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 10.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.export-share-step b { color: var(--primary-dark); }
+
+.export-share-link-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: white;
+  border: 1.5px dashed rgba(30, 64, 175, 0.25);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+}
+.export-share-url {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: all;
+}
+.export-share-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--duration) var(--ease);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(30, 64, 175, 0.2);
+}
+.export-share-copy-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.export-share-copy-btn.copied {
+  background: var(--success);
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.25);
+}
+
+.export-share-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(30, 64, 175, 0.15);
+  font-size: 11px;
+  color: var(--primary-dark);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.export-share-footer svg { flex-shrink: 0; opacity: 0.75; }
+
+@media (max-width: 520px) {
+  .export-share-link-row { flex-direction: column; align-items: stretch; }
+  .export-share-copy-btn { justify-content: center; width: 100%; }
+  .export-share-url { text-align: center; padding: 8px; }
+}
