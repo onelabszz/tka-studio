@@ -1,8 +1,7 @@
 /**
  * TKA Studio — pages/play.js
  * © 2026 Ekwan Nugroho — Wonogiri
- *
- * Mode Siswa — Tryout Mandiri. Zero Supabase.
+ * Mode Siswa — selaras UI TKA Local Host.
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
@@ -10,19 +9,20 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, Upload, FileJson, Play, Timer, ChevronLeft,
   ChevronRight, Grid3x3, X, CheckCircle2, AlertTriangle, Sparkles,
-  BookOpen, Layers, Trophy, RotateCcw, History, Home, ClipboardPaste,
-  Loader2, User, Repeat, PlayCircle, CircleDot, ListChecks, CheckCheck,
-  Clock, Trash2, GraduationCap
+  BookOpen, Layers, History, Home, ClipboardPaste, Loader2, User,
+  Repeat, PlayCircle, Clock, Trash2, GraduationCap, Flag, Check,
+  Menu, FileText
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
 import { scoreAttempt } from '../lib/player-scoring.js';
 import {
   loadSession, saveSession, clearSession,
-  loadHistory, pushHistory, clearHistory, deleteHistoryItem
+  loadHistory, pushHistory, deleteHistoryItem
 } from '../lib/player-storage.js';
+import { addImageFiles, getImageCount, clearImages } from '../lib/player-image.js';
 import { QuestionRunner } from '../components/QuestionRunner.js';
-import { ScoreReport } from '../components/ScoreReport.js';
+import { DoneView, ReviewView } from '../components/ScoreReport.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 
 const html = htm.bind(h);
@@ -35,364 +35,391 @@ function fmtTime(sec) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 function fmtDateShort(iso) {
-  try {
-    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' });
-  } catch { return '-'; }
+  try { return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }); }
+  catch { return '-'; }
 }
 function fmtDuration(sec) {
   if (!sec) return '-';
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
+  const m = Math.floor(sec / 60); const s = sec % 60;
   return `${m}m ${String(s).padStart(2, '0')}s`;
+}
+function isAnswered(soal, ans) {
+  if (soal.tipe === 'pg') return Number.isInteger(ans);
+  if (soal.tipe === 'mcma') return Array.isArray(ans) && ans.length > 0;
+  if (soal.tipe === 'bs') return Array.isArray(ans) && ans.length === soal.pernyataan.length && ans.every(v => typeof v === 'boolean');
+  return false;
 }
 
 // =====================================================
-// Upload Screen
+// Welcome (Login-style card)
 // =====================================================
-function UploadScreen({ onLoaded, navigate, pendingResume, onResume, onDiscardResume, history, onViewHistory, onDeleteHistory }) {
+function WelcomeView({ onLoaded, navigate, pendingResume, onResume, onDiscardResume, history, onViewHistory }) {
   const [dragover, setDragover] = useState(false);
-  const [pasteText, setPasteText] = useState('');
-  const [showPaste, setShowPaste] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
+  const [showPaste, setShowPaste] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [imgCount, setImgCount] = useState(getImageCount());
+  const fileRef = useRef(null);
 
-  const parseInput = (rawText) => {
+  const parseInput = (raw) => {
     setError(null);
     setLoading(true);
     setTimeout(() => {
       try {
-        const parsed = smartParse(rawText);
-        if (!parsed.ok) {
-          setError('Format tidak dikenali: ' + parsed.error);
-          setLoading(false);
-          return;
-        }
+        const parsed = smartParse(raw);
+        if (!parsed.ok) { setError('Format tidak dikenali: ' + parsed.error); setLoading(false); return; }
         const { paket, errors } = normalizePaket(parsed.raw);
-        if (!paket) {
-          setError('Soal tidak valid: ' + (errors[0]?.message || 'Unknown'));
-          setLoading(false);
-          return;
-        }
+        if (!paket) { setError('Soal tidak valid: ' + (errors[0]?.message || 'Unknown')); setLoading(false); return; }
         onLoaded(paket);
-      } catch (e) {
-        setError(String(e.message || e));
-      }
+      } catch (e) { setError(String(e.message || e)); }
       setLoading(false);
-    }, 250);
+    }, 200);
   };
 
-  const handleFile = async (file) => {
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.json') && !file.name.toLowerCase().endsWith('.txt')) {
-      setError('File harus .json (atau .txt berisi JSON/CSV)');
-      return;
+  const handleFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    const jsonFiles = [];
+    const imageFiles = [];
+    for (const f of files) {
+      const name = (f.name || '').toLowerCase();
+      if (name.endsWith('.json') || name.endsWith('.txt')) jsonFiles.push(f);
+      else if (f.type && f.type.startsWith('image/')) imageFiles.push(f);
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File terlalu besar (maks 5 MB)');
-      return;
+    if (imageFiles.length > 0) {
+      await addImageFiles(imageFiles);
+      setImgCount(getImageCount());
     }
-    const text = await file.text();
-    parseInput(text);
+    if (jsonFiles.length > 0) {
+      const text = await jsonFiles[0].text();
+      parseInput(text);
+    } else if (imageFiles.length > 0) {
+      setError(`Terupload ${imageFiles.length} gambar. Tapi file JSON belum dipilih. Pilih JSON + gambar sekaligus.`);
+    } else {
+      setError('File harus .json atau gambar (.png/.jpg/.webp)');
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragover(false);
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    handleFile(file);
+    handleFiles(Array.from(e.dataTransfer.files || []));
   };
 
-  const handleFileInputChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    handleFile(file);
+  const handleInput = (e) => {
+    handleFiles(Array.from(e.target.files || []));
     e.target.value = '';
   };
 
   return html`
-    <div class="page">
-      <div class="page-shell">
+    <div class="player-welcome-wrap">
+      <div class="player-welcome-card">
 
-        <div class="page-hero accent-primary" style="margin-bottom:16px;">
-          <div class="page-hero-main">
-            <div class="page-hero-icon"><${GraduationCap} size=${22} /></div>
-            <div class="page-hero-copy">
-              <h1 class="page-hero-title">Mode Siswa</h1>
-              <p class="page-hero-sub">Kerjakan tryout mandiri dengan file dari guru Anda.</p>
-            </div>
-          </div>
+        <div class="player-welcome-header">
+          <span class="player-welcome-kemen">TKA Studio</span>
+          <h1 class="player-welcome-title">Try Out Mandiri</h1>
+          <p class="player-welcome-sub">Upload file dari guru Anda untuk mulai.</p>
         </div>
 
         ${pendingResume && html`
-          <div class="result-card result-warning mb-4">
-            <div class="result-header">
-              <${Repeat} size=${18} color="var(--warning)" />
-              <h2>Ada tryout yang belum selesai</h2>
+          <div class="player-resume-card">
+            <div class="player-resume-icon"><${Repeat} size=${18} /></div>
+            <div class="player-resume-body">
+              <b>${pendingResume.paketJudul}</b>
+              <span>${pendingResume.answeredCount} dari ${pendingResume.totalSoal} dijawab</span>
             </div>
-            <p class="text-muted text-sm mb-3">
-              <b>${pendingResume.paketJudul}</b> · ${pendingResume.answeredCount || 0} dari ${pendingResume.totalSoal} soal dijawab.
-            </p>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn-primary" onClick=${onResume}>
-                <${PlayCircle} size=${16} /> Lanjutkan
-              </button>
-              <button class="btn-secondary" onClick=${onDiscardResume}>
-                <${Trash2} size=${16} /> Buang
-              </button>
+            <div class="player-resume-actions">
+              <button class="btn-primary btn-sm" onClick=${onResume}>Lanjut</button>
+              <button class="btn-secondary btn-sm" onClick=${onDiscardResume}>Buang</button>
             </div>
           </div>
         `}
 
         <div
-          class=${'upload-dropzone' + (dragover ? ' dragover' : '')}
-          onClick=${() => fileInputRef.current?.click()}
+          class=${'player-dropzone' + (dragover ? ' dragover' : '')}
+          onClick=${() => fileRef.current?.click()}
           onDragOver=${(e) => { e.preventDefault(); setDragover(true); }}
           onDragLeave=${() => setDragover(false)}
           onDrop=${handleDrop}
         >
-          <div class="upload-dropzone-icon"><${Upload} size=${28} /></div>
-          <h3>Upload File .json dari Guru</h3>
-          <p>Klik untuk pilih file, atau drag ke sini. Format harus <b>.json</b> yang diekspor dari TKA Studio.</p>
+          <div class="player-dropzone-icon"><${Upload} size=${26} /></div>
+          <div class="player-dropzone-title">Upload File Soal</div>
+          <div class="player-dropzone-desc">
+            Pilih file <b>.json</b> + gambar (opsional, sekaligus).<br/>
+            Bisa klik atau drag & drop.
+          </div>
           <input
             type="file"
-            accept=".json,.txt,application/json"
-            ref=${fileInputRef}
-            onChange=${handleFileInputChange}
+            accept=".json,.txt,image/*"
+            multiple
+            ref=${fileRef}
+            onChange=${handleInput}
             style="display:none;"
           />
         </div>
 
+        ${imgCount > 0 && html`
+          <div class="player-img-info">
+            <${FileText} size=${12} /> ${imgCount} gambar terupload
+            <button
+              class="player-img-clear"
+              onClick=${() => { clearImages(); setImgCount(0); }}
+            ><${X} size=${11} /></button>
+          </div>
+        `}
+
         ${loading && html`
           <div class="text-center mt-3">
-            <${Loader2} class="spin" size=${24} color="var(--primary)" />
+            <${Loader2} class="spin" size=${22} color="var(--primary)" />
           </div>
         `}
 
         ${error && html`
-          <div class="result-card result-error mt-3">
-            <div class="result-header">
-              <${AlertTriangle} size=${18} color="var(--danger)" />
-              <h2>Gagal memuat paket</h2>
+          <div class="result-card result-error" style="margin-top:12px; padding:12px;">
+            <div style="display:flex; gap:8px; font-size:12.5px;">
+              <${AlertTriangle} size=${14} color="var(--danger)" />
+              <span>${error}</span>
             </div>
-            <p class="text-muted text-sm">${error}</p>
           </div>
         `}
 
-        <div class="upload-paste-area">
-          <button
-            type="button"
-            class="accordion-toggle"
-            style="width:auto; padding:0; background:none; border:none;"
-            onClick=${() => setShowPaste(v => !v)}
-          >
-            <${ClipboardPaste} size=${14} />
-            ${showPaste ? 'Sembunyikan' : 'Atau tempel JSON langsung'}
-          </button>
-          ${showPaste && html`
-            <div style="margin-top:10px;">
-              <textarea
-                value=${pasteText}
-                onInput=${(e) => setPasteText(e.target.value)}
-                placeholder='{"version":"1.1","soal":[...]}'
-                rows=${6}
-              />
-              <button
-                class="btn-primary btn-sm mt-2"
-                disabled=${!pasteText.trim() || loading}
-                onClick=${() => parseInput(pasteText)}
-              >
-                Olah & Lanjut
-              </button>
-            </div>
-          `}
-        </div>
+        <button
+          type="button"
+          class="player-paste-toggle"
+          onClick=${() => setShowPaste(v => !v)}
+        >
+          <${ClipboardPaste} size=${13} />
+          ${showPaste ? 'Sembunyikan' : 'Atau tempel JSON langsung'}
+        </button>
+
+        ${showPaste && html`
+          <div class="player-paste-area">
+            <textarea
+              value=${pasteText}
+              onInput=${(e) => setPasteText(e.target.value)}
+              placeholder='{"version":"1.1","soal":[...]}'
+              rows=${5}
+            />
+            <button
+              class="btn-primary btn-sm mt-2 w-full"
+              disabled=${!pasteText.trim() || loading}
+              onClick=${() => parseInput(pasteText)}
+            >
+              Olah & Lanjut
+            </button>
+          </div>
+        `}
 
         ${history.length > 0 && html`
-          <div class="form-section" style="margin-top:16px;">
-            <div class="form-section-header">
-              <${History} size=${18} strokeWidth=${2} />
-              <h2>Riwayat Tryout</h2>
-              <button class="btn-back" onClick=${onViewHistory} style="margin-left:auto; font-size:12px;">
+          <div class="player-history-preview">
+            <div class="player-history-preview-header">
+              <${History} size=${14} /> Riwayat Tryout
+              <button class="player-history-more" onClick=${onViewHistory}>
                 Lihat Semua →
               </button>
             </div>
-            <div class="form-section-body">
-              <div class="history-list">
-                ${history.slice(0, 3).map(h => html`
-                  <div
-                    class="history-item"
-                    key=${h.id}
-                    onClick=${() => onViewHistory(h)}
-                  >
-                    <div class="history-score-badge">
-                      ${h.score}<small>/${h.total}</small>
-                    </div>
-                    <div class="history-info">
-                      <div class="history-title">${h.judul}</div>
-                      <div class="history-meta">${h.mapel} · ${fmtDateShort(h.submittedAt)} · ${h.mode}</div>
-                    </div>
-                  </div>
-                `)}
+            ${history.slice(0, 3).map(h => html`
+              <div class="history-item" key=${h.id} onClick=${() => onViewHistory(h)} style="cursor:pointer;">
+                <div class="history-score-badge">
+                  ${h.score}<small>/${h.total}</small>
+                </div>
+                <div class="history-info">
+                  <div class="history-title">${h.judul}</div>
+                  <div class="history-meta">${h.mapel} · ${fmtDateShort(h.submittedAt)}</div>
+                </div>
               </div>
-            </div>
+            `)}
           </div>
         `}
 
-        <div class="form-actions" style="margin-top:16px;">
-          <button class="btn-secondary w-full" onClick=${() => navigate('/')}>
-            <${ArrowLeft} size=${16} /> Kembali ke Beranda
-          </button>
-        </div>
+        <button class="btn-secondary w-full" onClick=${() => navigate('/')} style="margin-top:16px;">
+          <${ArrowLeft} size=${15} /> Kembali ke Beranda
+        </button>
 
+        <p class="player-welcome-copyright">© 2026 Ekwan Nugroho · Wonogiri</p>
       </div>
     </div>
   `;
 }
 
 // =====================================================
-// Briefing Screen
+// Briefing (login-card style)
 // =====================================================
-function BriefingScreen({ paket, onStart, onBack }) {
+function BriefingView({ paket, onStart, onBack }) {
   const [mode, setMode] = useState('latihan');
+  const [name, setName] = useState('');
+  const [kelas, setKelas] = useState('');
+
+  const total = paket.soal.length;
+  const durasi = paket.durasiMenit || 30;
   const counts = {
     pg: paket.soal.filter(s => s.tipe === 'pg').length,
     mcma: paket.soal.filter(s => s.tipe === 'mcma').length,
     bs: paket.soal.filter(s => s.tipe === 'bs').length,
   };
-  const total = paket.soal.length;
-  const durasi = paket.durasiMenit || 30;
+  const canStart = name.trim() && total > 0;
 
   return html`
-    <div class="page">
-      <div class="page-shell">
-
-        <button class="btn-back" onClick=${onBack} style="margin-bottom:12px;">
-          <${ArrowLeft} size=${16} /> Pilih File Lain
-        </button>
-
-        <div class="briefing-card">
-          <h1 class="page-title" style="font-size:22px; margin:0 0 8px;">${paket.judul}</h1>
-          <div class="briefing-chips">
-            <span class="config-chip"><${BookOpen} size=${12} /> ${paket.mapel}</span>
-            <span class="config-chip"><${Layers} size=${12} /> ${total} soal</span>
-            <span class="config-chip"><${Clock} size=${12} /> ${durasi} menit</span>
-          </div>
-
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
-            ${counts.pg > 0 && html`<span class="config-chip">PG ${counts.pg}</span>`}
-            ${counts.mcma > 0 && html`<span class="config-chip is-warning">MCMA ${counts.mcma}</span>`}
-            ${counts.bs > 0 && html`<span class="config-chip is-purple">B/S ${counts.bs}</span>`}
-          </div>
-
-          ${paket.wacana && html`
-            <details style="margin-bottom:16px;">
-              <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--primary);">
-                📖 Lihat teks wacana (${(paket.wacana.length || 0).toLocaleString()} karakter)
-              </summary>
-              <div style="margin-top:10px; padding:12px; background:var(--surface-muted); border-radius:8px; font-size:13px; line-height:1.6; white-space:pre-wrap;">
-                ${paket.wacana_judul && html`<div style="font-weight:700; margin-bottom:6px;">${paket.wacana_judul}</div>`}
-                ${paket.wacana}
-              </div>
-            </details>
-          `}
-
-          <div style="font-weight:700; font-size:13px; margin-bottom:8px;">Pilih mode:</div>
-          <div class="briefing-modes">
-            <button
-              type="button"
-              class=${'briefing-mode-card' + (mode === 'latihan' ? ' active' : '')}
-              onClick=${() => setMode('latihan')}
-            >
-              <div class="briefing-mode-icon"><${Play} size=${20} /></div>
-              <div class="briefing-mode-title">Latihan</div>
-              <div class="briefing-mode-desc">Tanpa timer. Santai, bisa lihat pembahasan setelah submit.</div>
-            </button>
-            <button
-              type="button"
-              class=${'briefing-mode-card' + (mode === 'simulasi' ? ' active' : '')}
-              onClick=${() => setMode('simulasi')}
-            >
-              <div class="briefing-mode-icon"><${Timer} size=${20} /></div>
-              <div class="briefing-mode-title">Simulasi</div>
-              <div class="briefing-mode-desc">Dengan timer ${durasi} menit. Auto-submit saat waktu habis.</div>
-            </button>
-          </div>
-
-          <div class="result-card result-warning" style="margin:16px 0 0; padding:12px 14px;">
-            <div style="display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:#92400e; line-height:1.5;">
-              <${AlertTriangle} size=${14} style="flex-shrink:0; margin-top:1px;" />
-              <div>
-                <b>Catatan:</b> File ini berisi kunci jawaban (untuk mode latihan).
-                Untuk ujian serius, gunakan TKA Local Host atau minta guru pakai Mode Kode.
-              </div>
-            </div>
-          </div>
+    <div class="player-welcome-wrap">
+      <div class="player-welcome-card" style="max-width: 560px;">
+        <div class="player-welcome-header">
+          <span class="player-welcome-kemen">Try Out TKA</span>
+          <h1 class="player-welcome-title" style="font-size:20px;">${paket.judul}</h1>
+          <p class="player-welcome-sub">${paket.mapel} · ${total} soal · ${durasi} menit</p>
         </div>
 
-        <div class="form-actions">
-          <button class="btn-primary btn-large" onClick=${() => onStart(mode)} disabled=${total === 0}>
-            <${Play} size=${18} /> Mulai ${mode === 'latihan' ? 'Latihan' : 'Simulasi'}
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; justify-content:center;">
+          ${counts.pg > 0 && html`<span class="config-chip">PG ${counts.pg}</span>`}
+          ${counts.mcma > 0 && html`<span class="config-chip is-warning">MCMA ${counts.mcma}</span>`}
+          ${counts.bs > 0 && html`<span class="config-chip is-purple">B/S ${counts.bs}</span>`}
+        </div>
+
+        ${paket.wacana && html`
+          <details style="margin-bottom:16px; padding:10px 14px; background:var(--surface-muted); border-radius:8px;">
+            <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--primary);">
+              📖 Lihat teks wacana
+            </summary>
+            <div style="margin-top:10px; font-size:13px; line-height:1.6; white-space:pre-wrap;">
+              ${paket.wacana_judul && html`<b style="display:block; margin-bottom:6px;">${paket.wacana_judul}</b>`}
+              ${paket.wacana}
+            </div>
+          </details>
+        `}
+
+        <div class="player-field">
+          <label>Nama Lengkap</label>
+          <input
+            type="text"
+            value=${name}
+            onInput=${(e) => setName(e.target.value)}
+            placeholder="Nama sesuai absen"
+            autocomplete="name"
+          />
+        </div>
+
+        <div class="player-field">
+          <label>Kelas</label>
+          <input
+            type="text"
+            value=${kelas}
+            onInput=${(e) => setKelas(e.target.value)}
+            placeholder="Contoh: XI IPA 1"
+            autocomplete="off"
+          />
+        </div>
+
+        <div style="font-weight:700; font-size:12.5px; margin:16px 0 8px;">Pilih Mode:</div>
+        <div class="briefing-modes">
+          <button
+            type="button"
+            class=${'briefing-mode-card' + (mode === 'latihan' ? ' active' : '')}
+            onClick=${() => setMode('latihan')}
+          >
+            <div class="briefing-mode-icon"><${Play} size=${20} /></div>
+            <div class="briefing-mode-title">Latihan</div>
+            <div class="briefing-mode-desc">Tanpa timer. Lihat pembahasan setelah selesai.</div>
+          </button>
+          <button
+            type="button"
+            class=${'briefing-mode-card' + (mode === 'simulasi' ? ' active' : '')}
+            onClick=${() => setMode('simulasi')}
+          >
+            <div class="briefing-mode-icon"><${Timer} size=${20} /></div>
+            <div class="briefing-mode-title">Simulasi</div>
+            <div class="briefing-mode-desc">Dengan timer ${durasi} menit. Auto-submit saat waktu habis.</div>
           </button>
         </div>
 
+        <div class="form-actions" style="margin-top:16px;">
+          <button
+            class="btn-primary btn-large"
+            disabled=${!canStart}
+            onClick=${() => onStart({ mode, name: name.trim(), kelas: kelas.trim() })}
+          >
+            <${Play} size=${18} /> Mulai ${mode === 'latihan' ? 'Latihan' : 'Simulasi'}
+          </button>
+          <button class="btn-secondary w-full" onClick=${onBack}>
+            <${ArrowLeft} size=${15} /> Pilih File Lain
+          </button>
+        </div>
+
+        <p class="player-welcome-copyright">© 2026 Ekwan Nugroho · Wonogiri</p>
       </div>
     </div>
   `;
 }
 
 // =====================================================
-// Attempt Screen
+// Exam View (sticky header + footer nav + sidebar grid)
 // =====================================================
-function AttemptScreen({
-  paket, mode, answers, currentIndex, remaining, timeLimit,
-  onAnswer, onNavigate, onSubmit, onExit,
+function ExamView({
+  paket, mode, answers, flagged, currentIndex, remaining, timeLimit,
+  studentName, studentClass, onAnswer, onNavigate, onToggleFlag,
+  onSubmit, onExit,
 }) {
-  const [showGrid, setShowGrid] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showWacana, setShowWacana] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const contentRef = useRef(null);
 
   const total = paket.soal.length;
   const soal = paket.soal[currentIndex];
-  const answeredCount = paket.soal.filter(s => {
-    const a = answers[s.id];
-    if (s.tipe === 'pg') return Number.isInteger(a);
-    if (s.tipe === 'mcma') return Array.isArray(a) && a.length > 0;
-    if (s.tipe === 'bs') return Array.isArray(a) && a.length === s.pernyataan.length && a.every(v => typeof v === 'boolean');
-    return false;
-  }).length;
+  const answeredCount = paket.soal.filter(s => isAnswered(s, answers[s.id])).length;
+  const flaggedCount = flagged.size;
+
+  // Scroll ke atas saat ganti soal
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentIndex]);
 
   const timerClass = timeLimit > 0
     ? (remaining <= 60 ? 'danger' : remaining <= 300 ? 'warn' : '')
     : '';
 
-  const handleKumpulkan = () => {
-    if (answeredCount < total) setConfirmSubmit(true);
+  const handleKumpul = () => {
+    if (answeredCount < total || flaggedCount > 0) setConfirmSubmit(true);
     else onSubmit();
   };
 
-  return html`
-    <div class="player-shell">
+  const confirmMsg = answeredCount < total
+    ? `Masih ada ${total - answeredCount} soal kosong${flaggedCount > 0 ? ` dan ${flaggedCount} soal ditandai ragu` : ''}. Tetap kumpulkan?`
+    : `Ada ${flaggedCount} soal ditandai ragu. Yakin kumpulkan?`;
 
-      <div class="player-topbar">
-        <button class="player-back" onClick=${onExit} title="Keluar">
-          <${X} size=${18} />
-        </button>
-        <div class="player-progress-info">
-          <div class="player-progress-label">
-            Soal <b>${currentIndex + 1}</b> / ${total}
-            <span style="margin-left:auto;">${answeredCount} dijawab</span>
-          </div>
-          <div class="player-progress-bar">
-            <div class="player-progress-fill" style="width:${(answeredCount / total) * 100}%;"></div>
+  return html`
+    <div class="player-exam-shell">
+
+      <header class="player-exam-header">
+        <div class="player-exam-header-left">
+          <div class="player-exam-badge">TKA</div>
+          <div class="player-exam-user">
+            <div class="player-exam-user-name">${studentName || '-'}</div>
+            <div class="player-exam-user-sub">${studentClass || paket.mapel}</div>
           </div>
         </div>
-        ${mode === 'simulasi' && html`
-          <span class=${'player-timer ' + timerClass}>
-            <${Timer} size=${13} /> ${fmtTime(remaining)}
-          </span>
-        `}
+        <div class="player-exam-header-right">
+          ${mode === 'simulasi' && html`
+            <div class=${'player-exam-timer ' + timerClass}>
+              <${Timer} size=${13} /> ${fmtTime(remaining)}
+            </div>
+          `}
+          <button class="player-exam-menu-btn" onClick=${() => setShowSidebar(true)} title="Daftar soal">
+            <${Menu} size=${18} />
+            <span>${answeredCount}/${total}</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="player-exam-progress">
+        <div class="player-exam-progress-fill" style="width:${(answeredCount / total) * 100}%;"></div>
       </div>
 
-      <div class="player-content">
+      <main class="player-exam-main" ref=${contentRef}>
+        ${paket.wacana && html`
+          <button class="player-wacana-pill" onClick=${() => setShowWacana(true)}>
+            <${BookOpen} size=${13} /> Buka Wacana
+          </button>
+        `}
+
         <${QuestionRunner}
           soal=${soal}
           nomor=${currentIndex + 1}
@@ -400,65 +427,99 @@ function AttemptScreen({
           onChange=${onAnswer}
           readOnly=${false}
           showKey=${false}
+          flagged=${flagged.has(soal.id)}
         />
-      </div>
+      </main>
 
-      <div class="player-footer">
-        <div class="player-nav-row">
-          <button
-            class="player-nav-btn"
-            disabled=${currentIndex === 0}
-            onClick=${() => onNavigate(currentIndex - 1)}
-          >
-            <${ChevronLeft} size=${16} /> Sebelumnya
-          </button>
-          <button class="player-grid-btn" onClick=${() => setShowGrid(true)} title="Daftar soal">
-            <${Grid3x3} size=${18} />
-          </button>
-          <button
-            class="player-nav-btn"
-            disabled=${currentIndex === total - 1}
-            onClick=${() => onNavigate(currentIndex + 1)}
-          >
-            Berikutnya <${ChevronRight} size=${16} />
-          </button>
-        </div>
-        <button class="btn-primary btn-large" onClick=${handleKumpulkan}>
-          <${CheckCircle2} size=${18} /> Kumpulkan Jawaban
+      <footer class="player-exam-footer">
+        <button
+          class="player-exam-nav"
+          disabled=${currentIndex === 0}
+          onClick=${() => onNavigate(currentIndex - 1)}
+        >
+          <${ChevronLeft} size=${16} /> <span class="player-exam-nav-label">Sebelumnya</span>
         </button>
-      </div>
+        <button
+          class=${'player-exam-ragu ' + (flagged.has(soal.id) ? 'active' : '')}
+          onClick=${() => onToggleFlag(soal.id)}
+          title="Tandai ragu"
+        >
+          <${Flag} size=${15} />
+          <span class="player-exam-nav-label">Ragu</span>
+        </button>
+        ${currentIndex === total - 1
+          ? html`
+            <button class="player-exam-nav primary" onClick=${handleKumpul}>
+              <${CheckCircle2} size=${16} /> <span class="player-exam-nav-label">Kumpul</span>
+            </button>
+          `
+          : html`
+            <button
+              class="player-exam-nav primary"
+              onClick=${() => onNavigate(currentIndex + 1)}
+            >
+              <span class="player-exam-nav-label">Selanjutnya</span> <${ChevronRight} size=${16} />
+            </button>
+          `}
+      </footer>
 
-      ${showGrid && html`
-        <div class="grid-bottom-sheet" onClick=${() => setShowGrid(false)}>
-          <div class="grid-sheet-content" onClick=${(e) => e.stopPropagation()}>
-            <div class="grid-sheet-header">
-              <div class="grid-sheet-title">Daftar Soal</div>
-              <button class="grid-sheet-close" onClick=${() => setShowGrid(false)}>
+      ${showSidebar && html`
+        <div class="player-sidebar-overlay" onClick=${() => setShowSidebar(false)}>
+          <div class="player-sidebar-drawer" onClick=${(e) => e.stopPropagation()}>
+            <div class="player-sidebar-head">
+              <h3>Navigasi Soal</h3>
+              <button class="player-sidebar-close" onClick=${() => setShowSidebar(false)}>
                 <${X} size=${18} />
               </button>
             </div>
-            <div class="grid-sheet-numbers">
+
+            <div class="player-sidebar-stats">
+              <div><b>${answeredCount}</b><span>Dijawab</span></div>
+              <div><b>${flaggedCount}</b><span>Ragu</span></div>
+              <div><b>${total - answeredCount}</b><span>Kosong</span></div>
+            </div>
+
+            <div class="player-sidebar-legend">
+              <span><i class="dot-answered"></i>Dijawab</span>
+              <span><i class="dot-ragu"></i>Ragu</span>
+              <span><i class="dot-empty"></i>Kosong</span>
+              <span><i class="dot-current"></i>Saat ini</span>
+            </div>
+
+            <div class="player-nav-grid">
               ${paket.soal.map((s, i) => {
-                const a = answers[s.id];
-                const isAnswered = (s.tipe === 'pg' && Number.isInteger(a))
-                  || (s.tipe === 'mcma' && Array.isArray(a) && a.length > 0)
-                  || (s.tipe === 'bs' && Array.isArray(a) && a.length === s.pernyataan.length && a.every(v => typeof v === 'boolean'));
+                const answered = isAnswered(s, answers[s.id]);
+                const isFlagged = flagged.has(s.id);
                 const isCurrent = i === currentIndex;
+                const cls = 'player-nav-num '
+                  + (isCurrent ? 'current ' : '')
+                  + (isFlagged ? 'ragu ' : (answered ? 'answered' : 'empty'));
                 return html`
                   <button
+                    class=${cls}
+                    onClick=${() => { onNavigate(i); setShowSidebar(false); }}
                     key=${s.id}
-                    class=${'grid-num ' + (isAnswered ? 'answered ' : '') + (isCurrent ? 'current' : '')}
-                    onClick=${() => { onNavigate(i); setShowGrid(false); }}
-                  >
-                    ${i + 1}
-                  </button>
+                  >${i + 1}</button>
                 `;
               })}
             </div>
-            <div class="grid-sheet-legend">
-              <span><i style="background:var(--primary);"></i> Sekarang</span>
-              <span><i style="background:var(--primary-light);"></i> Dijawab</span>
-              <span><i style="background:var(--surface-muted);"></i> Belum</span>
+
+            <button class="btn-primary btn-large w-full" onClick=${handleKumpul} style="margin-top:16px;">
+              <${CheckCircle2} size=${18} /> Selesai & Kirim
+            </button>
+          </div>
+        </div>
+      `}
+
+      ${showWacana && paket.wacana && html`
+        <div class="modal-backdrop" onClick=${() => setShowWacana(false)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width:680px;">
+            <div class="modal-header">
+              <div class="modal-title"><${BookOpen} size=${18} /> ${paket.wacana_judul || 'Teks Wacana'}</div>
+              <button class="modal-close" onClick=${() => setShowWacana(false)}><${X} size=${18} /></button>
+            </div>
+            <div class="modal-body" style="font-size:14px; line-height:1.7; white-space:pre-wrap;">
+              ${paket.wacana}
             </div>
           </div>
         </div>
@@ -466,8 +527,8 @@ function AttemptScreen({
 
       ${confirmSubmit && html`
         <${ConfirmModal}
-          title="Kumpulkan sekarang?"
-          message=${`Masih ada ${total - answeredCount} soal yang belum dijawab. Jawaban yang kosong akan dianggap salah.`}
+          title="Kumpulkan jawaban?"
+          message=${confirmMsg}
           confirmText="Ya, Kumpulkan"
           isDanger=${false}
           onConfirm=${() => { setConfirmSubmit(false); onSubmit(); }}
@@ -479,7 +540,7 @@ function AttemptScreen({
 }
 
 // =====================================================
-// History Viewer (modal)
+// History Modal
 // =====================================================
 function HistoryViewer({ history, onClose, onDelete, onOpen }) {
   return html`
@@ -491,9 +552,7 @@ function HistoryViewer({ history, onClose, onDelete, onOpen }) {
         </div>
         <div class="modal-body">
           ${history.length === 0
-            ? html`<div class="empty-state" style="padding:32px 16px; border:none;">
-                <p>Belum ada riwayat tryout.</p>
-              </div>`
+            ? html`<div style="padding:32px 16px; text-align:center; color:var(--text-muted);">Belum ada riwayat tryout.</div>`
             : html`
               <div class="history-list">
                 ${history.map(h => html`
@@ -503,9 +562,7 @@ function HistoryViewer({ history, onClose, onDelete, onOpen }) {
                     </div>
                     <div class="history-info" onClick=${() => onOpen(h)} style="cursor:pointer;">
                       <div class="history-title">${h.judul}</div>
-                      <div class="history-meta">
-                        ${h.mapel} · ${fmtDateShort(h.submittedAt)} · ${h.mode} · ${fmtDuration(h.durationSec)}
-                      </div>
+                      <div class="history-meta">${h.mapel} · ${fmtDateShort(h.submittedAt)} · ${h.mode} · ${fmtDuration(h.durationSec)}</div>
                     </div>
                     <button class="icon-btn icon-danger" onClick=${() => onDelete(h.id)} title="Hapus">
                       <${Trash2} size=${15} />
@@ -524,13 +581,16 @@ function HistoryViewer({ history, onClose, onDelete, onOpen }) {
 }
 
 // =====================================================
-// Main PlayPage — state machine
+// MAIN PlayPage
 // =====================================================
 export function PlayPage({ navigate }) {
-  const [state, setState] = useState('upload'); // upload | briefing | attempt | report
+  const [view, setView] = useState('welcome');
   const [paket, setPaket] = useState(null);
+  const [studentName, setStudentName] = useState('');
+  const [studentClass, setStudentClass] = useState('');
   const [mode, setMode] = useState('latihan');
   const [answers, setAnswers] = useState({});
+  const [flagged, setFlagged] = useState(new Set());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [startedAt, setStartedAt] = useState(null);
   const [timeLimit, setTimeLimit] = useState(0);
@@ -538,19 +598,22 @@ export function PlayPage({ navigate }) {
   const [result, setResult] = useState(null);
   const [submittedAt, setSubmittedAt] = useState(null);
   const [timeUpFlag, setTimeUpFlag] = useState(false);
+  const [durationSec, setDurationSec] = useState(0);
   const [history, setHistory] = useState(() => loadHistory());
   const [pendingResume, setPendingResume] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
 
   const answersRef = useRef(answers);
+  const flaggedRef = useRef(flagged);
   useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { flaggedRef.current = flagged; }, [flagged]);
 
-  // ---------- Init: load history + detect resume ----------
+  // Init: load session
   useEffect(() => {
     setHistory(loadHistory());
     const sess = loadSession();
-    if (sess && sess.paket && sess.state === 'attempt') {
+    if (sess && sess.paket && sess.view === 'exam') {
       setPendingResume({
         paketJudul: sess.paket.judul,
         answeredCount: Object.keys(sess.answers || {}).length,
@@ -560,78 +623,82 @@ export function PlayPage({ navigate }) {
     }
   }, []);
 
-  // ---------- Timer tick ----------
+  // Timer
   useEffect(() => {
-    if (state !== 'attempt' || mode !== 'simulasi') return;
+    if (view !== 'exam' || mode !== 'simulasi') return;
     const int = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(int);
-  }, [state, mode]);
+  }, [view, mode]);
 
   const elapsed = startedAt ? Math.floor((now - startedAt) / 1000) : 0;
   const remaining = timeLimit > 0 ? Math.max(0, timeLimit - elapsed) : 0;
 
-  // ---------- Auto-submit saat waktu habis ----------
+  // Auto submit
   useEffect(() => {
-    if (state !== 'attempt' || mode !== 'simulasi') return;
+    if (view !== 'exam' || mode !== 'simulasi') return;
     if (!startedAt || timeLimit <= 0) return;
     if (remaining > 0) return;
     setTimeUpFlag(true);
-    finishAttempt(answersRef.current);
-  }, [remaining, state, mode]);
+    finishAttempt(answersRef.current, flaggedRef.current);
+  }, [remaining, view, mode]);
 
-  // ---------- beforeunload warning ----------
+  // beforeunload
   useEffect(() => {
-    if (state !== 'attempt') return;
+    if (view !== 'exam') return;
     const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [state]);
+  }, [view]);
 
-  // ---------- Persist session setiap ada perubahan ----------
+  // Persist session
   useEffect(() => {
-    if (state !== 'attempt' || !paket) return;
+    if (view !== 'exam' || !paket) return;
     saveSession({
-      state: 'attempt',
-      paket,
-      mode,
-      answers,
-      currentIndex,
-      startedAt,
-      timeLimit,
+      view: 'exam',
+      paket, mode, answers,
+      flagged: Array.from(flagged),
+      currentIndex, startedAt, timeLimit,
+      studentName, studentClass,
     });
-  }, [answers, currentIndex, state]);
+  }, [answers, flagged, currentIndex, view]);
 
-  // ---------- Handlers ----------
+  // Handlers
   const handleLoaded = (p) => {
     setPaket(p);
-    setState('briefing');
+    setView('briefing');
     setPendingResume(null);
     clearSession();
   };
 
-  const handleStart = (chosenMode) => {
-    setMode(chosenMode);
+  const handleStart = ({ mode: m, name, kelas }) => {
+    setMode(m);
+    setStudentName(name);
+    setStudentClass(kelas);
     setAnswers({});
+    setFlagged(new Set());
     setCurrentIndex(0);
     setStartedAt(Date.now());
     setNow(Date.now());
-    setTimeLimit(chosenMode === 'simulasi' ? (paket.durasiMenit || 30) * 60 : 0);
+    setTimeLimit(m === 'simulasi' ? (paket.durasiMenit || 30) * 60 : 0);
     setTimeUpFlag(false);
-    setState('attempt');
+    setView('exam');
   };
 
   const handleResume = () => {
-    const sess = pendingResume?.session;
-    if (!sess) return;
-    setPaket(sess.paket);
-    setMode(sess.mode);
-    setAnswers(sess.answers || {});
-    setCurrentIndex(sess.currentIndex || 0);
-    setStartedAt(sess.startedAt);
-    setTimeLimit(sess.timeLimit || 0);
+    const s = pendingResume?.session;
+    if (!s) return;
+    setPaket(s.paket);
+    setMode(s.mode);
+    setAnswers(s.answers || {});
+    setFlagged(new Set(s.flagged || []));
+    setCurrentIndex(s.currentIndex || 0);
+    setStartedAt(s.startedAt);
+    setTimeLimit(s.timeLimit || 0);
+    setStudentName(s.studentName || '');
+    setStudentClass(s.studentClass || '');
     setNow(Date.now());
     setPendingResume(null);
-    setState('attempt');
+    setView('exam');
   };
 
   const handleDiscardResume = () => {
@@ -651,17 +718,23 @@ export function PlayPage({ navigate }) {
     });
   };
 
-  const handleExit = () => {
-    setConfirmExit(true);
+  const handleToggleFlag = (soalId) => {
+    setFlagged(prev => {
+      const next = new Set(prev);
+      if (next.has(soalId)) next.delete(soalId); else next.add(soalId);
+      return next;
+    });
   };
 
-  const finishAttempt = (currentAnswers) => {
-    const scored = scoreAttempt(paket, currentAnswers);
-    const submittedNow = new Date().toISOString();
-    const duration = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+  const finishAttempt = (finalAnswers, finalFlagged) => {
+    const scored = scoreAttempt(paket, finalAnswers);
+    const nowIso = new Date().toISOString();
+    const dur = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+
     setResult(scored);
-    setSubmittedAt(submittedNow);
-    setState('report');
+    setSubmittedAt(nowIso);
+    setDurationSec(dur);
+    setView('done');
     clearSession();
 
     const entry = {
@@ -673,50 +746,52 @@ export function PlayPage({ navigate }) {
       score: scored.score,
       total: scored.total,
       pct: scored.pct,
-      durationSec: duration,
-      submittedAt: submittedNow,
-      answers: currentAnswers,
+      durationSec: dur,
+      submittedAt: nowIso,
+      answers: finalAnswers,
+      flagged: Array.from(finalFlagged || []),
       detail: scored.detail,
       perType: scored.perType,
+      studentName,
+      studentClass,
       paket,
     };
     setHistory(pushHistory(entry));
   };
 
-  const handleSubmit = () => {
-    finishAttempt(answers);
-  };
-
-  const handleRestart = () => {
-    setState('upload');
-    setPaket(null);
-    setResult(null);
-    setAnswers({});
-    setStartedAt(null);
-    setTimeLimit(0);
-    setCurrentIndex(0);
-    setTimeUpFlag(false);
-    setPendingResume(null);
-  };
-
   const handleShare = () => {
     if (!result || !paket) return;
     const text =
-      `📝 Hasil Tryout TKA Studio\n` +
-      `📚 ${paket.judul} (${paket.mapel})\n` +
+      `📝 Hasil Tryout — TKA Studio\n` +
+      `👤 ${studentName || 'Siswa'}${studentClass ? ' (' + studentClass + ')' : ''}\n` +
+      `📚 ${paket.judul} · ${paket.mapel}\n` +
       `🎯 Skor: ${result.score}/${result.total} (${result.pct}%)\n` +
-      `⏱ ${fmtDuration(startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0)}\n\n` +
-      `Dibuat dengan TKA Studio — tkastudio`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+      `⏱ ${fmtDuration(durationSec)}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
   };
 
-  const handleOpenHistoryItem = (h) => {
-    // Restore from history
+  const handleFinish = () => {
+    setView('welcome');
+    setPaket(null);
+    setResult(null);
+    setAnswers({});
+    setFlagged(new Set());
+    setStartedAt(null);
+    setTimeLimit(0);
+    setCurrentIndex(0);
+    setStudentName('');
+    setStudentClass('');
+    setPendingResume(null);
+  };
+
+  const handleOpenHistory = (h) => {
     setPaket(h.paket);
     setAnswers(h.answers || {});
     setMode(h.mode);
     setSubmittedAt(h.submittedAt);
+    setDurationSec(h.durationSec || 0);
+    setStudentName(h.studentName || '');
+    setStudentClass(h.studentClass || '');
     setResult({
       score: h.score,
       total: h.total,
@@ -725,14 +800,14 @@ export function PlayPage({ navigate }) {
       perType: h.perType,
       detail: h.detail,
     });
-    setState('report');
+    setView('review');
     setShowHistory(false);
   };
 
-  // ---------- Render ----------
-  if (state === 'upload') {
+  // Render
+  if (view === 'welcome') {
     return html`
-      <${UploadScreen}
+      <${WelcomeView}
         onLoaded=${handleLoaded}
         navigate=${navigate}
         pendingResume=${pendingResume}
@@ -740,7 +815,7 @@ export function PlayPage({ navigate }) {
         onDiscardResume=${handleDiscardResume}
         history=${history}
         onViewHistory=${(h) => {
-          if (h && h.id) handleOpenHistoryItem(h);
+          if (h && h.id) handleOpenHistory(h);
           else setShowHistory(true);
         }}
       />
@@ -749,73 +824,76 @@ export function PlayPage({ navigate }) {
           history=${history}
           onClose=${() => setShowHistory(false)}
           onDelete=${(id) => setHistory(deleteHistoryItem(id))}
-          onOpen=${handleOpenHistoryItem}
+          onOpen=${handleOpenHistory}
         />
       `}
     `;
   }
 
-  if (state === 'briefing' && paket) {
+  if (view === 'briefing' && paket) {
     return html`
-      <${BriefingScreen}
-        paket=${paket}
-        onStart=${handleStart}
-        onBack=${handleRestart}
-      />
+      <${BriefingView} paket=${paket} onStart=${handleStart} onBack=${() => setView('welcome')} />
     `;
   }
 
-  if (state === 'attempt' && paket) {
+  if (view === 'exam' && paket) {
     return html`
-      <${AttemptScreen}
+      <${ExamView}
         paket=${paket}
         mode=${mode}
         answers=${answers}
+        flagged=${flagged}
         currentIndex=${currentIndex}
         remaining=${remaining}
         timeLimit=${timeLimit}
+        studentName=${studentName}
+        studentClass=${studentClass}
         onAnswer=${handleAnswer}
         onNavigate=${(i) => setCurrentIndex(Math.max(0, Math.min(paket.soal.length - 1, i)))}
-        onSubmit=${handleSubmit}
-        onExit=${handleExit}
+        onToggleFlag=${handleToggleFlag}
+        onSubmit=${() => finishAttempt(answers, flagged)}
+        onExit=${() => setConfirmExit(true)}
       />
       ${confirmExit && html`
         <${ConfirmModal}
           title="Keluar dari tryout?"
-          message="Jawaban Anda tersimpan otomatis. Anda bisa lanjutkan nanti dari halaman Mode Siswa."
+          message="Jawaban Anda tersimpan otomatis. Bisa dilanjutkan nanti dari halaman Mode Siswa."
           confirmText="Ya, Keluar"
           isDanger=${true}
-          onConfirm=${() => {
-            setConfirmExit(false);
-            navigate('/');
-          }}
+          onConfirm=${() => { setConfirmExit(false); navigate('/'); }}
           onCancel=${() => setConfirmExit(false)}
         />
       `}
     `;
   }
 
-  if (state === 'report' && paket && result) {
+  if (view === 'done' && paket && result) {
     return html`
-      <${ScoreReport}
+      <${DoneView}
+        paket=${paket}
+        result=${result}
+        durationSec=${durationSec}
+        timeUp=${timeUpFlag}
+        studentName=${studentName}
+        studentClass=${studentClass}
+        onReview=${() => setView('review')}
+        onFinish=${handleFinish}
+      />
+    `;
+  }
+
+  if (view === 'review' && paket && result) {
+    return html`
+      <${ReviewView}
         paket=${paket}
         answers=${answers}
         result=${result}
-        durationSec=${startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0}
-        timeUp=${timeUpFlag}
+        studentName=${studentName}
+        studentClass=${studentClass}
+        onClose=${() => setView('done')}
         onShare=${handleShare}
-        onRestart=${handleRestart}
-        onBackToHome=${() => navigate('/')}
-        onBackToHistory=${() => { setShowHistory(true); }}
+        onRestart=${handleFinish}
       />
-      ${showHistory && html`
-        <${HistoryViewer}
-          history=${history}
-          onClose=${() => setShowHistory(false)}
-          onDelete=${(id) => setHistory(deleteHistoryItem(id))}
-          onOpen=${handleOpenHistoryItem}
-        />
-      `}
     `;
   }
 
