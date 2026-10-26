@@ -82,7 +82,7 @@ export function ExamListPage({ navigate, profile }) {
       <div class="page-shell">
         <${PageHero}
           icon=${Key}
-          title="Ujian Terbit"
+          title="Kode Latihan Saya"
           subtitle="Daftar ujian online yang bisa diakses siswa dengan kode."
           topnav=${html`
             <button class="btn-back" onClick=${() => navigate('/')}>
