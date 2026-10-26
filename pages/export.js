@@ -10,7 +10,8 @@ import {
   ArrowLeft, Download, CheckCircle2, Copy, Check,
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
   CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
-  CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon
+  CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon,
+  Link2, MessageCircle
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -38,7 +39,7 @@ export function ExportPage({ navigate, profile }) {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [confirmData, setConfirmData] = useState(null);
+  const [shareCopied, setShareCopied] = useState(false);
 
   if (!draft || !paket) {
     return html`
@@ -119,6 +120,19 @@ export function ExportPage({ navigate, profile }) {
     }
   };
 
+  const handleCopyShareLink = async () => {
+    try {
+      const base = window.location.origin + window.location.pathname;
+      const url = base + '#/play';
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+      if (window.showToast) window.showToast('Link disalin — tempel ke WA siswa', 'success');
+    } catch (e) {
+      if (window.showToast) window.showToast('Gagal menyalin link', 'error');
+    }
+  };
+  
   const handleSaveToCloud = async () => {
     if (!profile) { navigate('/login'); return; }
     setSaving(true); setError(null);
@@ -360,6 +374,49 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
+        <!-- Bagikan ke Siswa -->
+        <div class="export-share-card">
+          <div class="export-share-head">
+            <div class="export-share-icon"><${Link2} size=${18} /></div>
+            <div>
+              <div class="export-share-title">Bagikan ke Siswa — Tryout Mandiri</div>
+              <div class="export-share-desc">
+                Kirim <b>link</b> + file <b>.json</b> ini ke WA siswa. Siswa buka link → upload file → kerjakan.
+              </div>
+            </div>
+          </div>
+
+          <div class="export-share-steps">
+            <div class="export-share-step">
+              <span class="export-share-step-num">1</span>
+              <span>Download file <b>.json</b> (tombol di bawah)</span>
+            </div>
+            <div class="export-share-step">
+              <span class="export-share-step-num">2</span>
+              <span>Klik <b>Salin Link Siswa</b> di bawah</span>
+            </div>
+            <div class="export-share-step">
+              <span class="export-share-step-num">3</span>
+              <span>Kirim via WA: <i>"Ini link + soal tryout kamu"</i></span>
+            </div>
+          </div>
+
+          <div class="export-share-link-row">
+            <code class="export-share-url">${window.location.origin + window.location.pathname}#/play</code>
+            <button
+              class=${'export-share-copy-btn ' + (shareCopied ? 'copied' : '')}
+              onClick=${handleCopyShareLink}
+            >
+              ${shareCopied ? html`<${Check} size=${14} /> Tersalin!` : html`<${Copy} size=${14} /> Salin Link`}
+            </button>
+          </div>
+
+          <div class="export-share-footer">
+            <${Info} size=${11} />
+            <span>Siswa tidak perlu daftar atau login. Buka link → langsung bisa kerjakan.</span>
+          </div>
+        </div>
+
         <!-- Bridge -->
         <div class="export-bridge">
           <div class="export-bridge-head">
@@ -482,8 +539,8 @@ export function ExportPage({ navigate, profile }) {
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setDownloaded(false)}>Tutup</button>
-              <button class="btn-primary" onClick=${handleFinish}>
-                <${CircleCheck} size=${16} /> Buat Soal Baru
+              <button class="btn-primary" onClick=${() => { setDownloaded(false); handleCopyShareLink(); }}>
+                <${MessageCircle} size=${16} /> Salin Link & Bagikan
               </button>
             </div>
           </div>
