@@ -421,6 +421,7 @@ function ExamView({
         `}
 
         <${QuestionRunner}
+          key=${soal.id}  {/* <-- TAMBAHKAN INI */}
           soal=${soal}
           nomor=${currentIndex + 1}
           answer=${answers[soal.id]}
