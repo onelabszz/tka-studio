@@ -30,12 +30,11 @@ function Badge({ tipe }) {
   `;
 }
 
-// ---------- Soal Image ----------
 function SoalImage({ soal }) {
   const [zoom, setZoom] = useState(false);
-  if (!soal.img) return null;
+  if (!soal.img && !soal.img_data) return null;
 
-  const src = getImage(soal.img);
+  const src = getImage(soal);
   const caption = soal.img_caption;
 
   if (src) {
@@ -87,7 +86,6 @@ export function QuestionRunner({
   showKey = false,
   flagged = false,
 }) {
-  // Re-render KaTeX setiap soal berubah
   useEffect(() => {
     if (!soal) return;
     const timer = setTimeout(() => {
