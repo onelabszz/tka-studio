@@ -6,9 +6,9 @@ import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
-  Check, X, Circle, Trophy, Share2, RotateCcw, History, Home,
-  ChevronDown, Timer, Sparkles, CircleDot, ListChecks, CheckCheck,
-  MessageCircle, CheckCircle2, XCircle
+  Check, X, Trophy, Share2, RotateCcw, History, Home,
+  Timer, CircleDot, ListChecks, CheckCheck, MessageCircle,
+  CheckCircle2, XCircle, Circle, User
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { QuestionRunner } from './QuestionRunner.js';
 
@@ -33,164 +33,203 @@ function fmtDate(iso) {
   } catch { return '-'; }
 }
 
-export function ScoreReport({
-  paket,
-  answers,
-  result,
-  durationSec,
-  timeUp = false,
-  onShare,
-  onRestart,
-  onBackToHome,
-  onBackToHistory,
+// =====================================================
+// DONE view
+// =====================================================
+export function DoneView({
+  paket, result, durationSec, timeUp, studentName, studentClass,
+  onReview, onFinish,
 }) {
-  const [openIndex, setOpenIndex] = useState(null);
-
-  const toggleOpen = (i) => {
-    setOpenIndex(prev => (prev === i ? null : i));
-  };
-
-  const statKosong = result.total - result.answeredCount;
-  const grade = result.pct >= 85 ? 'Luar biasa!' : result.pct >= 70 ? 'Bagus!' : result.pct >= 50 ? 'Cukup baik' : 'Perlu latihan lagi';
+  const grade = result.pct >= 85 ? 'Luar biasa!'
+    : result.pct >= 70 ? 'Bagus!'
+    : result.pct >= 50 ? 'Cukup baik'
+    : 'Perlu latihan lagi';
 
   return html`
-    <div class="page">
-      <div class="page-shell">
+    <div class="player-done-wrap">
+      <div class="player-done-card">
+        <div class="player-done-icon"><${Check} size=${40} strokeWidth=${3} /></div>
+        <h1 class="player-done-title">${timeUp ? 'Waktu Habis' : 'Ujian Selesai'}</h1>
+        <p class="player-done-sub">
+          ${studentName ? html`<b>${studentName}</b>${studentClass ? ' · ' + studentClass : ''}` : 'Terima kasih sudah mengerjakan'}
+        </p>
 
-        <div class="score-hero">
-          <div class="score-hero-label">${timeUp ? '⏱ Waktu Habis' : 'Skor Akhir'}</div>
-          <div class="score-hero-value">${result.score}</div>
-          <div class="score-hero-total">dari ${result.total} soal</div>
-          <div class="score-hero-pct">
-            <${Trophy} size=${14} style="vertical-align:-2px; margin-right:4px;" />
-            ${result.pct}% · ${grade}
+        <div class="player-done-score">
+          <div class="player-done-score-label">Skor Kamu</div>
+          <div class="player-done-score-value">${result.score}<small>/${result.total}</small></div>
+          <div class="player-done-score-pct">
+            <${Trophy} size=${14} /> ${result.pct}% · ${grade}
           </div>
         </div>
 
-        <div class="score-stats">
-          <div class="score-stat correct">
-            <div class="score-stat-value">${result.score}</div>
-            <div class="score-stat-label">Benar</div>
+        <div class="player-done-stats">
+          <div class="player-done-stat">
+            <span>Benar</span><b style="color:var(--success)">${result.score}</b>
           </div>
-          <div class="score-stat wrong">
-            <div class="score-stat-value">${result.answeredCount - result.score}</div>
-            <div class="score-stat-label">Salah</div>
+          <div class="player-done-stat">
+            <span>Salah</span><b style="color:var(--danger)">${result.answeredCount - result.score}</b>
           </div>
-          <div class="score-stat">
-            <div class="score-stat-value">${statKosong}</div>
-            <div class="score-stat-label">Kosong</div>
+          <div class="player-done-stat">
+            <span>Kosong</span><b>${result.total - result.answeredCount}</b>
           </div>
-        </div>
-
-        <div class="form-section">
-          <div class="form-section-header">
-            <${Sparkles} size=${18} strokeWidth=${2} />
-            <h2>Rincian per Tipe</h2>
-          </div>
-          <div class="form-section-body">
-            ${['pg', 'mcma', 'bs'].map(t => {
-              const data = result.perType[t];
-              if (!data || data.total === 0) return null;
-              const Icon = TIPE_ICON[t];
-              const pct = Math.round((data.correct / data.total) * 100);
-              return html`
-                <div key=${t} class="score-type-row">
-                  <div class="score-type-label">
-                    <${Icon} size=${14} />
-                    ${TIPE_LABEL[t]}
-                  </div>
-                  <div class="score-type-bar">
-                    <div class="score-type-fill" style=${'width:' + pct + '%;'}></div>
-                  </div>
-                  <div class="score-type-value">
-                    ${data.correct}/${data.total}
-                  </div>
-                </div>
-              `;
-            })}
+          <div class="player-done-stat">
+            <span>Durasi</span><b>${fmtDuration(durationSec)}</b>
           </div>
         </div>
 
-        <div class="meta-strip">
-          <span><${Timer} size=${12} /> ${fmtDuration(durationSec)}</span>
-          <span>📅 ${fmtDate(new Date().toISOString())}</span>
-          <span>📚 ${paket.mapel}</span>
+        <div class="player-done-actions">
+          <button class="btn-primary btn-large" onClick=${onReview}>
+            <${MessageCircle} size=${18} /> Lihat Pembahasan
+          </button>
+          <button class="btn-secondary w-full" onClick=${onFinish}>
+            <${Home} size=${16} /> Selesai
+          </button>
         </div>
 
-        <div class="form-section">
-          <div class="form-section-header">
-            <${MessageCircle} size=${18} strokeWidth=${2} />
-            <h2>Review Jawaban (${result.total} soal)</h2>
-          </div>
-          <div class="form-section-body">
-            <div class="review-list">
-              ${result.detail.map((d) => {
-                const isOpen = openIndex === d.index;
-                const cls = d.correct ? 'correct' : d.answered ? 'wrong' : 'empty';
-                return html`
-                  <details
-                    key=${d.soalId}
-                    class=${'review-item ' + cls}
-                    open=${isOpen}
-                    onClick=${(e) => { e.preventDefault(); toggleOpen(d.index); }}
-                  >
-                    <summary>
-                      <span class="review-item-icon">
-                        ${d.correct
-                          ? html`<${Check} size=${14} strokeWidth=${3} />`
-                          : d.answered
-                            ? html`<${X} size=${14} strokeWidth=${3} />`
-                            : html`<${Circle} size=${12} />`}
-                      </span>
-                      <span class="review-item-text">
-                        <b>#${d.index + 1}</b> · ${d.q.slice(0, 60)}${d.q.length > 60 ? '…' : ''}
-                      </span>
-                    </summary>
-                    <div class="review-item-body">
-                      <${QuestionRunner}
-                        soal=${{
-                          id: d.soalId,
-                          tipe: d.tipe,
-                          q: d.q,
-                          options: d.options,
-                          key: d.key,
-                          pernyataan: d.pernyataan,
-                          pembahasan: d.pembahasan,
-                        }}
-                        nomor=${d.index + 1}
-                        answer=${answers[d.soalId]}
-                        onChange=${() => {}}
-                        readOnly=${true}
-                        showKey=${true}
-                      />
-                    </div>
-                  </details>
-                `;
-              })}
+        <p class="player-done-copyright">© 2026 Ekwan Nugroho · Wonogiri · TKA Studio</p>
+      </div>
+    </div>
+  `;
+}
+
+// =====================================================
+// REVIEW view (full page)
+// =====================================================
+export function ReviewView({
+  paket, answers, result, studentName, studentClass,
+  onClose, onShare, onRestart,
+}) {
+  const [filter, setFilter] = useState('all');
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggleOpen = (i) => setOpenIndex(prev => prev === i ? null : i);
+
+  const counts = {
+    all: result.total,
+    wrong: result.detail.filter(d => d.answered && !d.correct).length,
+    empty: result.detail.filter(d => !d.answered).length,
+  };
+  const correctCount = result.score;
+
+  const filters = [
+    { k: 'all', label: 'Semua', n: counts.all },
+    { k: 'correct', label: 'Benar', n: correctCount },
+    { k: 'wrong', label: 'Salah', n: counts.wrong },
+    { k: 'empty', label: 'Kosong', n: counts.empty },
+  ].filter(f => f.k === 'all' || f.n > 0);
+
+  const filtered = filter === 'all'
+    ? result.detail
+    : filter === 'correct'
+      ? result.detail.filter(d => d.correct)
+      : filter === 'wrong'
+        ? result.detail.filter(d => d.answered && !d.correct)
+        : result.detail.filter(d => !d.answered);
+
+  return html`
+    <div class="player-review-page">
+      <header class="player-review-header">
+        <button class="btn-secondary" onClick=${onClose}>
+          <${X} size=${16} /> Tutup
+        </button>
+        <h1 class="player-review-title">Pembahasan</h1>
+        <button class="btn-secondary" onClick=${onShare} title="Bagikan">
+          <${Share2} size=${16} />
+        </button>
+      </header>
+
+      <div class="player-review-meta">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="author-avatar" style="width:32px; height:32px; font-size:12px;">
+            ${studentName ? studentName.charAt(0).toUpperCase() : '?'}
+          </span>
+          <div>
+            <div style="font-weight:800; font-size:13.5px; color:var(--navy-900);">
+              ${studentName || 'Siswa'}
+            </div>
+            <div style="font-size:11.5px; color:var(--text-muted);">
+              ${studentClass ? studentClass + ' · ' : ''}${paket.judul} · ${paket.mapel}
             </div>
           </div>
         </div>
-
-        <div class="form-actions" style="display: flex; flex-direction: column; gap: 8px;">
-          <button class="btn-primary btn-large" onClick=${onShare}>
-            <${Share2} size=${18} /> Bagikan Skor ke WA
-          </button>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-secondary" onClick=${onRestart} style="flex: 1;">
-              <${RotateCcw} size=${16} /> Kerjakan Ulang
-            </button>
-            ${onBackToHistory && html`
-              <button class="btn-secondary" onClick=${onBackToHistory} style="flex: 1;">
-                <${History} size=${16} /> Riwayat
-              </button>
-            `}
-            <button class="btn-secondary" onClick=${onBackToHome} style="flex: 1;">
-              <${Home} size=${16} /> Beranda
-            </button>
-          </div>
+        <div class="player-review-score">
+          <b>${result.score}</b><small>/${result.total}</small>
         </div>
-
       </div>
+
+      <div class="filter-bar">
+        <div class="filter-chips">
+          ${filters.map(f => html`
+            <button
+              class=${'filter-chip ' + (filter === f.k ? 'active' : '')}
+              onClick=${() => setFilter(f.k)}
+              key=${f.k}
+            >
+              ${f.label} <span class="filter-count">${f.n}</span>
+            </button>
+          `)}
+        </div>
+      </div>
+
+      <div class="review-list">
+        ${filtered.length === 0 && html`
+          <div class="empty-state" style="padding: 32px 16px;">
+            <p>Tidak ada soal dalam kategori ini.</p>
+          </div>
+        `}
+        ${filtered.map((d) => {
+          const isOpen = openIndex === d.index;
+          const cls = d.correct ? 'correct' : d.answered ? 'wrong' : 'empty';
+          return html`
+            <div class=${'review-item ' + cls} key=${d.soalId}>
+              <button
+                class="review-item-summary"
+                onClick=${() => toggleOpen(d.index)}
+                type="button"
+              >
+                <span class="review-item-icon">
+                  ${d.correct
+                    ? html`<${Check} size=${14} strokeWidth=${3} />`
+                    : d.answered
+                      ? html`<${X} size=${14} strokeWidth=${3} />`
+                      : html`<${Circle} size=${12} />`}
+                </span>
+                <span class="review-item-num">#${d.index + 1}</span>
+                <span class="review-item-text">${d.q.slice(0, 70)}${d.q.length > 70 ? '…' : ''}</span>
+                <span class="review-item-caret">${isOpen ? '▴' : '▾'}</span>
+              </button>
+              ${isOpen && html`
+                <div class="review-item-body">
+                  <${QuestionRunner}
+                    soal=${{
+                      id: d.soalId,
+                      tipe: d.tipe,
+                      q: d.q,
+                      options: d.options,
+                      key: d.key,
+                      pernyataan: d.pernyataan,
+                      pembahasan: d.pembahasan,
+                    }}
+                    nomor=${d.index + 1}
+                    answer=${answers[d.soalId]}
+                    onChange=${() => {}}
+                    readOnly=${true}
+                    showKey=${true}
+                  />
+                </div>
+              `}
+            </div>
+          `;
+        })}
+      </div>
+
+      <div class="player-review-actions">
+        <button class="btn-primary btn-large" onClick=${onRestart}>
+          <${RotateCcw} size=${18} /> Kerjakan Ulang
+        </button>
+      </div>
+
+      <p class="player-done-copyright">© 2026 Ekwan Nugroho · Wonogiri · TKA Studio</p>
     </div>
   `;
 }
