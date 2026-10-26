@@ -9,7 +9,7 @@ import {
   ArrowLeft, ArrowRight, CircleDot, ListChecks, CheckCheck,
   Pencil, Trash2, CopyPlus, X, Check, AlertTriangle, MessageCircle,
   Image as ImageIcon, Printer, Send, Loader2, Copy, Search, Save,
-  Upload, ZoomIn
+  Upload, ZoomIn, Zap
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft } from '../stores/studio.js';
 import { checkQuality } from '../lib/quality-checks.js';
@@ -17,6 +17,7 @@ import { Stepper } from '../components/Stepper.js';
 import { publishSoal } from '../lib/pustaka.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 import { ImageLightbox } from '../components/ImageLightbox.js';
+import { compressImage, formatBytes } from '../lib/image-compress.js';
 
 const html = htm.bind(h);
 
@@ -215,6 +216,7 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
   const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(soal)));
   const [confirmClose, setConfirmClose] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [compressInfo, setCompressInfo] = useState(null);
   const [showImgEditor, setShowImgEditor] = useState(
     !!(soal.img || soal.img_data || soal.img_ref)
   );
@@ -239,25 +241,39 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
     setField({ pernyataan: list });
   };
 
-  // Image upload
+  // Image upload + auto-compress
   const handleImageUpload = async (file) => {
     if (!file || !file.type.startsWith('image/')) {
       if (window.showToast) window.showToast('File harus gambar', 'error');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      if (window.showToast) window.showToast('Gambar terlalu besar (max 2 MB). Kompres dulu.', 'error');
+    if (file.size > 10 * 1024 * 1024) {
+      if (window.showToast) window.showToast('File terlalu besar (max 10 MB). Kompres dulu.', 'error');
       return;
     }
     setUploading(true);
     try {
-      const base64 = await readFileAsDataURL(file);
+      const result = await compressImage(file, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        quality: 0.85,
+        maxSizeKb: 500,
+      });
       setField({
-        img_data: base64,
+        img_data: result.dataUrl,
         img: draft.img || file.name,
       });
+      setCompressInfo(result);
+      if (window.showToast && !result.skipped) {
+        window.showToast(
+          `Gambar dikompres: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)}`,
+          'success'
+        );
+      } else if (window.showToast && result.skipped) {
+        window.showToast(`${result.skipReason || 'Gambar'} — tidak dikompres`, 'info');
+      }
     } catch (e) {
-      if (window.showToast) window.showToast('Gagal upload gambar', 'error');
+      if (window.showToast) window.showToast('Gagal upload: ' + e.message, 'error');
     }
     setUploading(false);
   };
@@ -372,6 +388,26 @@ function SoalEditModal({ soal, index, onSave, onCancel }) {
                       <div class="edit-img-meta">
                         <span>📁 ${draft.img || '(tanpa nama)'}</span>
                         <span>💾 ${fmtFileSize(imgSizeKb * 1024)}</span>
+                      </div>
+                    `}
+
+                    ${compressInfo && !compressInfo.skipped && html`
+                      <div class="edit-img-compress-info">
+                        <${Zap} size=${11} />
+                        <span>
+                          Dikompres:
+                          <b>${formatBytes(compressInfo.originalSize)}</b>
+                          →
+                          <b>${formatBytes(compressInfo.compressedSize)}</b>
+                        </span>
+                        <span class="edit-img-compress-badge">-${compressInfo.savedPct}%</span>
+                      </div>
+                    `}
+
+                    ${compressInfo && compressInfo.skipped && html`
+                      <div class="edit-img-skip-info">
+                        <${AlertTriangle} size=${11} />
+                        ${compressInfo.skipReason || 'Format tidak dikompres'} — ukuran ${formatBytes(compressInfo.originalSize)}
                       </div>
                     `}
                     ${bigImageWarning && html`
