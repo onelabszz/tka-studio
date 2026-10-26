@@ -212,13 +212,14 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
                 maxLength="6"
                 class="player-code-input"
               />
-            <button 
-              type="submit" 
-              class="btn-primary" 
-              disabled=${loadingCode || examCodeInput.length < 6}
-            >
-              ${loadingCode ? html`<${Loader2} class="spin" size=${18}/>` : html`<${ArrowRight} size=${18} />`}
-            </button>
+              <button 
+                type="submit" 
+                class="btn-primary" 
+                disabled=${loadingCode || examCodeInput.length < 6 || !studentName.trim() || !studentIdNum.trim()}
+              >
+                ${loadingCode ? html`<${Loader2} class="spin" size=${18}/>` : html`<${ArrowRight} size=${18} />`}
+              </button>
+            </div>
           </form>
         </div>
 
