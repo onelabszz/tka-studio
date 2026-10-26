@@ -25,6 +25,7 @@ import { KotakPage } from './pages/kotak.js';
 import { ExpertListPage } from './pages/expert-list.js';
 import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
+import { PlayPage } from './pages/play.js';
 import { AppShell } from './components/AppShell.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 import './components/Toast.js';
@@ -266,6 +267,23 @@ function Landing({ profile }) {
               <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank" class="btn-secondary">
                 <${BookOpen} size=${16} /> Pelajari TKA Local Host <${ArrowRight} size=${14} />
               </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- UNTUK SISWA -->
+        <section class="section-for-student" id="siswa">
+          <div class="section-container">
+            <div class="student-bridge-card">
+              <div class="student-bridge-icon"><${GraduationCap} size=${28} /></div>
+              <div class="student-bridge-body">
+                <div class="student-bridge-eyebrow">Untuk Siswa</div>
+                <h3>Dapat file <code>.json</code> dari guru?</h3>
+                <p>Upload → kerjakan tryout mandiri di HP → lihat skor & pembahasan instan.</p>
+              </div>
+              <button class="btn-primary student-bridge-cta" onClick=${() => navigate('/play')}>
+                <${PlayCircle} size=${18} /> Mulai Tryout
+              </button>
             </div>
           </div>
         </section>
@@ -538,6 +556,7 @@ function App() {
     return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
+  if (route === '/play') return html`<${PlayPage} navigate=${navigate} />`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new'];
