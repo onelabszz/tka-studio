@@ -520,7 +520,7 @@ function ExamView({
           </div>
         ` : html`
           <${QuestionRunner}
-            key=${soal.id || currentIndex}
+            key=${soal.id}
             soal=${soal}
             nomor=${currentIndex + 1}
             answer=${answers[soal.id]}
