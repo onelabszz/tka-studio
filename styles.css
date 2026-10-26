@@ -5608,3 +5608,42 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .player-exam-ragu {
   min-height: 48px; /* Sedikit lebih besar dari 44px */
 }
+/* =========================================================
+   FIX NAVBAR HP & SAFE AREA (v10.4)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Beri ruang napas pada area soal agar tidak tertutup tombol */
+.player-exam-main {
+  flex: 1;
+  padding: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  /* Tambahkan safe-area-inset-bottom ke padding bawah */
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px));
+}
+
+/* Perbaiki posisi footer agar naik di atas navbar HP */
+.player-exam-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  /* KUNCI PERBAIKAN: Tambahkan env(safe-area-inset-bottom) */
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 20px));
+  display: flex;
+  gap: 8px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Pastikan tinggi tombol navigasi cukup besar untuk jempol */
+.player-exam-nav, 
+.player-exam-ragu {
+  min-height: 48px; /* Sedikit lebih besar dari 44px */
+}
