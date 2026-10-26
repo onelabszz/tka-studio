@@ -453,14 +453,13 @@ function ExamView({
   const [showSidebar, setShowSidebar] = useState(false);
   const [showWacana, setShowWacana] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
-  const contentRef = useRef(null);
+  const [fontSize, setFontSize] = useState('normal'); // 'small' | 'normal' | 'large'
 
   const total = paket.soal.length;
   const soal = paket.soal[currentIndex];
   const answeredCount = paket.soal.filter(s => isAnswered(s, answers[s.id])).length;
   const flaggedCount = flagged.size;
 
-  // Scroll ke atas saat ganti soal
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentIndex]);
@@ -474,144 +473,163 @@ function ExamView({
     else onSubmit();
   };
 
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        if(window.showToast) window.showToast("Gagal masuk mode layar penuh.", "error");
+      });
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
+  };
+
   const confirmMsg = answeredCount < total
     ? `Masih ada ${total - answeredCount} soal kosong${flaggedCount > 0 ? ` dan ${flaggedCount} soal ditandai ragu` : ''}. Tetap kumpulkan?`
     : `Ada ${flaggedCount} soal ditandai ragu. Yakin kumpulkan?`;
 
+  const fontSizeClass = fontSize === 'small' ? 'fs-small' : fontSize === 'large' ? 'fs-large' : '';
+
   return html`
     <div class="player-exam-shell">
 
+      <!-- HEADER OPERATOR -->
       <header class="player-exam-header">
         <div class="player-exam-header-left">
           <div class="player-exam-badge">TKA</div>
           <div class="player-exam-user">
-            <div class="player-exam-user-name">${studentName || '-'}</div>
+            <div class="player-exam-user-name">${studentName || 'Siswa'}</div>
             <div class="player-exam-user-sub">${studentClass || paket.mapel}</div>
           </div>
         </div>
+        
+        <div class="player-exam-header-center">
+          <div class=${'player-exam-timer ' + timerClass}>
+            <${Timer} size=${18} /> ${mode === 'simulasi' ? fmtTime(remaining) : 'Latihan'}
+          </div>
+        </div>
+
         <div class="player-exam-header-right">
-          ${mode === 'simulasi' && html`
-            <div class=${'player-exam-timer ' + timerClass}>
-              <${Timer} size=${13} /> ${fmtTime(remaining)}
-            </div>
-          `}
-          <button class="player-exam-menu-btn" onClick=${() => setShowSidebar(true)} title="Daftar soal">
-            <${Menu} size=${18} />
-            <span>${answeredCount}/${total}</span>
+          <button class="player-exam-icon-btn" onClick=${handleFullscreen} title="Layar Penuh">
+            <${MonitorPlay} size=${20} />
+          </button>
+          <button class="player-exam-menu-btn" onClick=${() => setShowSidebar(!showSidebar)}>
+            <${Grid3x3} size=${18} /> <span>Navigasi</span>
           </button>
         </div>
       </header>
 
-      <div class="player-exam-progress">
-        <div class="player-exam-progress-fill" style="width:${(answeredCount / total) * 100}%;"></div>
-      </div>
-
-      <main class="player-exam-main" ref=${contentRef}>
-        ${paket.wacana && html`
-          <button class="player-wacana-pill" onClick=${() => setShowWacana(true)}>
-            <${BookOpen} size=${13} /> Buka Wacana
-          </button>
-        `}
-
-        ${!soal ? html`
-          <div class="result-card result-error">
-            <h2>Soal tidak ditemukan</h2>
-            <p>Indeks soal (${currentIndex}) melebihi jumlah total soal (${total}).</p>
-          </div>
-        ` : html`
-          <${QuestionRunner}
-            key=${soal.id}
-            soal=${soal}
-            nomor=${currentIndex + 1}
-            answer=${answers[soal.id]}
-            onChange=${onAnswer}
-            readOnly=${false}
-            showKey=${false}
-            flagged=${flagged.has(soal.id)}
-          />
-        `}
-      </main>
-
-      <footer class="player-exam-footer">
-        <button
-          class="player-exam-nav"
-          disabled=${currentIndex === 0}
-          onClick=${() => onNavigate(currentIndex - 1)}
-        >
-          <${ChevronLeft} size=${16} /> <span class="player-exam-nav-label">Sebelumnya</span>
-        </button>
-        <button
-          class=${'player-exam-ragu ' + (flagged.has(soal.id) ? 'active' : '')}
-          onClick=${() => onToggleFlag(soal.id)}
-          title="Tandai ragu"
-        >
-          <${Flag} size=${15} />
-          <span class="player-exam-nav-label">Ragu</span>
-        </button>
-        ${currentIndex === total - 1
-          ? html`
-            <button class="player-exam-nav primary" onClick=${handleKumpul}>
-              <${CheckCircle2} size=${16} /> <span class="player-exam-nav-label">Kumpul</span>
-            </button>
-          `
-          : html`
-            <button
-              class="player-exam-nav primary"
-              onClick=${() => onNavigate(currentIndex + 1)}
-            >
-              <span class="player-exam-nav-label">Selanjutnya</span> <${ChevronRight} size=${16} />
-            </button>
-          `}
-      </footer>
-
-      ${showSidebar && html`
-        <div class="player-sidebar-overlay" onClick=${() => setShowSidebar(false)}>
-          <div class="player-sidebar-drawer" onClick=${(e) => e.stopPropagation()}>
-            <div class="player-sidebar-head">
-              <h3>Navigasi Soal</h3>
-              <button class="player-sidebar-close" onClick=${() => setShowSidebar(false)}>
-                <${X} size=${18} />
+      <div class="player-exam-body">
+        
+        <!-- KONTEN SOAL -->
+        <main class="player-exam-content">
+          ${paket.wacana && html`
+            <div style="margin-bottom: 16px;">
+              <button class="player-wacana-pill" onClick=${() => setShowWacana(true)}>
+                <${BookOpen} size=${14} /> Buka Teks Wacana
               </button>
             </div>
+          `}
 
-            <div class="player-sidebar-stats">
-              <div><b>${answeredCount}</b><span>Dijawab</span></div>
-              <div><b>${flaggedCount}</b><span>Ragu</span></div>
-              <div><b>${total - answeredCount}</b><span>Kosong</span></div>
+          <div class=${'player-question-card ' + fontSizeClass}>
+            <div class="player-question-header">
+              <span class="player-q-num">Soal ${currentIndex + 1} <span style="color:var(--text-subtle); font-weight:500;">dari ${total}</span></span>
+              <div class="player-q-tools">
+                <button class=${'player-tool-btn ' + (fontSize === 'small' ? 'active' : '')} onClick=${() => setFontSize('small')} style="font-size:11px;">A-</button>
+                <button class=${'player-tool-btn ' + (fontSize === 'normal' ? 'active' : '')} onClick=${() => setFontSize('normal')} style="font-size:13px;">A</button>
+                <button class=${'player-tool-btn ' + (fontSize === 'large' ? 'active' : '')} onClick=${() => setFontSize('large')} style="font-size:15px;">A+</button>
+              </div>
             </div>
 
-            <div class="player-sidebar-legend">
-              <span><i class="dot-answered"></i>Dijawab</span>
-              <span><i class="dot-ragu"></i>Ragu</span>
-              <span><i class="dot-empty"></i>Kosong</span>
-              <span><i class="dot-current"></i>Saat ini</span>
-            </div>
+            <${QuestionRunner}
+              key=${soal.id}
+              soal=${soal}
+              nomor=${currentIndex + 1}
+              answer=${answers[soal.id]}
+              onChange=${onAnswer}
+              readOnly=${false}
+              showKey=${false}
+              flagged=${flagged.has(soal.id)}
+            />
+          </div>
+        </main>
 
-            <div class="player-nav-grid">
-              ${paket.soal.map((s, i) => {
-                const answered = isAnswered(s, answers[s.id]);
-                const isFlagged = flagged.has(s.id);
-                const isCurrent = i === currentIndex;
-                const cls = 'player-nav-num '
-                  + (isCurrent ? 'current ' : '')
-                  + (isFlagged ? 'ragu ' : (answered ? 'answered' : 'empty'));
-                return html`
-                  <button
-                    class=${cls}
-                    onClick=${() => { onNavigate(i); setShowSidebar(false); }}
-                    key=${s.id}
-                  >${i + 1}</button>
-                `;
-              })}
-            </div>
+        <!-- SIDEBAR NAVIGASI (Desktop) / DRAWER (Mobile) -->
+        <aside class=${'player-exam-sidebar' + (showSidebar ? ' show' : '')}>
+          <div class="player-sidebar-top">
+            <h3>Navigasi Soal</h3>
+            <button class="player-sidebar-close" onClick=${() => setShowSidebar(false)}><${X} size=${18} /></button>
+          </div>
 
-            <button class="btn-primary btn-large w-full" onClick=${handleKumpul} style="margin-top:16px;">
+          <div class="player-sidebar-stats">
+            <div><b>${answeredCount}</b><span>Dijawab</span></div>
+            <div><b>${flaggedCount}</b><span>Ragu</span></div>
+            <div><b>${total - answeredCount}</b><span>Kosong</span></div>
+          </div>
+
+          <div class="player-nav-grid-sidebar">
+            ${paket.soal.map((s, i) => {
+              const answered = isAnswered(s, answers[s.id]);
+              const isFlagged = flagged.has(s.id);
+              const isCurrent = i === currentIndex;
+              const cls = 'player-nav-num '
+                + (isCurrent ? 'current ' : '')
+                + (isFlagged ? 'ragu ' : (answered ? 'answered' : 'empty'));
+              return html`
+                <button
+                  class=${cls}
+                  onClick=${() => { onNavigate(i); if(window.innerWidth < 1024) setShowSidebar(false); }}
+                  key=${s.id}
+                >${i + 1}</button>
+              `;
+            })}
+          </div>
+
+          <div class="player-sidebar-bottom">
+            <button class="btn-primary btn-large w-full" onClick=${handleKumpul} style="height: 48px; box-shadow: 0 4px 12px rgba(30,64,175,0.3);">
               <${CheckCircle2} size=${18} /> Selesai & Kirim
             </button>
           </div>
-        </div>
-      `}
+        </aside>
+        ${showSidebar && html`<div class="player-exam-sidebar-overlay" onClick=${() => setShowSidebar(false)}></div>`}
 
+      </div>
+
+      <!-- FOOTER NAVIGASI -->
+      <footer class="player-exam-footer-bar">
+        <div class="player-footer-inner">
+          <button
+            class="player-nav-btn"
+            disabled=${currentIndex === 0}
+            onClick=${() => onNavigate(currentIndex - 1)}
+          >
+            <${ChevronLeft} size=${18} /> <span>Sebelumnya</span>
+          </button>
+          
+          <button
+            class=${'player-ragu-btn ' + (flagged.has(soal.id) ? 'active' : '')}
+            onClick=${() => onToggleFlag(soal.id)}
+          >
+            <${Flag} size=${18} /> <span>Tandai Ragu</span>
+          </button>
+
+          ${currentIndex === total - 1
+            ? html`
+              <button class="player-nav-btn primary" onClick=${handleKumpul}>
+                <span>Selesai</span> <${CheckCircle2} size=${18} />
+              </button>
+            `
+            : html`
+              <button
+                class="player-nav-btn primary"
+                onClick=${() => onNavigate(currentIndex + 1)}
+              >
+                <span>Selanjutnya</span> <${ChevronRight} size=${18} />
+              </button>
+            `}
+        </div>
+      </footer>
+
+      <!-- MODAL WACANA & CONFIRM (Sama seperti sebelumnya) -->
       ${showWacana && paket.wacana && html`
         <div class="modal-backdrop" onClick=${() => setShowWacana(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width:680px;">
@@ -619,7 +637,7 @@ function ExamView({
               <div class="modal-title"><${BookOpen} size=${18} /> ${paket.wacana_judul || 'Teks Wacana'}</div>
               <button class="modal-close" onClick=${() => setShowWacana(false)}><${X} size=${18} /></button>
             </div>
-            <div class="modal-body" style="font-size:14px; line-height:1.7; white-space:pre-wrap;">
+            <div class="modal-body" style="font-size:15px; line-height:1.8; white-space:pre-wrap;">
               ${paket.wacana}
             </div>
           </div>
