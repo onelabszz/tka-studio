@@ -1,7 +1,7 @@
 /**
  * TKA Studio — pages/play.js
  * © 2026 Ekwan Nugroho — Wonogiri
- * Mode Siswa — selaras UI TKA Local Host.
+ * Mode Siswa — Latihan Mandiri
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
@@ -11,7 +11,7 @@ import {
   ChevronRight, Grid3x3, X, CheckCircle2, AlertTriangle, Sparkles,
   BookOpen, Layers, History, Home, ClipboardPaste, Loader2, User,
   Repeat, PlayCircle, Clock, Trash2, GraduationCap, Flag, Check,
-  Menu, FileText, Shield, Key
+  Menu, FileText, Shield, Key, MonitorPlay
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
@@ -20,7 +20,7 @@ import {
   loadSession, saveSession, clearSession,
   loadHistory, pushHistory, deleteHistoryItem
 } from '../lib/player-storage.js';
-import { addImageFiles, getImageCount, clearImages } from '../lib/player-image.js'; import { getSupabase } from '../supabase/client.js';
+import { addImageFiles, getImageCount, clearImages } from '../lib/player-image.js';
 import { QuestionRunner } from '../components/QuestionRunner.js';
 import { DoneView, ReviewView } from '../components/ScoreReport.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
@@ -58,50 +58,35 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [examCodeInput, setExamCodeInput] = useState('');
-  const [studentName, setStudentName] = useState('');
-  const [studentIdNum, setStudentIdNum] = useState('');
   const [loadingCode, setLoadingCode] = useState(false);
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
     const code = examCodeInput.trim().toUpperCase();
-    if (code.length < 6 || !studentName.trim() || !studentIdNum.trim()) return;
+    if (code.length < 6) return;
     
     setLoadingCode(true);
     setError(null);
     try {
-      const client = await getSupabase();
-      
-      // 1. Verifikasi Siswa via Supabase
-      const { data, error } = await client.functions.invoke('verify-student', {
-        body: { code, studentName, studentIdNum }
-      });
-
-      if (error) throw new Error('Gagal terhubung ke server verifikasi.');
-      if (data.error) throw new Error(data.error);
-
-      // Simpan rosterId ke localStorage
-      localStorage.setItem('tka-player-roster-id', data.rosterId);
-
-      // 2. Unduh Soal dari GitHub
+      // Tembak langsung ke CDN GitHub
       const url = `https://raw.githubusercontent.com/onelabszz/tka-exams/main/exams/${code}.json`;
       const res = await fetch(url);
       
-      if (!res.ok) throw new Error(`Kode tidak ditemukan (HTTP ${res.status})`);
+      if (!res.ok) throw new Error(`Kode latihan tidak ditemukan (HTTP ${res.status}).`);
       
       const paketJson = await res.json();
-      
       if (!paketJson.soal || !Array.isArray(paketJson.soal)) {
-        throw new Error('Format soal di dalam file rusak.');
+        throw new Error('Format file soal rusak.');
       }
 
-      onLoaded(paketJson, { studentName, studentIdNum });
+      onLoaded(paketJson);
     } catch (err) {
       console.error(err);
       setError(err.message);
     }
     setLoadingCode(false);
   };
+
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [imgCount, setImgCount] = useState(getImageCount());
@@ -162,8 +147,8 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
 
         <div class="player-welcome-header">
           <span class="player-welcome-kemen">TKA Studio</span>
-          <h1 class="player-welcome-title">Try Out Mandiri</h1>
-          <p class="player-welcome-sub">Upload file dari guru Anda untuk mulai.</p>
+          <h1 class="player-welcome-title">Latihan Mandiri</h1>
+          <p class="player-welcome-sub">Masukkan kode dari guru, atau upload file soal.</p>
         </div>
 
         ${pendingResume && html`
@@ -180,53 +165,34 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
           </div>
         `}
 
-        <!-- Input Kode Ujian -->
+        <!-- Input Kode Latihan -->
         <div class="player-code-section">
           <div class="player-code-head">
             <${Key} size=${16} />
-            <span>Punya Kode Ujian dari Guru?</span>
+            <span>Punya Kode Latihan dari Guru?</span>
           </div>
-          <form onSubmit=${handleCodeSubmit} style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; gap: 8px;">
-              <input 
-                type="text" 
-                placeholder="Nama Lengkap" 
-                value=${studentName} 
-                onInput=${(e) => setStudentName(e.target.value)}
-                class="player-code-input" style="font-size: 14px; letter-spacing: 0; text-align: left; text-transform: none;"
-              />
-              <input 
-                type="text" 
-                placeholder="NISN" 
-                value=${studentIdNum} 
-                onInput=${(e) => setStudentIdNum(e.target.value)}
-                class="player-code-input" style="font-size: 14px; letter-spacing: 0; text-align: left; text-transform: none;"
-              />
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <input 
-                type="text" 
-                placeholder="KETIK 6 HURUF KODE..." 
-                value=${examCodeInput}
-                onInput=${(e) => setExamCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                maxLength="6"
-                class="player-code-input"
-              />
-              <button 
-                type="submit" 
-                class="btn-primary" 
-                disabled=${loadingCode || examCodeInput.length < 6 || !studentName.trim() || !studentIdNum.trim()}
-              >
-                ${loadingCode ? html`<${Loader2} class="spin" size=${18}/>` : html`<${ArrowRight} size=${18} />`}
-              </button>
-            </div>
+          <form onSubmit=${handleCodeSubmit} class="player-code-form">
+            <input 
+              type="text" 
+              placeholder="KETIK 6 HURUF..." 
+              value=${examCodeInput}
+              onInput=${(e) => setExamCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              maxLength="6"
+              class="player-code-input"
+            />
+            <button 
+              type="submit" 
+              class="btn-primary" 
+              disabled=${loadingCode || examCodeInput.length < 6}
+            >
+              ${loadingCode ? html`<${Loader2} class="spin" size=${18}/>` : html`<${ArrowRight} size=${18} />`}
+            </button>
           </form>
         </div>
 
         <div class="player-divider">
           <span>ATAU UPLOAD FILE</span>
         </div>
-
 
         <div
           class=${'player-dropzone' + (dragover ? ' dragover' : '')}
@@ -236,7 +202,7 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
           onDrop=${handleDrop}
         >
           <div class="player-dropzone-icon"><${Upload} size=${26} /></div>
-          <div class="player-dropzone-title">Upload File Soal</div>
+          <div class="player-dropzone-title">Upload File Soal (Offline)</div>
           <div class="player-dropzone-desc">
             Pilih file <b>.json</b> + gambar (opsional, sekaligus).<br/>
             Bisa klik atau drag & drop.
@@ -306,7 +272,7 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
         ${history.length > 0 && html`
           <div class="player-history-preview">
             <div class="player-history-preview-header">
-              <${History} size=${14} /> Riwayat Tryout
+              <${History} size=${14} /> Riwayat Latihan
               <button class="player-history-more" onClick=${onViewHistory}>
                 Lihat Semua →
               </button>
@@ -356,7 +322,7 @@ function BriefingView({ paket, onStart, onBack }) {
     <div class="player-welcome-wrap">
       <div class="player-welcome-card" style="max-width: 560px;">
         <div class="player-welcome-header">
-          <span class="player-welcome-kemen">Try Out TKA</span>
+          <span class="player-welcome-kemen">Latihan TKA</span>
           <h1 class="player-welcome-title" style="font-size:20px;">${paket.judul}</h1>
           <p class="player-welcome-sub">${paket.mapel} · ${total} soal · ${durasi} menit</p>
         </div>
@@ -443,7 +409,7 @@ function BriefingView({ paket, onStart, onBack }) {
 }
 
 // =====================================================
-// Exam View (sticky header + footer nav + sidebar grid)
+// Exam View (Dashboard Operator UI)
 // =====================================================
 function ExamView({
   paket, mode, answers, flagged, currentIndex, remaining, timeLimit,
@@ -629,7 +595,6 @@ function ExamView({
         </div>
       </footer>
 
-      <!-- MODAL WACANA & CONFIRM (Sama seperti sebelumnya) -->
       ${showWacana && paket.wacana && html`
         <div class="modal-backdrop" onClick=${() => setShowWacana(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width:680px;">
@@ -666,12 +631,12 @@ function HistoryViewer({ history, onClose, onDelete, onOpen }) {
     <div class="modal-backdrop" onClick=${onClose}>
       <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width:560px;">
         <div class="modal-header">
-          <div class="modal-title"><${History} size=${18} /> Riwayat Tryout</div>
+          <div class="modal-title"><${History} size=${18} /> Riwayat Latihan</div>
           <button class="modal-close" onClick=${onClose}><${X} size=${18} /></button>
         </div>
         <div class="modal-body">
           ${history.length === 0
-            ? html`<div style="padding:32px 16px; text-align:center; color:var(--text-muted);">Belum ada riwayat tryout.</div>`
+            ? html`<div style="padding:32px 16px; text-align:center; color:var(--text-muted);">Belum ada riwayat latihan.</div>`
             : html`
               <div class="history-list">
                 ${history.map(h => html`
@@ -782,9 +747,8 @@ export function PlayPage() {
   }, [answers, flagged, currentIndex, view]);
 
   // Handlers
-  const handleLoaded = (p, extraData = {}) => {
+  const handleLoaded = (p) => {
     setPaket(p);
-    if (extraData.studentName) setStudentName(extraData.studentName);
     setView('briefing');
     setPendingResume(null);
     clearSession();
@@ -846,20 +810,10 @@ export function PlayPage() {
     });
   };
 
-  const finishAttempt = async (finalAnswers, finalFlagged) => {
+  const finishAttempt = (finalAnswers, finalFlagged) => {
     const scored = scoreAttempt(paket, finalAnswers);
     const nowIso = new Date().toISOString();
     const dur = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
-
-    // Tandai selesai di Supabase jika ada rosterId
-    const rosterId = localStorage.getItem('tka-player-roster-id');
-    if (rosterId) {
-      try {
-        const client = await getSupabase();
-        await client.from('exam_rosters').update({ has_finished: true }).eq('id', rosterId);
-        localStorage.removeItem('tka-player-roster-id');
-      } catch (e) { console.error("Gagal update status siswa:", e); }
-    }
 
     setResult(scored);
     setSubmittedAt(nowIso);
@@ -892,7 +846,7 @@ export function PlayPage() {
   const handleShare = () => {
     if (!result || !paket) return;
     const text =
-      `📝 Hasil Tryout — TKA Studio\n` +
+      `📝 Hasil Latihan — TKA Studio\n` +
       `👤 ${studentName || 'Siswa'}${studentClass ? ' (' + studentClass + ')' : ''}\n` +
       `📚 ${paket.judul} · ${paket.mapel}\n` +
       `🎯 Skor: ${result.score}/${result.total} (${result.pct}%)\n` +
@@ -985,7 +939,7 @@ export function PlayPage() {
       />
       ${confirmExit && html`
         <${ConfirmModal}
-          title="Keluar dari tryout?"
+          title="Keluar dari latihan?"
           message="Jawaban Anda tersimpan otomatis. Bisa dilanjutkan nanti dari halaman awal Mode Siswa."
           confirmText="Ya, Keluar"
           isDanger=${true}
