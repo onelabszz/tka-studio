@@ -21,7 +21,6 @@ import { Stepper } from '../components/Stepper.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 import { PageHero } from '../components/PageHero.js';
 import { publishExamToGithub } from '../lib/exam-share.js';
-import { getSupabase } from '../supabase/client.js';
 
 const html = htm.bind(h);
 
@@ -212,9 +211,9 @@ export function ExportPage({ navigate, profile }) {
       const final = buildFinalPaket(true);
       const res = await publishExamToGithub(profile.id, judul.trim() || paket.judul, final);
       setExamCode(res.code);
-      if (window.showToast) window.showToast('Ujian berhasil diterbitkan!', 'success');
+      if (window.showToast) window.showToast('Latihan berhasil dibagikan!', 'success');
     } catch (e) {
-      if (window.showToast) window.showToast('Gagal menerbitkan: ' + e.message, 'error');
+      if (window.showToast) window.showToast('Gagal membagikan: ' + e.message, 'error');
     }
     setPublishingExam(false);
   };
@@ -224,45 +223,6 @@ export function ExportPage({ navigate, profile }) {
     navigator.clipboard.writeText(examCode);
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
-  };
-
-  const [csvUploading, setCsvUploading] = useState(false);
-
-  const handleCSVUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setCsvUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const text = evt.target.result;
-        const rows = text.split('\n').map(r => r.trim()).filter(Boolean);
-        const students = [];
-        
-        // Asumsi baris 1 header, pemisah koma (Nama, NISN)
-        for (let i = 1; i < rows.length; i++) {
-          const [name, nisn] = rows[i].split(',');
-          if (name && nisn) {
-            students.push({ student_name: name.trim(), student_id_num: nisn.trim() });
-          }
-        }
-
-        if (students.length === 0) throw new Error('Format CSV tidak valid atau kosong.');
-
-        const client = await getSupabase();
-        const { data: examData } = await client.from('exams').select('id').eq('code', examCode).single();
-        
-        const insertData = students.map(s => ({ ...s, exam_id: examData.id }));
-        const { error } = await client.from('exam_rosters').insert(insertData);
-        if (error) throw error;
-
-        if (window.showToast) window.showToast(`${students.length} siswa berhasil didaftarkan!`, 'success');
-      } catch (err) {
-        if (window.showToast) window.showToast('Gagal upload siswa: ' + err.message, 'error');
-      }
-      setCsvUploading(false);
-    };
-    reader.readAsText(file);
   };
 
   const handleDuplicateDraft = () => {
@@ -639,20 +599,20 @@ export function ExportPage({ navigate, profile }) {
             </button>
           </div>
 
-          <!-- Tombol Terbitkan Ujian (Khusus Guru Berizin) -->
+          <!-- Tombol Bagikan Latihan (Khusus Guru Berizin) -->
           ${canPublishExam && html`
             <div class="export-publish-section">
               <div class="export-publish-head">
                 <${Key} size=${16} />
-                <span>Ujian Online (Kode Akses)</span>
+                <span>Bagikan Latihan Mandiri (Kode)</span>
               </div>
               <p class="export-publish-desc">
-                Terbitkan soal agar siswa bisa mengerjakan cukup dengan mengetik 6 huruf kode. Tanpa kirim file.
+                Berikan kode ini ke siswa. Mereka bisa berlatih mandiri di rumah (tanpa perlu file .json).
               </p>
               <button class="btn-primary w-full" onClick=${handlePublishExam} disabled=${publishingExam}>
                 ${publishingExam
-                  ? html`<${Loader2} size=${16} class="spin" /> Menerbitkan...`
-                  : html`<${CloudUpload} size=${16} /> Terbitkan & Dapatkan Kode`}
+                  ? html`<${Loader2} size=${16} class="spin" /> Membagikan...`
+                  : html`<${CloudUpload} size=${16} /> Bagikan & Dapatkan Kode`}
               </button>
             </div>
           `}
@@ -742,7 +702,7 @@ export function ExportPage({ navigate, profile }) {
         </div>
       </div>
 
-      <!-- Success Modal -->
+      <!-- Success Modal Download -->
       ${downloaded && html`
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -805,19 +765,19 @@ export function ExportPage({ navigate, profile }) {
         </div>
       `}
 
-      <!-- Modal Kode Ujian -->
+      <!-- Modal Kode Latihan -->
       ${examCode && html`
         <div class="modal-backdrop" onClick=${() => setExamCode(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 400px;">
             <div class="modal-header">
               <div class="modal-title">
-                <${CheckCircle2} size=${20} color="var(--success)" /> Ujian Siap!
+                <${CheckCircle2} size=${20} color="var(--success)" /> Latihan Siap!
               </div>
               <button class="modal-close" onClick=${() => setExamCode(null)}><${X} size=${18} /></button>
             </div>
             <div class="modal-body" style="text-align: center;">
               <p class="text-muted text-sm mb-4">
-                Bagikan kode ini ke siswa. Mereka cukup membuka <b>#/play</b> dan memasukkan kode.
+                Bagikan kode ini ke siswa untuk <b>latihan mandiri</b>. Mereka cukup membuka link TKA Studio dan memasukkan kode tersebut.
               </p>
               
               <div class="exam-code-display" onClick=${handleCopyExamCode}>
@@ -827,13 +787,6 @@ export function ExportPage({ navigate, profile }) {
               <button class="btn-secondary w-full mt-3" onClick=${handleCopyExamCode}>
                 ${codeCopied ? html`<${Check} size=${16} /> Tersalin!` : html`<${Copy} size=${16} /> Salin Kode`}
               </button>
-
-              <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 16px; text-align: left;">
-                <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px;">Daftar Hadir Siswa (Opsional)</div>
-                <p class="text-muted" style="font-size: 11.5px; margin-bottom: 8px;">Unggah file CSV (Format: Nama, NISN) agar hanya siswa terdaftar yang bisa masuk.</p>
-                <input type="file" accept=".csv" onChange=${handleCSVUpload} disabled=${csvUploading} style="font-size: 11.5px; width: 100%;" />
-                ${csvUploading && html`<div style="font-size: 11px; color: var(--primary); margin-top: 4px;">Mengunggah data...</div>`}
-              </div>
             </div>
           </div>
         </div>
