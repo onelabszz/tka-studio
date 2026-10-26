@@ -5148,3 +5148,76 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   font-variant-numeric: tabular-nums;
   vertical-align: 1px;
 }
+
+.export-option-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.export-option-head {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+.export-option-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.export-option-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--navy-900);
+  margin-bottom: 3px;
+}
+.export-option-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.export-option-desc code {
+  font-family: 'SF Mono', Menlo, monospace;
+  background: var(--surface-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10.5px;
+}
+.export-option-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.export-option-checkbox:hover { background: var(--surface-muted); }
+.export-option-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.export-option-checkbox > div {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+}
+.export-option-checkbox > div b { display: block; margin-bottom: 3px; }
+.export-option-hint {
+  font-size: 11.5px;
+  line-height: 1.4;
+  font-weight: 500;
+}
