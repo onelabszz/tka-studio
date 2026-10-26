@@ -11,7 +11,7 @@ import {
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
   CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
   CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon,
-  Link2, MessageCircle, MonitorPlay, Smartphone, Save, Key
+  Link2, MessageCircle, MonitorPlay, Smartphone, Save, Key, X
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -225,6 +225,7 @@ export function ExportPage({ navigate, profile }) {
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
+  const handleDuplicateDraft = () => {
     setConfirmData({
       title: 'Duplikat Draf?',
       message: 'Paket ini akan disalin ke draf baru. Anda bisa mengubah topik tanpa kehilangan paket aslinya.',
@@ -616,6 +617,8 @@ export function ExportPage({ navigate, profile }) {
             </div>
           `}
 
+          <!-- Save to cloud / login hint -->
+          <div class="export-bridge-divider">
             ${isActive ? html`
               <button class="btn-glass w-full" onClick=${handleSaveToCloud} disabled=${saving}>
                 ${saving
@@ -789,6 +792,9 @@ export function ExportPage({ navigate, profile }) {
         </div>
       `}
 
+      <!-- Confirm Modal -->
+      ${confirmData && html`
+        <${ConfirmModal}
           title=${confirmData.title}
           message=${confirmData.message}
           confirmText=${confirmData.confirmText}
