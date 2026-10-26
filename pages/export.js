@@ -21,6 +21,7 @@ import { Stepper } from '../components/Stepper.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 import { PageHero } from '../components/PageHero.js';
 import { publishExamToGithub } from '../lib/exam-share.js';
+import { getSupabase } from '../supabase/client.js';
 
 const html = htm.bind(h);
 
@@ -223,6 +224,45 @@ export function ExportPage({ navigate, profile }) {
     navigator.clipboard.writeText(examCode);
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
+  };
+
+  const [csvUploading, setCsvUploading] = useState(false);
+
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCsvUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const text = evt.target.result;
+        const rows = text.split('\n').map(r => r.trim()).filter(Boolean);
+        const students = [];
+        
+        // Asumsi baris 1 header, pemisah koma (Nama, NISN)
+        for (let i = 1; i < rows.length; i++) {
+          const [name, nisn] = rows[i].split(',');
+          if (name && nisn) {
+            students.push({ student_name: name.trim(), student_id_num: nisn.trim() });
+          }
+        }
+
+        if (students.length === 0) throw new Error('Format CSV tidak valid atau kosong.');
+
+        const client = await getSupabase();
+        const { data: examData } = await client.from('exams').select('id').eq('code', examCode).single();
+        
+        const insertData = students.map(s => ({ ...s, exam_id: examData.id }));
+        const { error } = await client.from('exam_rosters').insert(insertData);
+        if (error) throw error;
+
+        if (window.showToast) window.showToast(`${students.length} siswa berhasil didaftarkan!`, 'success');
+      } catch (err) {
+        if (window.showToast) window.showToast('Gagal upload siswa: ' + err.message, 'error');
+      }
+      setCsvUploading(false);
+    };
+    reader.readAsText(file);
   };
 
   const handleDuplicateDraft = () => {
@@ -787,6 +827,13 @@ export function ExportPage({ navigate, profile }) {
               <button class="btn-secondary w-full mt-3" onClick=${handleCopyExamCode}>
                 ${codeCopied ? html`<${Check} size=${16} /> Tersalin!` : html`<${Copy} size=${16} /> Salin Kode`}
               </button>
+
+              <div style="margin-top: 16px; border-top: 1px dashed var(--border); padding-top: 16px; text-align: left;">
+                <div style="font-weight: 700; font-size: 13px; margin-bottom: 4px;">Daftar Hadir Siswa (Opsional)</div>
+                <p class="text-muted" style="font-size: 11.5px; margin-bottom: 8px;">Unggah file CSV (Format: Nama, NISN) agar hanya siswa terdaftar yang bisa masuk.</p>
+                <input type="file" accept=".csv" onChange=${handleCSVUpload} disabled=${csvUploading} style="font-size: 11.5px; width: 100%;" />
+                ${csvUploading && html`<div style="font-size: 11px; color: var(--primary); margin-top: 4px;">Mengunggah data...</div>`}
+              </div>
             </div>
           </div>
         </div>
