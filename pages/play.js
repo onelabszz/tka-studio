@@ -11,7 +11,7 @@ import {
   ChevronRight, Grid3x3, X, CheckCircle2, AlertTriangle, Sparkles,
   BookOpen, Layers, History, Home, ClipboardPaste, Loader2, User,
   Repeat, PlayCircle, Clock, Trash2, GraduationCap, Flag, Check,
-  Menu, FileText
+  Menu, FileText, Shield
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
@@ -53,7 +53,7 @@ function isAnswered(soal, ans) {
 // =====================================================
 // Welcome (Login-style card)
 // =====================================================
-function WelcomeView({ onLoaded, navigate, pendingResume, onResume, onDiscardResume, history, onViewHistory }) {
+function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, history, onViewHistory }) {
   const [dragover, setDragover] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -232,9 +232,9 @@ function WelcomeView({ onLoaded, navigate, pendingResume, onResume, onDiscardRes
           </div>
         `}
 
-        <button class="btn-secondary w-full" onClick=${() => navigate('/')} style="margin-top:16px;">
-          <${ArrowLeft} size=${15} /> Kembali ke Beranda
-        </button>
+        <div class="player-standalone-hint">
+          <${Shield} size=${11} /> Mode Siswa · Tidak perlu daftar
+        </div>
 
         <p class="player-welcome-copyright">© 2026 Ekwan Nugroho · Wonogiri</p>
       </div>
@@ -583,7 +583,7 @@ function HistoryViewer({ history, onClose, onDelete, onOpen }) {
 // =====================================================
 // MAIN PlayPage
 // =====================================================
-export function PlayPage({ navigate }) {
+export function PlayPage() {
   const [view, setView] = useState('welcome');
   const [paket, setPaket] = useState(null);
   const [studentName, setStudentName] = useState('');
@@ -809,7 +809,6 @@ export function PlayPage({ navigate }) {
     return html`
       <${WelcomeView}
         onLoaded=${handleLoaded}
-        navigate=${navigate}
         pendingResume=${pendingResume}
         onResume=${handleResume}
         onDiscardResume=${handleDiscardResume}
@@ -857,10 +856,10 @@ export function PlayPage({ navigate }) {
       ${confirmExit && html`
         <${ConfirmModal}
           title="Keluar dari tryout?"
-          message="Jawaban Anda tersimpan otomatis. Bisa dilanjutkan nanti dari halaman Mode Siswa."
+          message="Jawaban Anda tersimpan otomatis. Bisa dilanjutkan nanti dari halaman awal Mode Siswa."
           confirmText="Ya, Keluar"
           isDanger=${true}
-          onConfirm=${() => { setConfirmExit(false); navigate('/'); }}
+          onConfirm=${() => { setConfirmExit(false); handleFinish(); }}
           onCancel=${() => setConfirmExit(false)}
         />
       `}
