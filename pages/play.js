@@ -490,16 +490,23 @@ function ExamView({
           </button>
         `}
 
-        <${QuestionRunner}
-          key=${soal.id}  {/* <-- TAMBAHKAN INI */}
-          soal=${soal}
-          nomor=${currentIndex + 1}
-          answer=${answers[soal.id]}
-          onChange=${onAnswer}
-          readOnly=${false}
-          showKey=${false}
-          flagged=${flagged.has(soal.id)}
-        />
+        ${!soal ? html`
+          <div class="result-card result-error">
+            <h2>Soal tidak ditemukan</h2>
+            <p>Indeks soal (${currentIndex}) melebihi jumlah total soal (${total}).</p>
+          </div>
+        ` : html`
+          <${QuestionRunner}
+            key=${soal.id || currentIndex}
+            soal=${soal}
+            nomor=${currentIndex + 1}
+            answer=${answers[soal.id]}
+            onChange=${onAnswer}
+            readOnly=${false}
+            showKey=${false}
+            flagged=${flagged.has(soal.id)}
+          />
+        `}
       </main>
 
       <footer class="player-exam-footer">
