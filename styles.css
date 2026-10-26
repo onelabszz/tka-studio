@@ -5222,7 +5222,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   font-weight: 500;
 }
 /* =========================================================
-   EXPORT DOWNLOAD PANEL v10.1 — Polish & Fix
+   EXPORT DOWNLOAD PANEL v10.2 — Final Polish
    ========================================================= */
 
 /* Panel Utama */
@@ -5266,8 +5266,21 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
 }
-.export-download-title { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
-.export-download-sub { font-size: 13px; color: rgba(255,255,255,0.7); }
+
+/* PERBAIKAN: Paksa Judul jadi Putih */
+.export-download-title { 
+  font-size: 18px; 
+  font-weight: 800; 
+  margin: 0 0 2px 0; 
+  color: #ffffff !important; /* <-- Ini kuncinya */
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.export-download-sub { 
+  font-size: 13px; 
+  color: rgba(255, 255, 255, 0.75); 
+  margin: 0;
+}
 
 /* Cards Grid */
 .export-download-cards {
@@ -5382,7 +5395,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .export-download-card.is-secondary .export-download-card-title { color: white; }
 
 .export-download-card-desc {
-  font-size: 12px; line-height: 1.5; margin: 0 0 14px; min-height: 36px; /* Kunci tinggi seragam */
+  font-size: 12px; line-height: 1.5; margin: 0 0 14px; min-height: 36px;
 }
 .export-download-card.is-primary .export-download-card-desc { color: var(--text-muted); }
 .export-download-card.is-secondary .export-download-card-desc { color: rgba(255,255,255,0.7); }
@@ -5414,10 +5427,16 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 
 /* CTA Button di dalam Card */
 .export-download-card-cta {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; height: 44px; border-radius: 10px;
-  font-size: 13px; font-weight: 800;
-  margin-top: auto; /* Kunci tombol selalu di bawah */
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; /* Memisahkan teks kiri dan panah kanan */
+  width: 100%; 
+  height: 44px; 
+  border-radius: 10px;
+  font-size: 13px; 
+  font-weight: 800;
+  padding: 0 16px; /* Padding kiri-kanan agar tidak nempel */
+  margin-top: auto; 
   transition: all 0.2s;
 }
 .export-download-card.is-primary .export-download-card-cta {
@@ -5429,7 +5448,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   box-shadow: 0 6px 16px rgba(30, 64, 175, 0.35);
 }
 
-/* INI YANG DIPERBAIKI: Tombol Kanan jadi Solid Green saat ready */
+/* Tombol Kanan Solid Green */
 .export-download-card.is-secondary .export-download-card-cta {
   background: rgba(255,255,255,0.15); color: white;
   border: 1px solid rgba(255,255,255,0.2);
@@ -5439,17 +5458,17 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 .export-download-card.is-secondary.is-ready:hover .export-download-card-cta {
-  background: #047857; /* Hijau lebih gelap */
+  background: #047857;
   box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
 }
 
-.export-download-card-cta-arrow { margin-left: auto; transition: transform 0.2s; }
+.export-download-card-cta-arrow { transition: transform 0.2s; }
 .export-download-card:hover .export-download-card-cta-arrow { transform: translateX(4px); }
 
 /* Tombol Bawah (Secondary & Simpan) */
 .export-download-secondary {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); /* Diganti solid */
+  padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 .export-secondary-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
