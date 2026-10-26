@@ -13,7 +13,7 @@ import {
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
-import { PageHero } from '../components/PageHero.js';
+import { compressImage, formatBytes } from '../lib/image-compress.js';
 
 const html = htm.bind(h);
 
@@ -114,19 +114,57 @@ export function ImageToolPage({ navigate }) {
     setLoading(true);
     try {
       const newImages = [...images];
+      let totalOriginal = 0;
+      let totalCompressed = 0;
+
       for (const f of files) {
         if (!f.type || !f.type.startsWith('image/')) continue;
-        // Skip if already added (by name)
         if (newImages.some(im => im.name === f.name)) continue;
-        const base64 = await readFileAsDataURL(f);
+
+        // Skip compression for tiny files (< 100KB) & SVG/GIF
+        const skip = f.size < 100 * 1024
+          || f.type === 'image/svg+xml'
+          || f.type === 'image/gif';
+
+        let base64, size, compressed, info = null;
+
+        if (skip) {
+          base64 = await readFileAsDataURL(f);
+          size = base64.length;
+          compressed = false;
+        } else {
+          info = await compressImage(f, { maxWidth: 1600, maxHeight: 1600, quality: 0.85, maxSizeKb: 500 });
+          base64 = info.dataUrl;
+          size = info.compressedSize;
+          compressed = !info.skipped;
+          if (compressed) {
+            totalOriginal += info.originalSize;
+            totalCompressed += info.compressedSize;
+          }
+        }
+
         newImages.push({
           name: f.name,
           base64,
-          size: base64.length,
+          size,
           preview: base64,
+          compressed,
+          originalSize: f.size,
+          compressInfo: info,
         });
       }
+
       setImages(newImages);
+
+      // Show total savings
+      if (totalOriginal > 0 && totalCompressed > 0 && window.showToast) {
+        const saved = totalOriginal - totalCompressed;
+        const pct = Math.round((saved / totalOriginal) * 100);
+        window.showToast(
+          `Gambar dikompres: hemat ${formatBytes(saved)} (${pct}%)`,
+          'success'
+        );
+      }
     } catch (e) {
       setError(String(e.message || e));
     }
@@ -302,7 +340,12 @@ export function ImageToolPage({ navigate }) {
                       </div>
                       <div class="imgtool-image-info">
                         <div class="imgtool-image-name" title=${im.name}>${im.name}</div>
-                        <div class="imgtool-image-size">${fmtSize(im.size)}</div>
+                        <div class="imgtool-image-size">
+                          ${fmtSize(im.size)}
+                          ${im.compressed && im.compressInfo && html`
+                            <span class="imgtool-save-badge">-${im.compressInfo.savedPct}%</span>
+                          `}
+                        </div>
                       </div>
                       <div class="imgtool-image-actions">
                         <button class="icon-btn" onClick=${() => copyBase64(im.base64)} title="Copy base64">
