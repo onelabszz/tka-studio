@@ -4756,3 +4756,195 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .export-share-copy-btn { justify-content: center; width: 100%; }
   .export-share-url { text-align: center; padding: 8px; }
 }
+
+/* =========================================================
+   IMAGE TOOL (v9)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+.imgtool-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--primary-light);
+  border: 1px solid rgba(30, 64, 175, 0.15);
+  border-radius: var(--radius-input);
+}
+.imgtool-file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: white;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.imgtool-file-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary-dark);
+  font-family: 'SF Mono', Menlo, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.imgtool-file-meta { font-size: 11.5px; color: var(--primary-dark); opacity: 0.75; margin-top: 2px; }
+
+.imgtool-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.imgtool-image-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+  transition: all var(--duration) var(--ease);
+}
+.imgtool-image-card:hover {
+  border-color: var(--primary-mid);
+  box-shadow: var(--shadow-sm);
+}
+.imgtool-image-preview {
+  aspect-ratio: 4/3;
+  background: var(--surface-muted);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.imgtool-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.imgtool-image-info { padding: 8px 10px 6px; }
+.imgtool-image-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+.imgtool-image-size { font-size: 10.5px; color: var(--text-muted); }
+.imgtool-image-actions {
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+
+.imgtool-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.imgtool-stat {
+  padding: 10px 8px;
+  border-radius: var(--radius-input);
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.imgtool-stat.is-success { background: #ecfdf5; border-color: #bbf7d0; }
+.imgtool-stat.is-warning { background: #fffbeb; border-color: #fcd34d; }
+.imgtool-stat.is-neutral { background: var(--surface-muted); }
+.imgtool-stat-value { font-size: 20px; font-weight: 900; color: var(--navy-900); line-height: 1; }
+.imgtool-stat.is-success .imgtool-stat-value { color: var(--success); }
+.imgtool-stat.is-warning .imgtool-stat-value { color: #92400e; }
+.imgtool-stat-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.imgtool-match-list { display: flex; flex-direction: column; gap: 6px; }
+.imgtool-match-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  border-left-width: 3px;
+}
+.imgtool-match-item.is-matched { border-left-color: var(--success); }
+.imgtool-match-item.is-missing { border-left-color: var(--warning); background: #fffbeb; }
+.imgtool-match-item.is-already { border-left-color: var(--primary-mid); }
+.imgtool-match-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.imgtool-match-item.is-matched .imgtool-match-icon { background: #d1fae5; color: var(--success); }
+.imgtool-match-item.is-missing .imgtool-match-icon { background: #fef3c7; color: #92400e; }
+.imgtool-match-item.is-already .imgtool-match-icon { background: var(--primary-light); color: var(--primary); }
+.imgtool-match-body { flex: 1; min-width: 0; }
+.imgtool-match-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.imgtool-match-type {
+  font-size: 9.5px;
+  padding: 2px 5px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  border-radius: 3px;
+  font-weight: 800;
+}
+.imgtool-match-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-break: break-all;
+}
+.imgtool-match-desc b {
+  font-family: 'SF Mono', Menlo, monospace;
+  color: var(--text);
+  background: var(--surface-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.imgtool-success-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #ecfdf5;
+  color: #065f46;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+@media (max-width: 520px) {
+  .imgtool-image-grid { grid-template-columns: repeat(2, 1fr); }
+  .imgtool-stats { gap: 6px; }
+  .imgtool-stat-value { font-size: 17px; }
+}
