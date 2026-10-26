@@ -1,14 +1,16 @@
 /**
  * TKA Studio — components/QuestionRunner.js
  * © 2026 Ekwan Nugroho — Wonogiri
- *
- * Render 1 soal. Bisa interaktif (attempt) atau read-only (review).
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
+import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
-  Check, X, CircleDot, ListChecks, CheckCheck, MessageCircle
+  Check, X, CircleDot, ListChecks, CheckCheck, MessageCircle,
+  Image as ImageIcon, Search, Flag
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
+import { getImage } from '../lib/player-image.js';
+import { ImageLightbox } from './ImageLightbox.js';
 
 const html = htm.bind(h);
 
@@ -28,6 +30,54 @@ function Badge({ tipe }) {
   `;
 }
 
+// ---------- Soal Image ----------
+function SoalImage({ soal }) {
+  const [zoom, setZoom] = useState(false);
+  if (!soal.img) return null;
+
+  const src = getImage(soal.img);
+  const caption = soal.img_caption;
+
+  if (src) {
+    return html`
+      <div class="qr-image-wrap">
+        <img
+          src=${src}
+          alt=${caption || 'Gambar soal'}
+          class="qr-image"
+          onClick=${() => setZoom(true)}
+          loading="lazy"
+        />
+        ${caption && html`<div class="qr-image-caption">${caption}</div>`}
+        ${zoom && html`<${ImageLightbox} src=${src} alt=${caption} onClose=${() => setZoom(false)} />`}
+      </div>
+    `;
+  }
+
+  return html`
+    <div class="qr-image-placeholder">
+      <div class="qr-image-placeholder-icon"><${ImageIcon} size=${20} /></div>
+      <div class="qr-image-placeholder-body">
+        <div class="qr-image-placeholder-title">Gambar: <b>${soal.img}</b></div>
+        <div class="qr-image-placeholder-desc">
+          Upload file gambar bersama JSON untuk melihatnya
+          ${soal.img_ref && html`· atau cari dengan kata kunci: <i>"${soal.img_ref}"</i>`}
+        </div>
+      </div>
+      ${soal.img_ref && html`
+        <a
+          href=${'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(soal.img_ref)}
+          target="_blank"
+          rel="noopener"
+          class="qr-image-search-btn"
+        >
+          <${Search} size=${14} /> Cari
+        </a>
+      `}
+    </div>
+  `;
+}
+
 export function QuestionRunner({
   soal,
   nomor,
@@ -35,7 +85,17 @@ export function QuestionRunner({
   onChange,
   readOnly = false,
   showKey = false,
+  flagged = false,
 }) {
+  // Re-render KaTeX setiap soal berubah
+  useEffect(() => {
+    if (!soal) return;
+    const timer = setTimeout(() => {
+      if (window.renderMath) window.renderMath();
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [soal?.id]);
+
   if (!soal) return null;
 
   const handlePg = (idx) => {
@@ -66,7 +126,12 @@ export function QuestionRunner({
       <div class="qr-header">
         <span class="qr-number">Soal ${nomor}</span>
         <${Badge} tipe=${soal.tipe} />
+        ${flagged && html`
+          <span class="qr-flag-badge"><${Flag} size=${11} /> Ragu</span>
+        `}
       </div>
+
+      <${SoalImage} soal=${soal} />
 
       <div class="qr-question">${soal.q}</div>
 
@@ -95,6 +160,7 @@ export function QuestionRunner({
                 class=${cls}
                 onClick=${() => soal.tipe === 'pg' ? handlePg(oi) : handleMcma(oi)}
                 disabled=${readOnly}
+                key=${oi}
               >
                 <span class="qr-option-key">
                   ${isKey ? html`<${Check} size=${14} strokeWidth=${3} />` : 'ABCD'[oi]}
@@ -122,7 +188,7 @@ export function QuestionRunner({
             ].filter(Boolean).join(' ');
 
             return html`
-              <div class=${cls}>
+              <div class=${cls} key=${pi}>
                 <div class="qr-bs-teks">
                   <b>${pi + 1}.</b> ${p.teks}
                 </div>
