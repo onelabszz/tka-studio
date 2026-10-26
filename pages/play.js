@@ -11,7 +11,7 @@ import {
   ChevronRight, Grid3x3, X, CheckCircle2, AlertTriangle, Sparkles,
   BookOpen, Layers, History, Home, ClipboardPaste, Loader2, User,
   Repeat, PlayCircle, Clock, Trash2, GraduationCap, Flag, Check,
-  Menu, FileText, Shield, Key, ArrowRight
+  Menu, FileText, Shield, Key
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
