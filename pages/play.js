@@ -68,19 +68,31 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
     setLoadingCode(true);
     setError(null);
     try {
-      // Tembak langsung ke CDN GitHub
       const url = `https://raw.githubusercontent.com/onelabszz/tka-exams/main/exams/${code}.json`;
+      console.log("Mengunduh dari:", url); // <-- Cek URL ini di Console
+      
       const res = await fetch(url);
       
-      if (!res.ok) throw new Error('Kode ujian tidak ditemukan atau sudah kedaluwarsa.');
+      if (!res.ok) {
+        throw new Error(`Kode tidak ditemukan di GitHub (Status: ${res.status}). Pastikan repo Public dan file benar-benar ada.`);
+      }
       
-      const paketJson = await res.json();
+      const textData = await res.text();
+      let paketJson;
+      
+      try {
+        paketJson = JSON.parse(textData);
+      } catch (err) {
+        throw new Error('File yang diunduh dari GitHub bukan format JSON yang valid.');
+      }
+      
       if (!paketJson.soal || !Array.isArray(paketJson.soal)) {
-        throw new Error('Format soal rusak.');
+        throw new Error('Format soal di dalam file rusak (tidak ada array "soal").');
       }
 
       onLoaded(paketJson);
     } catch (err) {
+      console.error(err);
       setError(err.message);
     }
     setLoadingCode(false);
