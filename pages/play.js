@@ -11,7 +11,7 @@ import {
   ChevronRight, Grid3x3, X, CheckCircle2, AlertTriangle, Sparkles,
   BookOpen, Layers, History, Home, ClipboardPaste, Loader2, User,
   Repeat, PlayCircle, Clock, Trash2, GraduationCap, Flag, Check,
-  Menu, FileText, Shield
+  Menu, FileText, Shield, Key, ArrowRight
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
@@ -57,6 +57,34 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
   const [dragover, setDragover] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [examCodeInput, setExamCodeInput] = useState('');
+  const [loadingCode, setLoadingCode] = useState(false);
+
+  const handleCodeSubmit = async (e) => {
+    e.preventDefault();
+    const code = examCodeInput.trim().toUpperCase();
+    if (code.length < 6) return;
+    
+    setLoadingCode(true);
+    setError(null);
+    try {
+      // Tembak langsung ke CDN GitHub
+      const url = `https://raw.githubusercontent.com/onelabszz/tka-exams/main/exams/${code}.json`;
+      const res = await fetch(url);
+      
+      if (!res.ok) throw new Error('Kode ujian tidak ditemukan atau sudah kedaluwarsa.');
+      
+      const paketJson = await res.json();
+      if (!paketJson.soal || !Array.isArray(paketJson.soal)) {
+        throw new Error('Format soal rusak.');
+      }
+
+      onLoaded(paketJson);
+    } catch (err) {
+      setError(err.message);
+    }
+    setLoadingCode(false);
+  };
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [imgCount, setImgCount] = useState(getImageCount());
@@ -134,6 +162,36 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
             </div>
           </div>
         `}
+
+        <!-- Input Kode Ujian -->
+        <div class="player-code-section">
+          <div class="player-code-head">
+            <${Key} size=${16} />
+            <span>Punya Kode Ujian dari Guru?</span>
+          </div>
+          <form onSubmit=${handleCodeSubmit} class="player-code-form">
+            <input 
+              type="text" 
+              placeholder="KETIK 6 HURUF..." 
+              value=${examCodeInput}
+              onInput=${(e) => setExamCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+              maxLength="6"
+              class="player-code-input"
+            />
+            <button 
+              type="submit" 
+              class="btn-primary" 
+              disabled=${loadingCode || examCodeInput.length < 6}
+            >
+              ${loadingCode ? html`<${Loader2} class="spin" size=${18}/>` : html`<${ArrowRight} size=${18} />`}
+            </button>
+          </form>
+        </div>
+
+        <div class="player-divider">
+          <span>ATAU UPLOAD FILE</span>
+        </div>
+
 
         <div
           class=${'player-dropzone' + (dragover ? ' dragover' : '')}
