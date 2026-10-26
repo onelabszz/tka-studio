@@ -29,9 +29,9 @@ const MENU_ITEMS = [
     ],
   },
   {
-    section: 'UJIAN ONLINE',
+    section: 'ARSIP ONLINE',
     items: [
-      { path: '/exam-list', label: 'Ujian Terbit', icon: Key },
+      { path: '/exam-list', label: 'Kode ujian saya', icon: Key },
     ],
   },
 ];
