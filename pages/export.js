@@ -11,10 +11,10 @@ import {
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
   CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
   CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon,
-  Link2, MessageCircle
+  Link2, MessageCircle, MonitorPlay, Smartphone, Save
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
-import { downloadPaket, toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
+import { toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
 import { downloadCSV } from '../lib/csv-export.js';
 import { saveToBank } from '../lib/bank-soal.js';
 import { Stepper } from '../components/Stepper.js';
@@ -27,6 +27,19 @@ function copyText(text) {
   return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
 }
 
+// Manual download trigger dengan custom filename
+function triggerDownload(json, filename) {
+  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function ExportPage({ navigate, profile }) {
   const draft = useMemo(() => loadDraft(), []);
   const [paket, setPaket] = useState(draft?.paket || null);
@@ -36,9 +49,11 @@ export function ExportPage({ navigate, profile }) {
   const [latihanMandiri, setLatihanMandiri] = useState(draft?.paket?.latihanMandiri !== false);
 
   const [downloaded, setDownloaded] = useState(false);
+  const [downloadedVariant, setDownloadedVariant] = useState(null); // 'local' | 'player'
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [confirmData, setConfirmData] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
 
   if (!draft || !paket) {
@@ -55,9 +70,14 @@ export function ExportPage({ navigate, profile }) {
     `;
   }
 
-  const buildFinalPaket = () => {
+  // Build paket final. withBase64=false → strip img_data (Local Host safe).
+  const buildFinalPaket = (withBase64 = false) => {
     const id = slugify(judul) || slugify(paket.judul) || 'paket-soal';
-    const soal = paket.soal.map((s, i) => ({ ...s, id: `s${i + 1}` }));
+    const soal = paket.soal.map((s, i) => {
+      const clean = { ...s, id: `s${i + 1}` };
+      if (!withBase64) delete clean.img_data;
+      return clean;
+    });
     return {
       ...paket,
       version: '1.1',
@@ -70,21 +90,43 @@ export function ExportPage({ navigate, profile }) {
     };
   };
 
-  const handleDownload = () => {
+  // Deteksi apakah ada base64 di paket
+  const hasBase64Images = paket.soal.some(s => s.img_data && String(s.img_data).startsWith('data:image/'));
+  const base64Count = paket.soal.filter(s => s.img_data && String(s.img_data).startsWith('data:image/')).length;
+
+  // ============================================================
+  // Download handlers
+  // ============================================================
+  const handleDownload = (variant = 'local') => {
     try {
       setError(null);
-      const final = buildFinalPaket();
+      const withBase64 = variant === 'player';
+      const final = buildFinalPaket(withBase64);
       const v = validatePaket(final);
       if (!v.valid) {
-        setError(v.errors.map((e) => e.message).join('; '));
+        setError(v.errors.map(e => e.message).join('; '));
         if (window.showToast) window.showToast('Validasi gagal. Periksa soal Anda.', 'error');
         return;
       }
-      downloadPaket(final);
-      const updated = { ...draft, paket: final };
-      saveDraft(updated);
-      setPaket(final);
+      const json = toLocalHostFormat(final);
+      const suffix = withBase64 ? '-player' : '';
+      const filename = `${json.id}${suffix}.json`;
+      triggerDownload(json, filename);
+
+      // Save ke draft — SELALU simpan dengan base64 (agar img_data tidak hilang)
+      const draftSave = buildFinalPaket(true);
+      saveDraft({ ...draft, paket: draftSave });
+
       setDownloaded(true);
+      setDownloadedVariant(variant);
+      if (window.showToast) {
+        window.showToast(
+          variant === 'player'
+            ? 'File Player diunduh — 1 file standalone untuk siswa.'
+            : 'File Local Host diunduh — ringan & 100% kompatibel.',
+          'success'
+        );
+      }
     } catch (e) {
       setError(String(e.message || e));
       if (window.showToast) window.showToast('Gagal mengunduh file.', 'error');
@@ -94,7 +136,7 @@ export function ExportPage({ navigate, profile }) {
   const handleDownloadCSV = () => {
     try {
       setError(null);
-      const final = buildFinalPaket();
+      const final = buildFinalPaket(false);
       downloadCSV(final);
       if (window.showToast) window.showToast('File CSV berhasil diunduh.', 'success');
     } catch (e) {
@@ -105,7 +147,7 @@ export function ExportPage({ navigate, profile }) {
 
   const handleCopyCode = async () => {
     try {
-      const final = buildFinalPaket();
+      const final = buildFinalPaket(false);
       const json = toLocalHostFormat(final);
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(json))));
       const ok = await copyText(encoded);
@@ -132,15 +174,16 @@ export function ExportPage({ navigate, profile }) {
       if (window.showToast) window.showToast('Gagal menyalin link', 'error');
     }
   };
-  
+
   const handleSaveToCloud = async () => {
     if (!profile) { navigate('/login'); return; }
     setSaving(true); setError(null);
     try {
-      const final = buildFinalPaket();
+      // Simpan tanpa base64 (lean storage)
+      const final = buildFinalPaket(false);
       const v = validatePaket(final);
       if (!v.valid) {
-        setError(v.errors.map((e) => e.message).join('; '));
+        setError(v.errors.map(e => e.message).join('; '));
         setSaving(false);
         return;
       }
@@ -162,7 +205,7 @@ export function ExportPage({ navigate, profile }) {
       isDanger: false,
       onConfirm: () => {
         setConfirmData(null);
-        saveDraft({ ...draft, originalText: '', savedAt: Date.now() });
+        saveDraft({ ...draft, paket: buildFinalPaket(true), originalText: '', savedAt: Date.now() });
         if (window.showToast) window.showToast('Draf berhasil diduplikasi.', 'success');
         navigate('/build');
       }
@@ -181,38 +224,38 @@ export function ExportPage({ navigate, profile }) {
   };
 
   const handleFinish = () => {
-    // Konfirmasi kalau belum download
     if (!downloaded) {
       setConfirmData({
         title: 'Keluar tanpa download?',
         message: 'Draft akan dihapus dari browser. Pastikan Anda sudah mendownload file .json atau CSV sebelum keluar.',
         confirmText: 'Ya, Keluar',
         isDanger: true,
-        onConfirm: () => {
-          setConfirmData(null);
-          doFinish();
-        }
+        onConfirm: () => { setConfirmData(null); doFinish(); }
       });
       return;
     }
     doFinish();
   };
 
+  // ============================================================
+  // Derived data
+  // ============================================================
   const counts = {
-    pg: paket.soal.filter((s) => s.tipe === 'pg').length,
-    mcma: paket.soal.filter((s) => s.tipe === 'mcma').length,
-    bs: paket.soal.filter((s) => s.tipe === 'bs').length,
+    pg: paket.soal.filter(s => s.tipe === 'pg').length,
+    mcma: paket.soal.filter(s => s.tipe === 'mcma').length,
+    bs: paket.soal.filter(s => s.tipe === 'bs').length,
   };
 
   const gambarDibutuhkan = paket.soal
     .map((s, index) => ({ ...s, index }))
-    .filter((s) => s.img && String(s.img).trim())
-    .map((s) => ({ nomor: s.index + 1, img: s.img }));
+    .filter(s => s.img && String(s.img).trim() && !String(s.img).startsWith('data:'))
+    .map(s => ({ nomor: s.index + 1, img: s.img, hasBase64: !!(s.img_data && String(s.img_data).startsWith('data:')) }));
 
   const finalId = slugify(judul) || slugify(paket.judul) || 'paket-soal';
-  const filename = `${finalId}.json`;
+  const filenameLocal = `${finalId}.json`;
+  const filenamePlayer = `${finalId}-player.json`;
 
-  const previewValidate = validatePaket(buildFinalPaket());
+  const previewValidate = validatePaket(buildFinalPaket(false));
   const isReady = previewValidate.valid;
 
   const totalSoal = paket.soal.length;
@@ -227,21 +270,21 @@ export function ExportPage({ navigate, profile }) {
         : `~${detikPerSoal} dtk/soal — wajar`
     : '';
 
-  // Status login
   const isActive = profile?.status === 'active';
   const isPending = profile && profile.status !== 'active';
 
-  // Aksen PageHero dinamis
   const hasImgWarning = gambarDibutuhkan.length > 0;
   const hasValidationError = !!error || !isReady;
   const heroAccent = hasValidationError || hasImgWarning ? 'warning'
     : isReady ? 'success' : 'primary';
 
   const chips = [
-    { icon: FileJson, text: filename },
+    { icon: FileJson, text: filenameLocal },
     { icon: Layers, text: `${totalSoal} soal` },
     { icon: Clock, text: `${durasi} menit` }
   ];
+
+  const shareUrl = window.location.origin + window.location.pathname + '#/play';
 
   return html`
     <div class="page">
@@ -251,7 +294,7 @@ export function ExportPage({ navigate, profile }) {
         <${PageHero}
           icon=${isReady ? CheckCircle2 : Download}
           title="Ekspor Paket Soal"
-          subtitle="Download file .json, lalu impor ke TKA Local Host."
+          subtitle="Download file .json, lalu impor ke TKA Local Host atau bagikan ke siswa."
           chips=${chips}
           accent=${heroAccent}
           topnav=${html`
@@ -266,20 +309,27 @@ export function ExportPage({ navigate, profile }) {
           `}
         />
 
+        <!-- Info: gambar butuh file untuk Local Host -->
         ${gambarDibutuhkan.length > 0 && html`
           <div class="result-card result-warning mb-4">
             <div class="result-header">
               <${ImageIcon} size=${18} color="var(--warning)" />
-              <h2>${gambarDibutuhkan.length} Soal Butuh Gambar</h2>
+              <h2>${gambarDibutuhkan.length} Soal Bergambar</h2>
             </div>
             <p class="text-muted text-sm" style="margin-bottom: 6px;">
-              Siapkan file berikut di folder <b>paket/gambar/</b> sebelum impor:
+              Untuk <b>Local Host</b>: siapkan file berikut di folder <b>paket/gambar/</b>.
+              Untuk <b>Player</b>: gambar sudah embedded otomatis.
             </p>
             <div class="img-warning-list">
-              ${gambarDibutuhkan.map((g) => html`
+              ${gambarDibutuhkan.map(g => html`
                 <div class="img-warning-item">
                   <span class="img-warning-num">#${g.nomor}</span>
-                  <span>${g.img}</span>
+                  <span style="flex:1;">${g.img}</span>
+                  ${g.hasBase64 && html`
+                    <span class="img-warning-base64-tag">
+                      <${Check} size=${9} strokeWidth=${3} /> base64
+                    </span>
+                  `}
                 </div>
               `)}
             </div>
@@ -292,7 +342,7 @@ export function ExportPage({ navigate, profile }) {
             <div class="export-receipt-icon"><${FileJson} size=${22} /></div>
             <div class="export-receipt-headinfo">
               <div class="export-receipt-title">File Output</div>
-              <div class="export-receipt-filename">${filename}</div>
+              <div class="export-receipt-filename">${filenameLocal}</div>
             </div>
           </div>
           <div class="export-receipt-stats">
@@ -313,6 +363,54 @@ export function ExportPage({ navigate, profile }) {
             <span class="config-chip"><b>PG</b> ${counts.pg}</span>
             <span class="config-chip is-warning"><b>MCMA</b> ${counts.mcma}</span>
             <span class="config-chip is-purple"><b>B/S</b> ${counts.bs}</span>
+            ${base64Count > 0 && html`
+              <span class="config-chip is-success">
+                <${ImageIcon} size=${11} /> ${base64Count} bergambar
+              </span>
+            `}
+          </div>
+        </div>
+
+        <!-- Share to Student -->
+        <div class="export-share-card">
+          <div class="export-share-head">
+            <div class="export-share-icon"><${Link2} size=${18} /></div>
+            <div>
+              <div class="export-share-title">Bagikan ke Siswa — Tryout Mandiri</div>
+              <div class="export-share-desc">
+                Kirim <b>link</b> + file <b>.json Player</b> ke WA siswa. Tanpa daftar, tanpa login.
+              </div>
+            </div>
+          </div>
+
+          <div class="export-share-steps">
+            <div class="export-share-step">
+              <span class="export-share-step-num">1</span>
+              <span>Download <b>file .json Player</b> (tombol di bawah)</span>
+            </div>
+            <div class="export-share-step">
+              <span class="export-share-step-num">2</span>
+              <span>Klik <b>Salin Link Siswa</b> di bawah</span>
+            </div>
+            <div class="export-share-step">
+              <span class="export-share-step-num">3</span>
+              <span>Kirim via WA: <i>"Ini link + soal tryout kamu"</i></span>
+            </div>
+          </div>
+
+          <div class="export-share-link-row">
+            <code class="export-share-url">${shareUrl}</code>
+            <button
+              class=${'export-share-copy-btn ' + (shareCopied ? 'copied' : '')}
+              onClick=${handleCopyShareLink}
+            >
+              ${shareCopied ? html`<${Check} size=${14} /> Tersalin!` : html`<${Copy} size=${14} /> Salin Link`}
+            </button>
+          </div>
+
+          <div class="export-share-footer">
+            <${Info} size=${11} />
+            <span>Siswa tidak perlu daftar atau login. Buka link → upload file → kerjakan.</span>
           </div>
         </div>
 
@@ -324,11 +422,11 @@ export function ExportPage({ navigate, profile }) {
           </div>
           <div class="form-section-body">
             <div class="form-field">
-              <label class="form-label">Judul Paket (Tampil di Local Host)</label>
+              <label class="form-label">Judul Paket (Tampil di Local Host & Player)</label>
               <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} placeholder="Judul paket" />
               <span class="field-hint-inline">
                 <${FileJson} size=${11} style="vertical-align:-2px; margin-right:3px;" />
-                ${filename}
+                ${filenameLocal}
               </span>
             </div>
             <div class="form-row">
@@ -374,67 +472,72 @@ export function ExportPage({ navigate, profile }) {
           </div>
         `}
 
-        <!-- Bagikan ke Siswa -->
-        <div class="export-share-card">
-          <div class="export-share-head">
-            <div class="export-share-icon"><${Link2} size=${18} /></div>
-            <div>
-              <div class="export-share-title">Bagikan ke Siswa — Tryout Mandiri</div>
-              <div class="export-share-desc">
-                Kirim <b>link</b> + file <b>.json</b> ini ke WA siswa. Siswa buka link → upload file → kerjakan.
-              </div>
-            </div>
-          </div>
-
-          <div class="export-share-steps">
-            <div class="export-share-step">
-              <span class="export-share-step-num">1</span>
-              <span>Download file <b>.json</b> (tombol di bawah)</span>
-            </div>
-            <div class="export-share-step">
-              <span class="export-share-step-num">2</span>
-              <span>Klik <b>Salin Link Siswa</b> di bawah</span>
-            </div>
-            <div class="export-share-step">
-              <span class="export-share-step-num">3</span>
-              <span>Kirim via WA: <i>"Ini link + soal tryout kamu"</i></span>
-            </div>
-          </div>
-
-          <div class="export-share-link-row">
-            <code class="export-share-url">${window.location.origin + window.location.pathname}#/play</code>
-            <button
-              class=${'export-share-copy-btn ' + (shareCopied ? 'copied' : '')}
-              onClick=${handleCopyShareLink}
-            >
-              ${shareCopied ? html`<${Check} size=${14} /> Tersalin!` : html`<${Copy} size=${14} /> Salin Link`}
-            </button>
-          </div>
-
-          <div class="export-share-footer">
-            <${Info} size=${11} />
-            <span>Siswa tidak perlu daftar atau login. Buka link → langsung bisa kerjakan.</span>
-          </div>
-        </div>
-
-        <!-- Bridge -->
+        <!-- Bridge: 2 Download Options -->
         <div class="export-bridge">
           <div class="export-bridge-head">
             <div class="export-bridge-title">
               <${Zap} size=${18} color="var(--amber-400)" />
-              Kirim ke TKA Local Host
+              Pilih Tujuan Download
             </div>
             <div class="export-bridge-sub">
-              Download file di bawah ini, lalu impor ke aplikasi ujian offline Anda.
+              Dua varian untuk dua kebutuhan. Pilih sesuai target Anda.
             </div>
           </div>
+
           <div class="export-bridge-actions">
-            <button class="btn-primary w-full" onClick=${handleDownload} style="background: white; color: var(--primary);">
-              <${Download} size=${20} /> Download File .json
+            <!-- Option 1: Local Host -->
+            <button
+              class="export-variant-btn is-local"
+              onClick=${() => handleDownload('local')}
+            >
+              <div class="export-variant-icon"><${MonitorPlay} size=${22} /></div>
+              <div class="export-variant-body">
+                <div class="export-variant-title">
+                  <${Download} size=${14} /> Download untuk Local Host
+                </div>
+                <div class="export-variant-desc">
+                  Ringan · gambar via folder <code>paket/gambar/</code>
+                </div>
+                ${base64Count > 0 && html`
+                  <div class="export-variant-tag">
+                    <${Shield} size=${10} /> 100% kompatibel
+                  </div>
+                `}
+              </div>
+              <${ArrowRight} size=${16} class="export-variant-arrow" />
             </button>
+
+            <!-- Option 2: Player -->
+            <button
+              class=${'export-variant-btn is-player' + (hasBase64Images ? ' is-ready' : '')}
+              onClick=${() => handleDownload('player')}
+            >
+              <div class="export-variant-icon"><${Smartphone} size=${22} /></div>
+              <div class="export-variant-body">
+                <div class="export-variant-title">
+                  <${Download} size=${14} /> Download untuk Siswa (Player)
+                </div>
+                <div class="export-variant-desc">
+                  Standalone · gambar base64 embedded · 1 file
+                </div>
+                ${hasBase64Images && html`
+                  <div class="export-variant-tag is-success">
+                    <${Check} size=${10} /> ${base64Count} gambar siap
+                  </div>
+                `}
+                ${!hasBase64Images && gambarDibutuhkan.length > 0 && html`
+                  <div class="export-variant-tag is-warning">
+                    <${AlertTriangle} size=${10} /> Belum ada gambar
+                  </div>
+                `}
+              </div>
+              <${ArrowRight} size=${16} class="export-variant-arrow" />
+            </button>
+
+            <!-- Secondary: CSV + Kode -->
             <div class="export-bridge-split">
               <button class="btn-glass" onClick=${handleDownloadCSV}>
-                <${FileJson} size=${16} /> Download CSV
+                <${FileJson} size=${16} /> CSV
               </button>
               <button class="btn-glass" onClick=${handleCopyCode}>
                 ${copied ? html`<${Check} size=${16} />` : html`<${Copy} size=${16} />`}
@@ -456,7 +559,7 @@ export function ExportPage({ navigate, profile }) {
                 <div class="export-status-card-body">
                   <div class="export-status-card-title">Akun menunggu verifikasi</div>
                   <div class="export-status-card-desc">
-                    Paket bisa diunduh bebas. Fitur simpan ke Koleksi Saya aktif setelah admin menyetujui akun Anda.
+                    Paket bisa diunduh bebas. Fitur simpan ke Koleksi aktif setelah admin menyetujui akun Anda.
                   </div>
                 </div>
               </div>
@@ -477,23 +580,41 @@ export function ExportPage({ navigate, profile }) {
           </div>
         </div>
 
-        <!-- Instructions -->
+        <!-- Instructions collapsible -->
         <details class="export-steps-details" open=${gambarDibutuhkan.length > 0}>
           <summary>
             <${Info} size=${16} />
-            Cara Impor ke TKA Local Host
+            Cara Impor / Pakai File
           </summary>
           <div class="export-steps-details-body">
-            <ol class="steps-list">
-              <li><div class="step-line"><span class="step-num">1</span><div>Buka <b>TKA Local Host</b> di laptop Anda</div></div></li>
-              <li><div class="step-line"><span class="step-num">2</span><div>Masuk menu <b>Paket Soal</b></div></div></li>
-              <li><div class="step-line"><span class="step-num">3</span><div>Klik <b>Import JSON</b> (atau Import CSV)</div></div></li>
-              <li><div class="step-line"><span class="step-num">4</span><div>Pilih file <b>${filename}</b> yang baru diunduh</div></div></li>
-              ${gambarDibutuhkan.length > 0 && html`
-                <li><div class="step-line"><span class="step-num">5</span><div>Upload gambar ke folder <b>paket/gambar/</b></div></div></li>
-              `}
-              <li><div class="step-line"><span class="step-num">${gambarDibutuhkan.length > 0 ? '6' : '5'}</span><div>Selesai — paket siap dipakai ujian</div></div></li>
-            </ol>
+
+            <div class="export-instr-block">
+              <div class="export-instr-heading">
+                <${MonitorPlay} size=${14} /> Untuk TKA Local Host (Offline Ujian)
+              </div>
+              <ol class="steps-list">
+                <li><div class="step-line"><span class="step-num">1</span><div>Buka <b>TKA Local Host</b> di laptop</div></div></li>
+                <li><div class="step-line"><span class="step-num">2</span><div>Masuk menu <b>Paket Soal</b></div></div></li>
+                <li><div class="step-line"><span class="step-num">3</span><div>Klik <b>Import JSON</b></div></div></li>
+                <li><div class="step-line"><span class="step-num">4</span><div>Pilih file <b>${filenameLocal}</b></div></div></li>
+                ${gambarDibutuhkan.length > 0 && html`
+                  <li><div class="step-line"><span class="step-num">5</span><div>Copy gambar ke folder <b>paket/gambar/</b> (nama harus sama)</div></div></li>
+                `}
+              </ol>
+            </div>
+
+            <div class="export-instr-block">
+              <div class="export-instr-heading">
+                <${Smartphone} size=${14} /> Untuk Siswa (Player Online)
+              </div>
+              <ol class="steps-list">
+                <li><div class="step-line"><span class="step-num">1</span><div>Download file <b>${filenamePlayer}</b></div></div></li>
+                <li><div class="step-line"><span class="step-num">2</span><div>Salin link <b>${shareUrl}</b> (tombol "Salin Link" di atas)</div></div></li>
+                <li><div class="step-line"><span class="step-num">3</span><div>Kirim ke WA siswa: link + file JSON</div></div></li>
+                <li><div class="step-line"><span class="step-num">4</span><div>Siswa buka link → upload JSON → kerjakan</div></div></li>
+              </ol>
+            </div>
+
           </div>
         </details>
 
@@ -509,39 +630,64 @@ export function ExportPage({ navigate, profile }) {
         </div>
       </div>
 
+      <!-- Success Modal -->
       ${downloaded && html`
         <div class="modal-backdrop" onClick=${() => setDownloaded(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
             <div class="modal-header">
-              <div class="modal-title"><${CheckCircle2} size=${20} color="var(--success)" /><span>File berhasil diunduh!</span></div>
+              <div class="modal-title">
+                <${CheckCircle2} size=${20} color="var(--success)" />
+                <span>${downloadedVariant === 'player' ? 'File Player siap!' : 'File Local Host siap!'}</span>
+              </div>
             </div>
             <div class="modal-body">
               <div style="text-align: center; margin-bottom: 24px;">
-                <div class="export-success-icon"><${FileJson} size=${36} /></div>
-                <h3 style="font-size: 18px; font-weight: 800; color: var(--navy-900); margin: 0 0 8px;">File siap diimpor!</h3>
-                <p class="text-muted text-sm">File <b style="font-family: monospace;">${filename}</b> tersimpan di folder Download Anda.</p>
+                <div class="export-success-icon">
+                  ${downloadedVariant === 'player'
+                    ? html`<${Smartphone} size=${36} />`
+                    : html`<${FileJson} size=${36} />`}
+                </div>
+                <h3 style="font-size: 18px; font-weight: 800; color: var(--navy-900); margin: 0 0 8px;">
+                  ${downloadedVariant === 'player' ? 'Standalone · siap untuk siswa' : 'Kompatibel · siap untuk Local Host'}
+                </h3>
+                <p class="text-muted text-sm" style="margin: 0;">
+                  File <b style="font-family: monospace;">${downloadedVariant === 'player' ? filenamePlayer : filenameLocal}</b> tersimpan di folder Download Anda.
+                </p>
               </div>
 
               <div style="background: var(--surface-muted); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;">
                 <div style="font-weight: 700; font-size: 13px; margin-bottom: 12px; color: var(--navy-900); display: flex; align-items: center; gap: 6px;">
                   <${ArrowRight} size=${14} color="var(--primary)" />
-                  Langkah Selanjutnya di TKA Local Host
+                  ${downloadedVariant === 'player' ? 'Langkah Selanjutnya untuk Siswa' : 'Langkah Selanjutnya di Local Host'}
                 </div>
                 <div class="steps-list">
-                  <div class="step-line"><span class="step-num">1</span><div>Buka aplikasi <b>TKA Local Host</b>.</div></div>
-                  <div class="step-line"><span class="step-num">2</span><div>Masuk ke menu <b>Paket Soal</b> → Klik <b>Import JSON</b>.</div></div>
-                  <div class="step-line"><span class="step-num">3</span><div>Pilih file <b>${filename}</b>.</div></div>
-                  ${gambarDibutuhkan.length > 0 && html`
-                    <div class="step-line"><span class="step-num">4</span><div>Upload <b>${gambarDibutuhkan.length} file gambar</b> ke folder <code>paket/gambar/</code>.</div></div>
+                  ${downloadedVariant === 'player' ? html`
+                    <div class="step-line"><span class="step-num">1</span><div>Klik <b>Salin Link</b> di card "Bagikan ke Siswa"</div></div>
+                    <div class="step-line"><span class="step-num">2</span><div>Buka WhatsApp → pilih siswa / grup</div></div>
+                    <div class="step-line"><span class="step-num">3</span><div>Kirim: link + file <b>${filenamePlayer}</b></div></div>
+                    <div class="step-line"><span class="step-num">4</span><div>Siswa klik link → upload JSON → kerjakan</div></div>
+                  ` : html`
+                    <div class="step-line"><span class="step-num">1</span><div>Buka <b>TKA Local Host</b> di laptop</div></div>
+                    <div class="step-line"><span class="step-num">2</span><div>Menu <b>Paket Soal</b> → <b>Import JSON</b></div></div>
+                    <div class="step-line"><span class="step-num">3</span><div>Pilih file <b>${filenameLocal}</b></div></div>
+                    ${gambarDibutuhkan.length > 0 && html`
+                      <div class="step-line"><span class="step-num">4</span><div>Copy <b>${gambarDibutuhkan.length} gambar</b> ke <code>paket/gambar/</code></div></div>
+                    `}
                   `}
                 </div>
               </div>
             </div>
             <div class="modal-footer">
               <button class="btn-secondary" onClick=${() => setDownloaded(false)}>Tutup</button>
-              <button class="btn-primary" onClick=${() => { setDownloaded(false); handleCopyShareLink(); }}>
-                <${MessageCircle} size=${16} /> Salin Link & Bagikan
-              </button>
+              ${downloadedVariant === 'player' ? html`
+                <button class="btn-primary" onClick=${() => { setDownloaded(false); handleCopyShareLink(); }}>
+                  <${MessageCircle} size=${16} /> Salin Link & Bagikan
+                </button>
+              ` : html`
+                <button class="btn-primary" onClick=${handleFinish}>
+                  <${CircleCheck} size=${16} /> Selesai
+                </button>
+              `}
             </div>
           </div>
         </div>
