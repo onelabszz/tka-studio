@@ -5222,41 +5222,27 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   font-weight: 500;
 }
 /* =========================================================
-   EXPORT DOWNLOAD PANEL v10 — Premium Cards
-   © 2026 Ekwan Nugroho — Wonogiri
+   EXPORT DOWNLOAD PANEL v10.1 — Polish & Fix
    ========================================================= */
 
-/* Panel utama */
+/* Panel Utama */
 .export-download-panel {
-  position: relative;
   background: linear-gradient(135deg, var(--navy-800) 0%, var(--primary) 100%);
   border-radius: 20px;
-  padding: 22px 20px;
+  padding: 24px;
   margin-bottom: 16px;
   color: white;
+  position: relative;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(10, 22, 40, 0.25);
 }
 .export-download-panel::before {
   content: '';
   position: absolute;
-  width: 360px;
-  height: 360px;
+  width: 360px; height: 360px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, transparent 70%);
-  top: -180px;
-  right: -120px;
-  pointer-events: none;
-}
-.export-download-panel::after {
-  content: '';
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, transparent 70%);
-  bottom: -120px;
-  left: -100px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
+  top: -180px; right: -120px;
   pointer-events: none;
 }
 .export-download-panel > * { position: relative; z-index: 1; }
@@ -5265,142 +5251,111 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .export-download-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 .export-download-header-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px; height: 46px;
   border-radius: 12px;
-  background: rgba(251, 191, 36, 0.18);
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
   color: var(--amber-400);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
 }
-.export-download-title {
-  font-size: 17px;
-  font-weight: 800;
-  color: white;
-  margin: 0 0 3px;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-}
-.export-download-sub {
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.68);
-  margin: 0;
-  line-height: 1.4;
-}
+.export-download-title { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+.export-download-sub { font-size: 13px; color: rgba(255,255,255,0.7); }
 
-/* Cards grid */
+/* Cards Grid */
 .export-download-cards {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 @media (min-width: 640px) {
-  .export-download-cards {
-    grid-template-columns: 1fr 1fr;
-  }
+  .export-download-cards { grid-template-columns: 1fr 1fr; }
 }
 
-/* Card dasar */
+/* Card Dasar */
 .export-download-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 16px 14px 14px;
-  border-radius: 14px;
-  cursor: pointer;
-  font-family: inherit;
+  padding: 18px 16px 16px;
+  border-radius: 16px;
   text-align: left;
-  transition: all 0.22s var(--ease, cubic-bezier(0.4, 0, 0.2, 1));
-  overflow: hidden;
-  gap: 4px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  cursor: pointer;
 }
 
-/* Card 1: Local Host (solid white) */
+/* Card 1: Local Host (Putih) */
 .export-download-card.is-primary {
   background: white;
   color: var(--navy-900);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255,255,255,0.4);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 .export-download-card.is-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
-  border-color: var(--primary-light);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
 }
 
-/* Card 2: Player (glass, green when ready) */
+/* Card 2: Player (Gelap Transparan) */
 .export-download-card.is-secondary {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   color: white;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 .export-download-card.is-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.35);
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-4px);
 }
 .export-download-card.is-secondary.is-ready {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.08);
 }
 .export-download-card.is-secondary.is-ready:hover {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.65);
-  box-shadow: 0 14px 32px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.8);
+  background: rgba(16, 185, 129, 0.15);
 }
 
-/* Badge pojok kanan atas */
+/* Badge Pojok Kanan Atas */
 .export-download-card-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px 8px;
+  top: 14px; right: 14px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em;
 }
 .export-download-card.is-primary .export-download-card-badge {
   background: var(--primary-light);
   color: var(--primary);
 }
 .export-download-card-badge.is-success {
-  background: rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   color: #a7f3d0;
-  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
-/* Icon */
+/* Ikon Card */
 .export-download-card-icon {
-  width: 44px;
-  height: 44px;
+  width: 46px; height: 46px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-  transition: transform 0.22s var(--ease);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  transition: transform 0.25s;
 }
 .export-download-card:hover .export-download-card-icon {
-  transform: scale(1.05) rotate(-3deg);
+  transform: scale(1.08) rotate(-4deg);
 }
 .export-download-card.is-primary .export-download-card-icon {
   background: linear-gradient(135deg, var(--primary-mid), var(--primary));
@@ -5408,172 +5363,105 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
 }
 .export-download-card.is-secondary .export-download-card-icon {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .export-download-card.is-secondary.is-ready .export-download-card-icon {
-  background: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.25);
   color: #a7f3d0;
-  border-color: rgba(16, 185, 129, 0.4);
+  border-color: rgba(16, 185, 129, 0.5);
 }
 
-/* Title & Desc */
+/* Teks Card */
 .export-download-card-title {
-  font-size: 15px;
-  font-weight: 800;
-  margin: 0 0 2px;
+  font-size: 16px; font-weight: 800; margin: 0 0 4px;
   letter-spacing: -0.01em;
-  line-height: 1.25;
 }
 .export-download-card.is-primary .export-download-card-title { color: var(--navy-900); }
 .export-download-card.is-secondary .export-download-card-title { color: white; }
 
 .export-download-card-desc {
-  font-size: 11.5px;
-  margin: 0 0 10px;
-  line-height: 1.45;
+  font-size: 12px; line-height: 1.5; margin: 0 0 14px; min-height: 36px; /* Kunci tinggi seragam */
 }
 .export-download-card.is-primary .export-download-card-desc { color: var(--text-muted); }
-.export-download-card.is-secondary .export-download-card-desc { color: rgba(255, 255, 255, 0.68); }
+.export-download-card.is-secondary .export-download-card-desc { color: rgba(255,255,255,0.7); }
 
-/* Feature pills */
+/* Fitur Pills */
 .export-download-card-features {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 12px;
-  width: 100%;
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;
 }
 .export-download-feature {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-  line-height: 1.3;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 700; white-space: nowrap;
 }
 .export-download-card.is-primary .export-download-feature {
-  background: var(--surface-muted);
-  color: var(--text-muted);
+  background: var(--surface-muted); color: var(--text-muted);
 }
 .export-download-card.is-primary .export-download-feature.is-success {
-  background: #d1fae5;
-  color: #065f46;
-}
-.export-download-card.is-primary .export-download-feature.is-warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: #d1fae5; color: #065f46;
 }
 .export-download-card.is-secondary .export-download-feature {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9);
 }
 .export-download-card.is-secondary .export-download-feature.is-success {
-  background: rgba(16, 185, 129, 0.22);
-  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.25); color: #a7f3d0;
 }
 .export-download-card.is-secondary .export-download-feature.is-warning {
-  background: rgba(251, 191, 36, 0.18);
-  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.2); color: #fcd34d;
 }
 
-/* CTA button (visual, bukan nested button) */
+/* CTA Button di dalam Card */
 .export-download-card-cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: -0.005em;
-  transition: all 0.22s var(--ease);
-  margin-top: auto;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; height: 44px; border-radius: 10px;
+  font-size: 13px; font-weight: 800;
+  margin-top: auto; /* Kunci tombol selalu di bawah */
+  transition: all 0.2s;
 }
 .export-download-card.is-primary .export-download-card-cta {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+  background: var(--primary); color: white;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
 }
 .export-download-card.is-primary:hover .export-download-card-cta {
   background: var(--primary-dark);
   box-shadow: 0 6px 16px rgba(30, 64, 175, 0.35);
 }
-.export-download-card-cta-arrow {
-  margin-left: auto;
-  transition: transform 0.22s var(--ease);
-}
-.export-download-card:hover .export-download-card-cta-arrow {
-  transform: translateX(3px);
-}
+
+/* INI YANG DIPERBAIKI: Tombol Kanan jadi Solid Green saat ready */
 .export-download-card.is-secondary .export-download-card-cta {
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255,255,255,0.15); color: white;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 .export-download-card.is-secondary.is-ready .export-download-card-cta {
-  background: rgba(16, 185, 129, 0.35);
-  border-color: rgba(16, 185, 129, 0.55);
-  color: #ecfdf5;
-}
-.export-download-card.is-secondary:hover .export-download-card-cta {
-  background: rgba(255, 255, 255, 0.26);
+  background: var(--success); color: white; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 .export-download-card.is-secondary.is-ready:hover .export-download-card-cta {
-  background: rgba(16, 185, 129, 0.5);
+  background: #047857; /* Hijau lebih gelap */
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
 }
 
-/* Secondary actions */
+.export-download-card-cta-arrow { margin-left: auto; transition: transform 0.2s; }
+.export-download-card:hover .export-download-card-cta-arrow { transform: translateX(4px); }
+
+/* Tombol Bawah (Secondary & Simpan) */
 .export-download-secondary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); /* Diganti solid */
 }
 .export-secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.85);
-  border-radius: 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s var(--ease);
-  white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 42px; padding: 0 14px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px; font-weight: 600;
+  transition: all 0.2s;
 }
 .export-secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
-  transform: translateY(-1px);
-}
-
-/* Mobile */
-@media (max-width: 520px) {
-  .export-download-panel { padding: 18px 14px; border-radius: 16px; }
-  .export-download-header-icon { width: 38px; height: 38px; border-radius: 10px; }
-  .export-download-title { font-size: 15px; }
-  .export-download-sub { font-size: 11.5px; }
-  .export-download-card { padding: 14px 12px 12px; }
-  .export-download-card-icon { width: 38px; height: 38px; border-radius: 10px; }
-  .export-download-card-title { font-size: 14px; }
-  .export-download-card-desc { font-size: 11px; margin-bottom: 8px; }
-  .export-download-card-features { margin-bottom: 10px; }
-  .export-download-feature { font-size: 9.5px; padding: 2px 7px; }
-  .export-download-card-cta { height: 38px; font-size: 12px; }
-  .export-secondary-btn { height: 36px; font-size: 11px; }
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: white; transform: translateY(-1px);
 }
