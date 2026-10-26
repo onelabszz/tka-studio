@@ -11,7 +11,7 @@ import {
   FileJson, Settings2, Info, RefreshCw, Lock, AlertTriangle, CopyPlus,
   CloudUpload, Loader2, Layers, Clock, ArrowRight, Sparkles,
   CircleCheck, Image as ImageIcon, Shield, Zap, Clock as ClockIcon,
-  Link2, MessageCircle, MonitorPlay, Smartphone, Save
+  Link2, MessageCircle, MonitorPlay, Smartphone, Save, Key, Check
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { loadDraft, saveDraft, clearDraft } from '../stores/studio.js';
 import { toLocalHostFormat, slugify, validatePaket } from '../lib/tka-schema.js';
@@ -20,6 +20,7 @@ import { saveToBank } from '../lib/bank-soal.js';
 import { Stepper } from '../components/Stepper.js';
 import { ConfirmModal } from '../components/ConfirmModal.js';
 import { PageHero } from '../components/PageHero.js';
+import { publishExamToGithub } from '../lib/exam-share.js';
 
 const html = htm.bind(h);
 
@@ -55,6 +56,12 @@ export function ExportPage({ navigate, profile }) {
   const [error, setError] = useState(null);
   const [confirmData, setConfirmData] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
+  const [publishingExam, setPublishingExam] = useState(false);
+  const [examCode, setExamCode] = useState(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+  
+  // Cek izin akses
+  const canPublishExam = profile?.role === 'admin' || profile?.can_publish_exam === true;
 
   if (!draft || !paket) {
     return html`
@@ -197,7 +204,27 @@ export function ExportPage({ navigate, profile }) {
     setSaving(false);
   };
 
-  const handleDuplicateDraft = () => {
+  const handlePublishExam = async () => {
+    if (!profile) { navigate('/login'); return; }
+    setPublishingExam(true);
+    try {
+      const final = buildFinalPaket(true);
+      const res = await publishExamToGithub(profile.id, judul.trim() || paket.judul, final);
+      setExamCode(res.code);
+      if (window.showToast) window.showToast('Ujian berhasil diterbitkan!', 'success');
+    } catch (e) {
+      if (window.showToast) window.showToast('Gagal menerbitkan: ' + e.message, 'error');
+    }
+    setPublishingExam(false);
+  };
+
+  const handleCopyExamCode = () => {
+    if (!examCode) return;
+    navigator.clipboard.writeText(examCode);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
     setConfirmData({
       title: 'Duplikat Draf?',
       message: 'Paket ini akan disalin ke draf baru. Anda bisa mengubah topik tanpa kehilangan paket aslinya.',
@@ -571,8 +598,24 @@ export function ExportPage({ navigate, profile }) {
             </button>
           </div>
 
-          <!-- Save to cloud / login hint -->
-          <div class="export-bridge-divider">
+          <!-- Tombol Terbitkan Ujian (Khusus Guru Berizin) -->
+          ${canPublishExam && html`
+            <div class="export-publish-section">
+              <div class="export-publish-head">
+                <${Key} size=${16} />
+                <span>Ujian Online (Kode Akses)</span>
+              </div>
+              <p class="export-publish-desc">
+                Terbitkan soal agar siswa bisa mengerjakan cukup dengan mengetik 6 huruf kode. Tanpa kirim file.
+              </p>
+              <button class="btn-primary w-full" onClick=${handlePublishExam} disabled=${publishingExam}>
+                ${publishingExam
+                  ? html`<${Loader2} size=${16} class="spin" /> Menerbitkan...`
+                  : html`<${CloudUpload} size=${16} /> Terbitkan & Dapatkan Kode`}
+              </button>
+            </div>
+          `}
+
             ${isActive ? html`
               <button class="btn-glass w-full" onClick=${handleSaveToCloud} disabled=${saving}>
                 ${saving
@@ -719,8 +762,33 @@ export function ExportPage({ navigate, profile }) {
         </div>
       `}
 
-      ${confirmData && html`
-        <${ConfirmModal}
+      <!-- Modal Kode Ujian -->
+      ${examCode && html`
+        <div class="modal-backdrop" onClick=${() => setExamCode(null)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 400px;">
+            <div class="modal-header">
+              <div class="modal-title">
+                <${CheckCircle2} size=${20} color="var(--success)" /> Ujian Siap!
+              </div>
+              <button class="modal-close" onClick=${() => setExamCode(null)}><${X} size=${18} /></button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+              <p class="text-muted text-sm mb-4">
+                Bagikan kode ini ke siswa. Mereka cukup membuka <b>#/play</b> dan memasukkan kode.
+              </p>
+              
+              <div class="exam-code-display" onClick=${handleCopyExamCode}>
+                ${examCode}
+              </div>
+              
+              <button class="btn-secondary w-full mt-3" onClick=${handleCopyExamCode}>
+                ${codeCopied ? html`<${Check} size=${16} /> Tersalin!` : html`<${Copy} size=${16} /> Salin Kode`}
+              </button>
+            </div>
+          </div>
+        </div>
+      `}
+
           title=${confirmData.title}
           message=${confirmData.message}
           confirmText=${confirmData.confirmText}
