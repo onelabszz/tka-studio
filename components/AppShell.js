@@ -7,7 +7,7 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, Wand2, Sparkles, FolderOpen, BookOpen,
-  ShoppingCart, LogOut, Menu, Home, ExternalLink, MonitorPlay
+  ShoppingCart, LogOut, Menu, Home, ExternalLink, MonitorPlay, Key
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getKotak } from '../lib/pustaka.js';
 
@@ -26,6 +26,12 @@ const MENU_ITEMS = [
     items: [
       { path: '/bank-soal', label: 'Koleksi Saya', icon: FolderOpen },
       { path: '/pustaka', label: 'Pustaka Soal', icon: BookOpen },
+    ],
+  },
+  {
+    section: 'UJIAN ONLINE',
+    items: [
+      { path: '/exam-list', label: 'Ujian Terbit', icon: Key },
     ],
   },
 ];
