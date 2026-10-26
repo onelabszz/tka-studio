@@ -5647,3 +5647,117 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .player-exam-ragu {
   min-height: 48px; /* Sedikit lebih besar dari 44px */
 }
+/* =========================================================
+   EXAM SHARE UI (v10.6)
+   ========================================================= */
+
+/* Tombol Terbitkan di Export */
+.export-publish-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-input);
+}
+.export-publish-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--amber-400);
+  margin-bottom: 6px;
+}
+.export-publish-desc {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* Tampilan Kode di Modal */
+.exam-code-display {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-indent: 6px; /* Agar benar-benar di tengah */
+}
+.exam-code-display:hover {
+  background: var(--primary-mid);
+  color: white;
+}
+
+/* Form Kode di Play */
+.player-code-section {
+  background: var(--primary-light);
+  border: 1px solid rgba(30, 64, 175, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.player-code-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+.player-code-form {
+  display: flex;
+  gap: 8px;
+}
+.player-code-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: inherit;
+  color: var(--text);
+  background: white;
+}
+.player-code-input:focus {
+  outline: none;
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.player-code-form .btn-primary {
+  width: 50px;
+  padding: 0;
+  flex-shrink: 0;
+  height: auto;
+}
+
+/* Divider "ATAU UPLOAD" */
+.player-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-subtle);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin: 16px 0;
+}
+.player-divider::before,
+.player-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dashed var(--border-strong);
+}
+.player-divider span {
+  padding: 0 10px;
+}
