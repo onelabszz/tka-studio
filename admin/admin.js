@@ -35,8 +35,14 @@ function AdminPanel() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log("Data dari Supabase:", data); // <-- TAMBAHKAN INI
+      
       setUsers(data || []);
     } catch (e) {
+    
+      console.error("Error load users:", e.message); // <-- TAMBAHKAN INI
+
       if (window.showToast) window.showToast('Gagal memuat data: ' + e.message, 'error');
       else alert('Gagal memuat data: ' + e.message);
     }
