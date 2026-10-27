@@ -10,9 +10,8 @@ import {
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
   Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
   Save, ListChecks, MousePointerClick, Bot, Download, MonitorPlay, Heart, MapPin,
-  Github, MessageCircle, Repeat,
-  // --- Ikon Baru untuk Landing v1.2 ---
-  Terminal, ShieldCheck, Share2, Library, Smartphone, History
+  Github, MessageCircle, Repeat, Terminal, ShieldCheck, Share2, Library, Smartphone, History,
+  Menu, X, Loader2, ArrowLeft, Key
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -29,6 +28,7 @@ import { ExpertNewPage } from './pages/expert-new.js';
 import { ExpertDetailPage } from './pages/expert-detail.js';
 import { PlayPage } from './pages/play.js';
 import { ExamListPage } from './pages/exam-list.js';
+import { ImageToolPage } from './pages/image-tool.js';
 import { AppShell } from './components/AppShell.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 import './components/Toast.js';
@@ -79,19 +79,18 @@ function Header({ profile, isLanding }) {
         <div class="logo" onClick=${() => navigate('/')}>
           <${GraduationCap} size=${24} strokeWidth=${2} /><span>TKA Studio</span>
         </div>
-
+        
         ${isLanding && html`
           <nav class="header-nav">
             <a href="#ekosistem" onClick=${(e) => { e.preventDefault(); document.getElementById('ekosistem')?.scrollIntoView({behavior: 'smooth'}); }}>Ekosistem</a>
-            <a href="#cara" onClick=${(e) => { e.preventDefault(); document.getElementById('cara')?.scrollIntoView({behavior: 'smooth'}); }}>Cara Kerja</a>
             <a href="#fitur" onClick=${(e) => { e.preventDefault(); document.getElementById('fitur')?.scrollIntoView({behavior: 'smooth'}); }}>Fitur</a>
-            <a href="#faq" onClick=${(e) => { e.preventDefault(); document.getElementById('faq')?.scrollIntoView({behavior: 'smooth'}); }}>FAQ</a>
+            <a href="#changelog" onClick=${(e) => { e.preventDefault(); document.getElementById('changelog')?.scrollIntoView({behavior: 'smooth'}); }}>Changelog</a>
             <a href="./panduan/">Panduan</a>
           </nav>
         `}
 
         <div class="header-actions">
-          ${profile
+          ${profile 
             ? html`<button class="btn-nav-login" onClick=${() => navigate('/build')}><${LayoutDashboard} size=${16} /> Dashboard</button>`
             : html`<button class="btn-nav-login" onClick=${() => navigate('/login')}><${LogIn} size=${16} /> Masuk</button>`}
         </div>
@@ -281,7 +280,7 @@ function Landing({ profile }) {
               </div>
 
               <div class="feature-card tone-amber">
-                <div class="feature-icon-wrapper"><${Image} size=${28} /></div>
+                <div class="feature-icon-wrapper"><${ImageIcon} size=${28} /></div>
                 <h3>Auto-Compress Gambar</h3>
                 <p>Unggah gambar di editor soal, dan sistem akan otomatis mengompresnya ke format WebP (max 500KB) agar file JSON tetap ringan.</p>
               </div>
@@ -435,6 +434,10 @@ function App() {
   if (route === '/login') return html`<${LoginPage} navigate=${navigate} onLoginSuccess=${handleLoginSuccess} />`;
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
   if (route === '/debug') return html`<${ErrorBoundary}><${DebugPageInner} /></${ErrorBoundary}>`;
+  
+  // PLAY PAGE (Standalone, no header/footer)
+  if (route === '/play') return html`<${PlayPage} />`;
+  if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
 
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
@@ -461,19 +464,22 @@ function App() {
     return html`<${PublicLayout} profile=${profile}><${PageComponent} ...${pageProps} /></${PublicLayout}>`;
   }
 
-  if (route === '/play') return html`<${PlayPage} />`;
-  if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
   const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new', '/exam-list'];
   if (AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'))) {
     if (!user) { navigate('/login'); return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`; }
-    let PageComponent = null; let pageProps = { navigate, profile };
+    
+    let PageComponent = null; 
+    let pageProps = { navigate, profile };
+    
     if (route === '/bank-soal') PageComponent = BankSoalPage;
     else if (route === '/pustaka') PageComponent = PustakaPage;
     else if (route === '/kotak') PageComponent = KotakPage;
+    else if (route === '/expert') PageComponent = ExpertListPage;
+    else if (route === '/expert/new') PageComponent = ExpertNewPage;
+    else if (route.startsWith('/expert/')) { PageComponent = ExpertDetailPage; pageProps = { navigate, profile, id: route.split('/')[2] }; }
     else if (route === '/exam-list') {
-      // Cek izin sebelum merender halaman
       if (profile?.role === 'admin' || profile?.can_publish_exam === true) {
         PageComponent = ExamListPage;
       } else {
@@ -482,9 +488,7 @@ function App() {
         return null;
       }
     }
-    else if (route === '/expert') PageComponent = ExpertListPage;
-    else if (route === '/expert/new') PageComponent = ExpertNewPage;
-    else if (route.startsWith('/expert/')) { PageComponent = ExpertDetailPage; pageProps = { navigate, profile, id: route.split('/')[2] }; }
+    
     if (PageComponent) return html`<${AppShell} route=${route} profile=${profile} onLogout=${handleLogout}><${PageComponent} ...${pageProps} /></${AppShell}>`;
   }
 
