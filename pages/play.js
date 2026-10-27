@@ -59,6 +59,12 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
   const [loading, setLoading] = useState(false);
   const [examCodeInput, setExamCodeInput] = useState('');
   const [loadingCode, setLoadingCode] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  
+  const [showPaste, setShowPaste] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [imgCount, setImgCount] = useState(getImageCount());
+  const fileRef = useRef(null);
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
@@ -86,11 +92,6 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
     }
     setLoadingCode(false);
   };
-
-  const [showPaste, setShowPaste] = useState(false);
-  const [pasteText, setPasteText] = useState('');
-  const [imgCount, setImgCount] = useState(getImageCount());
-  const fileRef = useRef(null);
 
   const parseInput = (raw) => {
     setError(null);
@@ -190,40 +191,80 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
           </form>
         </div>
 
-        <div class="player-divider">
-          <span>ATAU UPLOAD FILE</span>
+        <!-- Tombol Toggle Upload (Secondary Action) -->
+        <div style="text-align: center; margin-top: 24px; margin-bottom: 16px;">
+          <button 
+            class="btn-secondary" 
+            style="background: transparent; border: 1px dashed var(--border-strong); font-size: 12px; color: var(--text-muted); width: 100%;"
+            onClick=${() => setShowUpload(!showUpload)}
+          >
+            <${Upload} size=${14} /> 
+            ${showUpload ? 'Tutup Upload File' : 'Siswa/Guru: Upload File .json (Offline)'}
+          </button>
         </div>
 
-        <div
-          class=${'player-dropzone' + (dragover ? ' dragover' : '')}
-          onClick=${() => fileRef.current?.click()}
-          onDragOver=${(e) => { e.preventDefault(); setDragover(true); }}
-          onDragLeave=${() => setDragover(false)}
-          onDrop=${handleDrop}
-        >
-          <div class="player-dropzone-icon"><${Upload} size=${26} /></div>
-          <div class="player-dropzone-title">Upload File Soal (Offline)</div>
-          <div class="player-dropzone-desc">
-            Pilih file <b>.json</b> + gambar (opsional, sekaligus).<br/>
-            Bisa klik atau drag & drop.
-          </div>
-          <input
-            type="file"
-            accept=".json,.txt,image/*"
-            multiple
-            ref=${fileRef}
-            onChange=${handleInput}
-            style="display:none;"
-          />
-        </div>
+        <!-- Area Upload File (Disembunyikan secara default) -->
+        ${showUpload && html`
+          <div style="animation: fadeIn 0.3s ease;">
+            <div
+              class=${'player-dropzone' + (dragover ? ' dragover' : '')}
+              onClick=${() => fileRef.current?.click()}
+              onDragOver=${(e) => { e.preventDefault(); setDragover(true); }}
+              onDragLeave=${() => setDragover(false)}
+              onDrop=${handleDrop}
+            >
+              <div class="player-dropzone-icon"><${Upload} size=${26} /></div>
+              <div class="player-dropzone-title">Upload File Soal (Offline)</div>
+              <div class="player-dropzone-desc">
+                Pilih file <b>JSON</b> + gambar (opsional).<br/>
+                Bisa klik atau drag & drop.
+              </div>
+              <input
+                type="file"
+                accept=".json,.txt,image/*"
+                multiple
+                ref=${fileRef}
+                onChange=${handleInput}
+                style="display:none;"
+              />
+            </div>
 
-        ${imgCount > 0 && html`
-          <div class="player-img-info">
-            <${FileText} size=${12} /> ${imgCount} gambar terupload
+            ${imgCount > 0 && html`
+              <div class="player-img-info" style="margin-top:12px;">
+                <${FileText} size=${12} /> ${imgCount} gambar terupload
+                <button
+                  class="player-img-clear"
+                  onClick=${() => { clearImages(); setImgCount(0); }}
+                ><${X} size=${11} /></button>
+              </div>
+            `}
+
             <button
-              class="player-img-clear"
-              onClick=${() => { clearImages(); setImgCount(0); }}
-            ><${X} size=${11} /></button>
+              type="button"
+              class="player-paste-toggle"
+              onClick=${() => setShowPaste(v => !v)}
+            >
+              <${ClipboardPaste} size=${13} />
+              ${showPaste ? 'Sembunyikan' : 'Atau tempel teks JSON langsung'}
+            </button>
+
+            ${showPaste && html`
+              <div class="player-paste-area">
+                <textarea
+                  value=${pasteText}
+                  onInput=${(e) => setPasteText(e.target.value)}
+                  placeholder='{"version":"1.1","soal":[...]}'
+                  rows=${5}
+                />
+                <button
+                  class="btn-primary btn-sm mt-2 w-full"
+                  disabled=${!pasteText.trim() || loading}
+                  onClick=${() => parseInput(pasteText)}
+                >
+                  Olah & Lanjut
+                </button>
+              </div>
+            `}
           </div>
         `}
 
@@ -239,33 +280,6 @@ function WelcomeView({ onLoaded, pendingResume, onResume, onDiscardResume, histo
               <${AlertTriangle} size=${14} color="var(--danger)" />
               <span>${error}</span>
             </div>
-          </div>
-        `}
-
-        <button
-          type="button"
-          class="player-paste-toggle"
-          onClick=${() => setShowPaste(v => !v)}
-        >
-          <${ClipboardPaste} size=${13} />
-          ${showPaste ? 'Sembunyikan' : 'Atau tempel JSON langsung'}
-        </button>
-
-        ${showPaste && html`
-          <div class="player-paste-area">
-            <textarea
-              value=${pasteText}
-              onInput=${(e) => setPasteText(e.target.value)}
-              placeholder='{"version":"1.1","soal":[...]}'
-              rows=${5}
-            />
-            <button
-              class="btn-primary btn-sm mt-2 w-full"
-              disabled=${!pasteText.trim() || loading}
-              onClick=${() => parseInput(pasteText)}
-            >
-              Olah & Lanjut
-            </button>
           </div>
         `}
 
@@ -419,7 +433,7 @@ function ExamView({
   const [showSidebar, setShowSidebar] = useState(false);
   const [showWacana, setShowWacana] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
-  const [fontSize, setFontSize] = useState('normal'); // 'small' | 'normal' | 'large'
+  const [fontSize, setFontSize] = useState('normal');
 
   const total = paket.soal.length;
   const soal = paket.soal[currentIndex];
@@ -693,7 +707,6 @@ export function PlayPage() {
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { flaggedRef.current = flagged; }, [flagged]);
 
-  // Init: load session
   useEffect(() => {
     setHistory(loadHistory());
     const sess = loadSession();
@@ -707,7 +720,6 @@ export function PlayPage() {
     }
   }, []);
 
-  // Timer
   useEffect(() => {
     if (view !== 'exam' || mode !== 'simulasi') return;
     const int = setInterval(() => setNow(Date.now()), 1000);
@@ -717,7 +729,6 @@ export function PlayPage() {
   const elapsed = startedAt ? Math.floor((now - startedAt) / 1000) : 0;
   const remaining = timeLimit > 0 ? Math.max(0, timeLimit - elapsed) : 0;
 
-  // Auto submit
   useEffect(() => {
     if (view !== 'exam' || mode !== 'simulasi') return;
     if (!startedAt || timeLimit <= 0) return;
@@ -726,7 +737,6 @@ export function PlayPage() {
     finishAttempt(answersRef.current, flaggedRef.current);
   }, [remaining, view, mode]);
 
-  // beforeunload
   useEffect(() => {
     if (view !== 'exam') return;
     const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
@@ -734,7 +744,6 @@ export function PlayPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [view]);
 
-  // Persist session
   useEffect(() => {
     if (view !== 'exam' || !paket) return;
     saveSession({
@@ -746,7 +755,6 @@ export function PlayPage() {
     });
   }, [answers, flagged, currentIndex, view]);
 
-  // Handlers
   const handleLoaded = (p) => {
     setPaket(p);
     setView('briefing');
@@ -888,7 +896,6 @@ export function PlayPage() {
     setShowHistory(false);
   };
 
-  // Render
   if (view === 'welcome') {
     return html`
       <${WelcomeView}
