@@ -10,7 +10,9 @@ import {
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
   Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
   Save, ListChecks, MousePointerClick, Bot, Download, MonitorPlay, Heart, MapPin,
-  Github, MessageCircle, Repeat
+  Github, MessageCircle, Repeat,
+  // --- Ikon Baru untuk Landing v1.2 ---
+  Terminal, ShieldCheck, Share2, Library, Smartphone, History
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
