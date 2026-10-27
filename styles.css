@@ -5888,8 +5888,13 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 .player-sidebar-stats span { font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em; }
 
 .player-nav-grid-sidebar {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
-  padding: 0 20px; overflow-y: auto; flex: 1;
+  display: grid; 
+  grid-template-columns: repeat(5, 1fr); 
+  gap: 8px;
+  padding: 0 20px; 
+  overflow-y: auto; 
+  flex: 1;
+  align-content: start; /* <-- Kunci agar kotak tidak memanjang ke bawah */
 }
 .player-nav-num {
   aspect-ratio: 1; border-radius: 8px; border: 1.5px solid var(--border);
@@ -5929,7 +5934,12 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 }
 .player-nav-btn:hover:not(:disabled) { border-color: var(--primary-mid); color: var(--primary); background: var(--primary-light); }
 .player-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.player-nav-btn.primary { background: var(--primary); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(30,64,175,0.2); }
+.player-nav-btn.primary {
+  background: var(--primary); 
+  color: white !important; /* <-- Tambahkan !important */
+  border-color: transparent; 
+  box-shadow: 0 4px 12px rgba(30,64,175,0.2);
+}
 .player-nav-btn.primary:hover { background: var(--primary-dark); }
 
 .player-ragu-btn {
