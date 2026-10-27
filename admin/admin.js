@@ -94,7 +94,8 @@ function AdminApp() {
           setPasswordData({ name: user.nama, email: user.email, password: data.password });
           loadAllData();
         } catch (e) { 
-          if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); 
+          alert('GAGAL RESET PASSWORD:\n\n' + (e.message || e));
+          console.error(e);
         }
         setActionLoading(null);
       }
