@@ -7,24 +7,64 @@ import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   Search, CheckCircle2, XCircle, Clock,
-  Trash2, Key, Loader2, AlertTriangle, Copy, Check
+  Trash2, Key, Loader2, AlertTriangle, Copy, Check, Shield
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getSupabase } from '../supabase/client.js';
 
 const html = htm.bind(h);
 
 function AdminPanel() {
+  const [authState, setAuthState] = useState('loading'); // loading | unauthorized | authorized
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('pending'); // pending | active | suspended
+  const [tab, setTab] = useState('pending'); 
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   
-  // State untuk Modal
   const [confirmData, setConfirmData] = useState(null);
   const [passwordData, setPasswordData] = useState(null);
   const [copied, setCopied] = useState(false);
 
+  // ==========================================
+  // 1. CEK SESI LOGIN & ROLE ADMIN
+  // ==========================================
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const client = await getSupabase();
+        const { data: { session } } = await client.auth.getSession();
+        
+        if (!session) {
+          setAuthState('unauthorized');
+          setLoading(false);
+          return;
+        }
+
+        // Cek apakah user ini admin
+        const { data: profile } = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile && profile.role === 'admin') {
+          setAuthState('authorized');
+          loadUsers();
+        } else {
+          setAuthState('unauthorized');
+          setLoading(false);
+        }
+      } catch (e) {
+        setAuthState('unauthorized');
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // ==========================================
+  // 2. AMBIL DATA GURU
+  // ==========================================
   const loadUsers = async () => {
     setLoading(true);
     try {
@@ -35,24 +75,16 @@ function AdminPanel() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      console.log("Data dari Supabase:", data); // <-- TAMBAHKAN INI
-      
+      console.log("Data berhasil dimuat:", data); // Cek di F12 Console
       setUsers(data || []);
     } catch (e) {
-    
-      console.error("Error load users:", e.message); // <-- TAMBAHKAN INI
-
+      console.error("Error load:", e);
       if (window.showToast) window.showToast('Gagal memuat data: ' + e.message, 'error');
-      else alert('Gagal memuat data: ' + e.message);
     }
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
+  // ... (Fungsi handleActivate, handleSuspend, handleDelete, handleTogglePublish, copyPassword tetap sama seperti sebelumnya) ...
   const handleActivate = (user) => {
     setConfirmData({
       title: 'Aktifkan Akun?',
@@ -64,19 +96,15 @@ function AdminPanel() {
         setActionLoading(user.id);
         try {
           const client = await getSupabase();
-          // Panggil Edge Function 'activate' yang sudah ada
           const { data, error } = await client.functions.invoke('activate', {
             body: { userId: user.id, email: user.email }
           });
-          
           if (error) throw error;
           if (data.error) throw new Error(data.error);
-
           setPasswordData({ name: user.nama, email: user.email, password: data.password });
           loadUsers();
         } catch (e) {
           if (window.showToast) window.showToast('Gagal aktivasi: ' + e.message, 'error');
-          else alert('Gagal aktivasi: ' + e.message);
         }
         setActionLoading(null);
       }
@@ -116,12 +144,10 @@ function AdminPanel() {
         setActionLoading(user.id);
         try {
           const client = await getSupabase();
-          // Panggil Edge Function 'delete-user'
           const { error } = await client.functions.invoke('delete-user', {
             body: { userId: user.id }
           });
           if (error) throw error;
-          
           if (window.showToast) window.showToast('Akun berhasil dihapus.', 'success');
           loadUsers();
         } catch (e) {
@@ -141,13 +167,9 @@ function AdminPanel() {
         .from('profiles')
         .update({ can_publish_exam: newStatus })
         .eq('id', user.id);
-        
       if (error) throw error;
       if (window.showToast) {
-        window.showToast(
-          newStatus ? 'Izin Kode Latihan diberikan.' : 'Izin Kode Latihan dicabut.', 
-          'success'
-        );
+        window.showToast(newStatus ? 'Izin Kode Latihan diberikan.' : 'Izin Kode Latihan dicabut.', 'success');
       }
       loadUsers();
     } catch (e) {
@@ -163,6 +185,33 @@ function AdminPanel() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // ==========================================
+  // 3. RENDER UI
+  // ==========================================
+  if (authState === 'loading') {
+    return html`
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--surface);">
+        <${Loader2} class="spin" size=${40} color="var(--primary)" />
+      </div>
+    `;
+  }
+
+  if (authState === 'unauthorized') {
+    return html`
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--surface); padding: 20px;">
+        <div style="background: white; padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; box-shadow: var(--shadow-lift);">
+          <${Shield} size=${48} color="var(--danger)" style="margin-bottom: 16px;" />
+          <h1 style="font-size: 20px; margin-bottom: 8px;">Akses Ditolak</h1>
+          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">
+            Anda belum login sebagai Admin, atau akun Anda tidak memiliki hak akses panel admin.
+          </p>
+          <a href="../" class="btn-primary" style="display: inline-block; text-decoration: none;">Kembali ke Aplikasi & Login</a>
+        </div>
+      </div>
+    `;
+  }
+
+  // Jika Lolos (Authorized)
   const filteredUsers = users.filter(u => {
     if (tab === 'pending' && u.status !== 'pending') return false;
     if (tab === 'active' && u.status !== 'active') return false;
@@ -191,6 +240,7 @@ function AdminPanel() {
           <h1 class="admin-title">Panel Admin</h1>
           <p class="admin-subtitle">Kelola akun guru dan izin akses TKA Studio.</p>
         </div>
+        <button class="btn-secondary" onClick=${() => window.location.href='../'}>Ke Aplikasi</button>
       </div>
 
       <div class="admin-tabs">
@@ -288,6 +338,7 @@ function AdminPanel() {
         `}
       </div>
 
+      <!-- Modals (Confirm & Password) tetap sama -->
       ${confirmData && html`
         <div class="modal-backdrop" onClick=${() => setConfirmData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 400px; text-align: center;">
@@ -340,5 +391,4 @@ function AdminPanel() {
   `;
 }
 
-// Render ke DOM
 render(html`<${AdminPanel} />`, document.getElementById('app'));
