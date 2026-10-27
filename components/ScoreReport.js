@@ -3,7 +3,7 @@
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h } from 'https://esm.sh/preact@10.24.3';
-import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
+import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   Check, X, Trophy, Share2, RotateCcw, History, Home,
