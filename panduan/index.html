@@ -4,655 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panduan Lengkap — TKA Studio</title>
-  <meta name="description" content="Panduan lengkap cara membuat soal TKA menggunakan TKA Studio.">
-  <meta name="theme-color" content="#1e40af">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231e40af'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-family='Inter,system-ui,sans-serif' font-size='22' font-weight='800' text-anchor='middle' fill='white' letter-spacing='-0.5'%3ETKA%3C/text%3E%3Ccircle cx='52' cy='14' r='5' fill='%23fbbf24'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --navy-900: #0a1628;
-      --navy-800: #0f1e35;
-      --primary: #1e40af;
-      --primary-dark: #1e3a8a;
-      --primary-mid: #3b82f6;
-      --primary-light: #dbeafe;
-      --brand-50: #eff6ff;
-      --amber-400: #fbbf24;
-      --amber-500: #f59e0b;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
-      --surface: #f8fafc;
-      --surface-card: #ffffff;
-      --surface-muted: #f1f5f9;
-      --border: #e2e8f0;
-      --border-strong: #cbd5e1;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --text-subtle: #94a3b8;
-      --radius-sm: 8px;
-      --radius-card: 16px;
-      --radius-input: 10px;
-      --radius-pill: 999px;
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
-      --shadow-lift: 0 8px 24px rgba(15, 23, 42, 0.08);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: var(--text);
-      background: var(--surface);
-      line-height: 1.6;
-      font-size: 15px;
-      -webkit-font-smoothing: antialiased;
-    }
-    a { color: inherit; text-decoration: none; }
-    code {
-      font-family: 'SF Mono', Menlo, Consolas, monospace;
-      font-size: 0.9em;
-      background: var(--surface-muted);
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: var(--primary-dark);
-      font-weight: 600;
-    }
-
-    /* Sticky top nav */
-    .topnav {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 0;
-    }
-    .topnav-inner {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .topnav-back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      transition: all 0.2s;
-    }
-    .topnav-back:hover {
-      background: var(--surface-muted);
-      color: var(--text);
-    }
-
-    /* Container */
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px 20px 80px;
-    }
-
-    /* Hero */
-    .hero {
-      position: relative;
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary-mid) 0%, var(--amber-400) 100%);
-    }
-    .hero-main {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-    .hero-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary-mid), var(--primary));
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
-    }
-    .hero-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--navy-900);
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin-bottom: 4px;
-    }
-    .hero-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .hero-chips {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      background: var(--primary-light);
-      color: var(--primary);
-      border-radius: var(--radius-pill);
-      font-size: 11.5px;
-      font-weight: 600;
-      border: 1px solid rgba(30, 64, 175, 0.1);
-      white-space: nowrap;
-    }
-    .chip.is-warning {
-      background: #fef3c7;
-      color: #92400e;
-      border-color: rgba(217, 119, 6, 0.15);
-    }
-
-    /* Card */
-    .card {
-      position: relative;
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .card-header-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--primary-light);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .card-header h2 {
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--navy-900);
-      letter-spacing: -0.01em;
-    }
-    .card p {
-      color: #475569;
-      margin-bottom: 14px;
-      font-size: 14px;
-    }
-    .card p:last-child { margin-bottom: 0; }
-
-    /* Alert */
-    .alert {
-      display: flex;
-      gap: 10px;
-      background: var(--brand-50);
-      border: 1px solid rgba(30, 64, 175, 0.15);
-      border-left: 3px solid var(--primary);
-      padding: 12px 14px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      margin: 16px 0;
-      font-size: 13px;
-      color: var(--primary-dark);
-      line-height: 1.55;
-    }
-    .alert svg { flex-shrink: 0; margin-top: 1px; }
-    .alert b { color: var(--primary-dark); font-weight: 800; }
-
-    /* Steps */
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-top: 16px;
-    }
-    .step-card {
-      position: relative;
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 18px 18px 18px 68px;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s;
-    }
-    .step-card:hover {
-      border-color: var(--primary-mid);
-      box-shadow: var(--shadow-md);
-    }
-    .step-num {
-      position: absolute;
-      top: 18px;
-      left: 18px;
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--primary-mid), var(--primary));
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 15px;
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
-    }
-    .step-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--navy-900);
-      margin-bottom: 6px;
-      letter-spacing: -0.01em;
-    }
-    .step-desc {
-      font-size: 13.5px;
-      color: #475569;
-      line-height: 1.55;
-      margin: 0;
-    }
-    .step-visual {
-      margin-top: 12px;
-      padding: 20px;
-      background: linear-gradient(135deg, var(--surface-muted), #e2e8f0);
-      border: 1.5px dashed var(--border-strong);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 600;
-      min-height: 100px;
-    }
-    .step-visual svg { opacity: 0.5; }
-
-    /* FAQ */
-    .faq-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .faq-item {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-input);
-      overflow: hidden;
-      transition: all 0.2s;
-    }
-    .faq-item:hover { border-color: var(--primary-mid); }
-    .faq-item summary {
-      padding: 14px 18px;
-      cursor: pointer;
-      list-style: none;
-      font-weight: 700;
-      color: var(--navy-900);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      user-select: none;
-    }
-    .faq-item summary::-webkit-details-marker { display: none; }
-    .faq-item summary::after {
-      content: '+';
-      color: var(--primary);
-      font-size: 20px;
-      font-weight: 300;
-      line-height: 1;
-      transition: transform 0.2s;
-      flex-shrink: 0;
-    }
-    .faq-item[open] summary::after {
-      content: '−';
-      transform: rotate(0);
-    }
-    .faq-item p {
-      padding: 0 18px 14px;
-      border-top: 1px dashed var(--border);
-      padding-top: 12px;
-      margin: 0;
-      font-size: 13.5px;
-      color: #475569;
-      line-height: 1.6;
-    }
-
-    /* Bridge highlight (Expert mode) */
-    .bridge-highlight {
-      background: linear-gradient(135deg, var(--navy-800) 0%, var(--primary) 100%);
-      color: white;
-      border-radius: var(--radius-card);
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-    .bridge-highlight::before {
-      content: '';
-      position: absolute;
-      width: 300px; height: 300px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
-      top: -150px; right: -100px;
-      pointer-events: none;
-    }
-    .bridge-highlight::after {
-      content: '';
-      position: absolute;
-      width: 200px; height: 200px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
-      bottom: -100px; left: -80px;
-      pointer-events: none;
-    }
-    .bridge-highlight > * { position: relative; z-index: 1; }
-    .bridge-highlight h2 {
-      font-size: 18px;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .bridge-highlight p {
-      font-size: 13.5px;
-      color: rgba(255, 255, 255, 0.85);
-      line-height: 1.6;
-      margin-bottom: 0;
-    }
-    .bridge-highlight .chips {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-    .bridge-highlight .chip {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* CTA footer */
-    .cta-footer {
-      text-align: center;
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 24px;
-      background: var(--primary);
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-      border-radius: var(--radius-input);
-      transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
-    }
-    .btn:hover {
-      background: var(--primary-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.3);
-    }
-    .btn-secondary {
-      background: var(--surface-card);
-      color: var(--text);
-      border: 1px solid var(--border-strong);
-      box-shadow: none;
-    }
-    .btn-secondary:hover {
-      background: var(--surface-muted);
-      border-color: var(--text-muted);
-      box-shadow: none;
-      transform: none;
-    }
-
-    /* Footer */
-    .site-footer {
-      text-align: center;
-      padding: 32px 20px;
-      color: var(--text-muted);
-      font-size: 12px;
-      border-top: 1px solid var(--border);
-      margin-top: 40px;
-    }
-    .site-footer b { color: var(--text); font-weight: 700; }
-
-    /* Responsive */
-    @media (max-width: 520px) {
-      .container { padding: 16px 16px 60px; }
-      .hero { padding: 20px 18px; }
-      .hero-icon { width: 44px; height: 44px; border-radius: 10px; }
-      .hero-title { font-size: 20px; }
-      .card { padding: 18px 16px; }
-      .card-header { padding-bottom: 14px; margin-bottom: 14px; }
-      .card-header h2 { font-size: 15.5px; }
-      .step-card { padding: 16px 16px 16px 62px; }
-      .step-num { width: 32px; height: 32px; font-size: 14px; top: 16px; left: 16px; }
-      .step-title { font-size: 14px; }
-      .bridge-highlight { padding: 20px 18px; }
-      .bridge-highlight h2 { font-size: 16px; }
-    }
-
-    @media (min-width: 1024px) {
-      .hero { padding: 28px; }
-      .hero-icon { width: 52px; height: 52px; }
-      .hero-title { font-size: 26px; }
-      .card { padding: 28px; }
-    }
+    :root { --primary: #1e40af; --navy: #0a1628; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --surface: #f8fafc; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--surface); line-height: 1.6; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+    .card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    h1 { font-size: 32px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+    h2 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    h3 { font-size: 16px; font-weight: 700; margin: 24px 0 8px; color: var(--primary); }
+    p { margin-bottom: 16px; color: #475569; }
+    ul, ol { margin: 0 0 16px 24px; color: #475569; }
+    li { margin-bottom: 8px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; background: var(--primary); color: white; font-weight: 600; text-decoration: none; border-radius: 8px; margin-top: 20px; }
+    .alert { background: #eff6ff; border-left: 4px solid var(--primary); padding: 16px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
   </style>
 </head>
 <body>
-
-  <!-- Sticky top nav -->
-  <nav class="topnav">
-    <div class="topnav-inner">
-      <a href="../" class="topnav-back">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        Kembali ke TKA Studio
-      </a>
-      <span class="chip">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        Baca 5 menit
-      </span>
-    </div>
-  </nav>
-
   <div class="container">
-    <!-- Hero -->
-    <header class="hero">
-      <div class="hero-main">
-        <div class="hero-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        </div>
-        <div>
-          <h1 class="hero-title">Panduan Lengkap</h1>
-          <p class="hero-sub">Pelajari cara membuat bank soal TKA berkualitas dalam hitungan menit.</p>
-        </div>
-      </div>
-      <div class="hero-chips">
-        <span class="chip">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-          3 langkah
-        </span>
-        <span class="chip">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          Tanpa API key
-        </span>
-        <span class="chip">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Gratis
-        </span>
-      </div>
+    <header style="text-align: center; margin-bottom: 40px;">
+      <h1>Panduan Lengkap TKA Studio</h1>
+      <p class="subtitle">Dari membuat soal hingga membagikan kode latihan ke siswa.</p>
     </header>
 
-    <!-- 1. Pengenalan -->
-    <section class="card">
-      <div class="card-header">
-        <div class="card-header-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        </div>
-        <h2>1. Pengenalan</h2>
-      </div>
-      <p>TKA Studio adalah alat bantu untuk membuat soal ujian (PG, MCMA, Benar/Salah) menggunakan bantuan AI seperti ChatGPT atau Gemini. Hasilnya bisa langsung Anda ekspor ke aplikasi <b>TKA Local Host</b>.</p>
+    <div class="card">
+      <h2>1. Alur Kerja TKA Studio</h2>
+      <p>TKA Studio adalah <b>Dapur Soal</b>. Anda bebas memilih mau mengerjakannya di mana:</p>
+      <ul>
+        <li><b>Untuk Ujian Resmi (Offline):</b> Ekspor file <code>.json</code> lalu impor ke <b>TKA Local Host</b> di lab sekolah.</li>
+        <li><b>Untuk Latihan Siswa (Online):</b> Klik "Bagikan Kode", lalu berikan 6 huruf kode ke siswa agar mereka latihan di HP masing-masing.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>2. Langkah Membuat Soal (Mode Basic)</h2>
+      <ol>
+        <li>Buka menu <b>Buat Soal</b>. Isi Mata Pelajaran, Kelas, Topik, dan Komposisi.</li>
+        <li>Klik <b>Salin Prompt</b>, lalu paste ke ChatGPT / Gemini / Claude.</li>
+        <li>Copy hasil dari AI, lalu paste di menu <b>Tempel Hasil</b> di TKA Studio.</li>
+        <li>Sistem akan otomatis merapikan format JSON dan memvalidasi soal.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>3. Menambahkan Gambar & Rumus</h2>
+      <p><b>Rumus Matematika:</b> Ketik menggunakan format LaTeX (contoh: <code>$\frac{1}{2}$</code>). AI biasanya sudah otomatis memformatnya.</p>
+      <p><b>Gambar:</b> Di menu Preview, klik Edit Soal. Anda bisa mengunggah gambar secara langsung. TKA Studio akan <b>mengompres gambar secara otomatis</b> agar file tetap ringan. Jika Anda ekspor untuk Local Host, pastikan file asli gambar disiapkan di folder <code>paket/gambar/</code>.</p>
+    </div>
+
+    <div class="card">
+      <h2>4. Membagikan Kode Latihan ke Siswa</h2>
+      <p>Fitur ini memungkinkan siswa latihan di rumah tanpa perlu mengirim file.</p>
+      <ol>
+        <li>Buka menu <b>Ekspor</b> (pastikan Anda sudah login).</li>
+        <li>Klik <b>Bagikan Latihan Mandiri</b> (jika akun Anda sudah diizinkan Admin).</li>
+        <li>Akan muncul Kode 6 huruf (misal: <code>TKA-7X4K</code>).</li>
+        <li>Bagikan link <code>#/play</code> dan Kode tersebut ke grup WA siswa.</li>
+        <li>Siswa buka link, masukkan kode, dan soal langsung muncul.</li>
+      </ol>
       <div class="alert">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div><b>Tidak butuh API key, tidak butuh biaya.</b> Anda cukup copy-paste teks antara TKA Studio dan AI.</div>
-      </div>
-    </section>
-
-    <!-- 2. Alur Kerja -->
-    <section class="card">
-      <div class="card-header">
-        <div class="card-header-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        </div>
-        <h2>2. Alur Kerja — 3 Langkah</h2>
-      </div>
-      <p>Seluruh proses dirancang sesederhana mungkin. Dari nol sampai file <code>.json</code> dalam waktu kurang dari 5 menit.</p>
-
-      <div class="steps">
-        <!-- Step 1 -->
-        <div class="step-card">
-          <div class="step-num">1</div>
-          <div class="step-title">Susun Prompt</div>
-          <p class="step-desc">Buka halaman <b>Buat Soal</b>, isi form (Mata Pelajaran, Kelas, Topik, Komposisi). Klik <b>"Buat & Salin Prompt"</b> — prompt otomatis tersalin ke clipboard.</p>
-          <div class="step-visual">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
-            [Form Build — Screenshot]
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="step-card">
-          <div class="step-num">2</div>
-          <div class="step-title">Tempel ke AI</div>
-          <p class="step-desc">Buka ChatGPT / Gemini / Claude di tab lain, paste prompt. Tunggu 30–90 detik sampai AI selesai. Copy seluruh hasilnya — dari tanda <code>{</code> sampai <code>}</code>.</p>
-          <div class="step-visual">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            [ChatGPT — Screenshot]
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="step-card">
-          <div class="step-num">3</div>
-          <div class="step-title">Olah & Ekspor</div>
-          <p class="step-desc">Kembali ke TKA Studio, paste hasil AI di halaman <b>Tempel Hasil</b>. Klik <b>"Olah & Preview"</b>. Periksa soal, edit jika perlu, lalu download file <code>.json</code>.</p>
-          <div class="step-visual">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-            [Preview & Ekspor — Screenshot]
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. Expert Mode Highlight -->
-    <div class="bridge-highlight">
-      <h2>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg>
-        Mode Expert — Untuk Kualitas Tinggi
-      </h2>
-      <p>Jika Anda punya waktu lebih, gunakan <b>Mode Expert</b>. AI akan menyusun soal secara bertahap (5 soal per batch), sehingga kualitas lebih konsisten dan bisa sesuai standar Pusmendik Kemendikbud.</p>
-      <div class="chips">
-        <span class="chip">Fokus tipe soal</span>
-        <span class="chip">Level kognitif C1–C6</span>
-        <span class="chip">Wacana B.Indo</span>
-        <span class="chip">Simpan per batch</span>
+        <b>Penting:</b> Siswa bisa melihat kunci jawaban setelah selesai latihan. Jangan gunakan Kode Latihan untuk ujian resmi. Gunakan <b>TKA Local Host</b> untuk ujian sesungguhnya.
       </div>
     </div>
 
-    <!-- 4. FAQ -->
-    <section class="card">
-      <div class="card-header">
-        <div class="card-header-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-        </div>
-        <h2>3. Pertanyaan Umum</h2>
-      </div>
+    <div class="card">
+      <h2>5. Masalah Umum (Troubleshooting)</h2>
+      <h3>Kode Latihan tidak ditemukan?</h3>
+      <p>Pastikan koneksi internet stabil, dan guru sudah menekan tombol "Bagikan" serta menunggu proses unggah ke server selesai.</p>
+      
+      <h3>Gambar tidak muncul di Local Host?</h3>
+      <p>Pastikan nama file gambar di JSON sama persis dengan nama file gambar yang ada di folder <code>paket/gambar/</code>.</p>
+    </div>
 
-      <div class="faq-list">
-        <details class="faq-item">
-          <summary>Apakah aplikasi ini terafiliasi dengan Kemendikbud?</summary>
-          <p>Tidak. TKA Studio adalah alat bantu independen. Namun, kami merancang prompt agar sesuai standar Pusmendik (soal berbasis wacana, HOTS, level kognitif).</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Bagaimana cara mengimpor ke TKA Local Host?</summary>
-          <p>Buka TKA Local Host di laptop, masuk menu <b>Paket Soal</b>, klik <b>Import JSON</b>, lalu pilih file <code>.json</code> yang barusan Anda download dari TKA Studio.</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Soal saya aman? Apakah dikirim ke server?</summary>
-          <p>Ya, aman. Riwayat soal dan keranjang Anda tersimpan di browser (LocalStorage). Kami tidak mengirim soal Anda ke server manapun kecuali Anda secara sadar mengklik <b>"Terbitkan ke Pustaka"</b>.</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Apakah butuh API key berbayar?</summary>
-          <p>Tidak. TKA Studio tidak menggunakan API key. Anda pakai AI gratis (ChatGPT, Gemini, Claude) dengan cara copy-paste prompt.</p>
-        </details>
-
-        <details class="faq-item">
-          <summary>Format file apa saja yang didukung?</summary>
-          <p>TKA Studio menerima input JSON atau CSV dari AI. Output-nya berupa <code>.json v1.1</code> (untuk TKA Local Host) dan <code>.csv 14 kolom</code> (untuk arsip Excel).</p>
-        </details>
-      </div>
-    </section>
-
-    <!-- CTA Footer -->
-    <div class="cta-footer">
-      <a href="../" class="btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Mulai Buat Soal
-      </a>
+    <div style="text-align: center;">
+      <a href="../" class="btn">Kembali ke TKA Studio</a>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div>© 2026 <b>Ekwan Nugroho</b> — Wonogiri. All rights reserved.</div>
-    <div style="margin-top: 4px;">Dibuat untuk guru Indonesia 🇮🇩</div>
-  </footer>
-
 </body>
 </html>
