@@ -6254,3 +6254,64 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   .exam-bs-table td { padding: 10px 8px; }
   .exam-bs-text { font-size: 13px; }
 }
+
+/* =========================================================
+   CHANGELOG TIMELINE (v1.2)
+   ========================================================= */
+.changelog-timeline {
+  position: relative;
+  padding-left: 20px;
+  margin-top: 40px;
+}
+.changelog-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--border-strong);
+}
+.changelog-item {
+  position: relative;
+  margin-bottom: 32px;
+  padding-left: 24px;
+}
+.changelog-item::before {
+  content: '';
+  position: absolute;
+  left: -5px; top: 4px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--primary-mid);
+  box-shadow: 0 0 0 4px var(--surface);
+}
+.changelog-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.changelog-version {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--navy-900);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.changelog-list {
+  margin: 0;
+  padding: 0 0 0 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.changelog-list li {
+  margin-bottom: 8px;
+}
+.changelog-list b {
+  color: var(--text);
+  font-weight: 700;
+}
