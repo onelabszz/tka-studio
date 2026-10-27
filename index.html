@@ -3,36 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>TKA Studio — Buat Bank Soal dalam 3 Langkah</title>
-  <meta name="description" content="Prompt builder + parser untuk membuat bank soal TKA. Ekspor ke TKA Local Host.">
+  <title>TKA Studio — Ekosistem Bank Soal & Ujian Mandiri</title>
+  <meta name="description" content="Dapur pembuat bank soal bertenaga AI. Ekspor ke TKA Local Host atau bagikan kode latihan mandiri ke siswa. 100% Gratis, Tanpa API Key.">
   <meta name="theme-color" content="#1e40af">
 
-  <!-- Favicon: kotak biru gradient dengan "TKA" putih + dot amber -->
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231e40af'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-family='Inter,system-ui,sans-serif' font-size='22' font-weight='800' text-anchor='middle' fill='white' letter-spacing='-0.5'%3ETKA%3C/text%3E%3Ccircle cx='52' cy='14' r='5' fill='%23fbbf24'/%3E%3C/svg%3E">
 
   <!-- PWA -->
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon.svg">
 
-  <!-- Fonts & CDN preconnect -->
+  <!-- Fonts & CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://esm.sh" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- KaTeX: Untuk Render Rumus Matematika (LaTeX) -->
+  <!-- KaTeX -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="window.renderMath = function() { renderMathInElement(document.body, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\[', right: '\\]', display: true}, {left: '\\(', right: '\\)', display: false} ], throwOnError: false }); }"></script>
 
-  <!-- Stylesheet Utama -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div id="app"></div>
   <noscript>Harap aktifkan JavaScript untuk menggunakan TKA Studio.</noscript>
 
-  <!-- Error Overlay (untuk debugging di HP/Spck) -->
+  <!-- Error Overlay -->
   <script>
     (function () {
       var el = document.getElementById('app');
@@ -55,27 +54,18 @@
       });
       setTimeout(function () {
         if (el && el.innerHTML.trim() === '') {
-          show('Modul tidak termuat',
-            'app.js tidak berjalan sama sekali.\n\nKemungkinan:\n' +
-            '1. Spck preview tidak mendukung ES module (coba buka di Chrome langsung)\n' +
-            '2. Path file salah (index.html harus satu folder dengan app.js)\n' +
-            '3. esm.sh diblokir (cek koneksi internet)'
-          );
+          show('Modul tidak termuat', 'app.js tidak berjalan sama sekali.\n\nKemungkinan:\n1. Spck preview tidak mendukung ES module\n2. Path file salah\n3. esm.sh diblokir');
         }
       }, 4000);
     })();
   </script>
 
-  <!-- Aplikasi Utama -->
   <script type="module" src="./app.js"></script>
 
-  <!-- Registrasi Service Worker (PWA) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js').catch(function (err) {
-          console.warn('SW registration failed:', err);
-        });
+        navigator.serviceWorker.register('./sw.js').catch(function (err) { console.warn('SW failed:', err); });
       });
     }
   </script>
