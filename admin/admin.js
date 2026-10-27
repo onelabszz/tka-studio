@@ -1,5 +1,5 @@
 /**
- * TKA Studio — admin/admin.js (Premium Dashboard)
+ * TKA Studio — admin/admin.js (Premium Dashboard + Edit/Pass)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h, render } from 'https://esm.sh/preact@10.24.3';
@@ -8,7 +8,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   LayoutDashboard, Users, BookOpen, Search, CheckCircle2,
   XCircle, Clock, Trash2, Key, Loader2, AlertTriangle, Copy, Check,
-  Shield, Download, LogOut, ChevronRight
+  Shield, Download, LogOut, Pencil, UserX
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getSupabase } from '../supabase/client.js';
 
@@ -16,7 +16,7 @@ const html = htm.bind(h);
 
 function AdminApp() {
   const [authState, setAuthState] = useState('loading');
-  const [currentMenu, setCurrentMenu] = useState('overview'); // overview | users | pustaka
+  const [currentMenu, setCurrentMenu] = useState('users'); 
   
   // Data
   const [users, setUsers] = useState([]);
@@ -24,13 +24,14 @@ function AdminApp() {
   const [loading, setLoading] = useState(true);
   
   // UI States
-  const [userTab, setUserTab] = useState('pending');
+  const [userTab, setUserTab] = useState('active'); // Default ke aktif
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   
   // Modals
   const [confirmData, setConfirmData] = useState(null);
   const [passwordData, setPasswordData] = useState(null);
+  const [editData, setEditData] = useState(null);
   const [copied, setCopied] = useState(false);
 
   // Auth Check
@@ -57,15 +58,10 @@ function AdminApp() {
     setLoading(true);
     try {
       const client = await getSupabase();
-      
-      // Load Users
       const { data: u } = await client.from('profiles').select('*').order('created_at', { ascending: false });
       setUsers(u || []);
-
-      // Load Pustaka
       const { data: p } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
       setPustaka(p || []);
-
     } catch (e) {
       if (window.showToast) window.showToast('Gagal memuat data: ' + e.message, 'error');
     }
@@ -75,24 +71,37 @@ function AdminApp() {
   // ==========================================
   // USER ACTIONS
   // ==========================================
-  const handleActivate = (user) => {
+  
+  // 1. Generate Password / Aktifkan
+  const handleGeneratePassword = (user) => {
+    const isReset = user.status === 'active';
     setConfirmData({
-      title: 'Aktifkan Akun?', message: `Akun ${user.nama} akan diaktifkan dan password baru digenerate.`, confirmText: 'Ya, Aktifkan', isDanger: false,
+      title: isReset ? 'Reset Password?' : 'Aktifkan Akun?', 
+      message: `Sistem akan membuatkan password baru untuk ${user.nama}. Password lama tidak akan berlaku lagi.`, 
+      confirmText: isReset ? 'Ya, Reset' : 'Ya, Aktifkan', 
+      isDanger: isReset,
       onConfirm: async () => {
         setConfirmData(null); setActionLoading(user.id);
         try {
           const client = await getSupabase();
-          const { data, error } = await client.functions.invoke('activate', { body: { userId: user.id, email: user.email } });
+          // Memanggil edge function 'activate' (bisa dipakai untuk reset juga)
+          const { data, error } = await client.functions.invoke('activate', { 
+            body: { userId: user.id, email: user.email } 
+          });
           if (error) throw error;
           if (data.error) throw new Error(data.error);
+          
           setPasswordData({ name: user.nama, email: user.email, password: data.password });
           loadAllData();
-        } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
+        } catch (e) { 
+          if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); 
+        }
         setActionLoading(null);
       }
     });
   };
 
+  // 2. Suspend Akun
   const handleSuspend = (user) => {
     setConfirmData({
       title: 'Tangguhkan Akun?', message: `Akun ${user.nama} tidak akan bisa login.`, confirmText: 'Ya, Tangguhkan', isDanger: true,
@@ -109,9 +118,10 @@ function AdminApp() {
     });
   };
 
+  // 3. Hapus Akun
   const handleDeleteUser = (user) => {
     setConfirmData({
-      title: 'Hapus Akun Permanen?', message: `Akun ${user.nama} beserta seluruh datanya akan dihapus.`, confirmText: 'Ya, Hapus', isDanger: true,
+      title: 'Hapus Akun Permanen?', message: `Akun ${user.nama} beserta seluruh datanya akan dihapus. Tindakan ini tidak bisa dibatalkan.`, confirmText: 'Ya, Hapus', isDanger: true,
       onConfirm: async () => {
         setConfirmData(null); setActionLoading(user.id);
         try {
@@ -126,6 +136,7 @@ function AdminApp() {
     });
   };
 
+  // 4. Toggle Izin Kode
   const handleTogglePublish = async (user) => {
     setActionLoading(user.id);
     try {
@@ -136,24 +147,29 @@ function AdminApp() {
     setActionLoading(null);
   };
 
-  // ==========================================
-  // PUSTAKA ACTIONS
-  // ==========================================
-  const handleDeletePustaka = (item) => {
-    setConfirmData({
-      title: 'Hapus Soal Publik?', message: 'Soal ini akan dihapus dari Pustaka Publik.', confirmText: 'Ya, Hapus', isDanger: true,
-      onConfirm: async () => {
-        setConfirmData(null); setActionLoading(item.id);
-        try {
-          const client = await getSupabase();
-          await client.from('pustaka_soal').delete().eq('id', item.id);
-          if (window.showToast) window.showToast('Soal dihapus dari Pustaka.', 'success');
-          loadAllData();
-        } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
-        setActionLoading(null);
-      }
-    });
+  // 5. Simpan Edit Profil
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setActionLoading(editData.id);
+    try {
+      const client = await getSupabase();
+      const { error } = await client.from('profiles').update({
+        nama: editData.nama,
+        sekolah: editData.sekolah,
+        wa: editData.wa,
+        role: editData.role
+      }).eq('id', editData.id);
+      
+      if (error) throw error;
+      if (window.showToast) window.showToast('Profil berhasil diperbarui.', 'success');
+      setEditData(null);
+      loadAllData();
+    } catch (e) {
+      if (window.showToast) window.showToast('Gagal update: ' + e.message, 'error');
+    }
+    setActionLoading(null);
   };
+
 
   // ==========================================
   // HELPERS
@@ -164,25 +180,6 @@ function AdminApp() {
     setCopied(true); setTimeout(() => setCopied(false), 2000);
   };
 
-  const exportCSV = () => {
-    const headers = ['Nama', 'Email', 'Sekolah', 'WA', 'Status', 'Izin Kode', 'Role'];
-    const rows = users.map(u => [
-      `"${u.nama || ''}"`, `"${u.email || ''}"`, `"${u.sekolah || ''}"`, 
-      `"${u.wa || ''}"`, u.status, u.can_publish_exam ? 'Ya' : 'Tidak', u.role
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `data-guru-tka-${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // ==========================================
-  // RENDER VIEWS
-  // ==========================================
   if (authState === 'loading') return html`<div style="height:100vh; display:flex; align-items:center; justify-content:center;"><${Loader2} class="spin" size=${40} color="var(--primary)"/></div>`;
   
   if (authState === 'unauthorized') {
@@ -198,7 +195,6 @@ function AdminApp() {
     `;
   }
 
-  // Stats Counters
   const stats = {
     total: users.length,
     pending: users.filter(u => u.status === 'pending').length,
@@ -253,9 +249,7 @@ function AdminApp() {
               <h1 class="admin-title">Ringkasan Sistem</h1>
               <p class="admin-subtitle">Pantau aktivitas dan pertumbuhan pengguna TKA Studio.</p>
             </div>
-            <button class="btn-primary" onClick=${exportCSV}><${Download} size=${16} /> Ekspor Data Guru</button>
           </div>
-          
           <div class="admin-stats-grid">
             <div class="admin-stat-card">
               <div class="admin-stat-icon" style="background:#eff6ff; color:var(--primary);"><${Users} size=${24} /></div>
@@ -269,10 +263,6 @@ function AdminApp() {
               <div class="admin-stat-icon" style="background:#ecfdf5; color:var(--success);"><${CheckCircle2} size=${24} /></div>
               <div class="admin-stat-info"><p>Guru Aktif</p><h3>${stats.active}</h3></div>
             </div>
-            <div class="admin-stat-card">
-              <div class="admin-stat-icon" style="background:#f3e8ff; color:#6b21a8;"><${BookOpen} size=${24} /></div>
-              <div class="admin-stat-info"><p>Soal Publik</p><h3>${stats.pustaka}</h3></div>
-            </div>
           </div>
         `}
 
@@ -280,7 +270,7 @@ function AdminApp() {
           <div class="admin-header">
             <div>
               <h1 class="admin-title">Kelola Guru</h1>
-              <p class="admin-subtitle">Verifikasi akun, atur izin, dan kelola akses guru.</p>
+              <p class="admin-subtitle">Verifikasi akun, edit profil, reset password, dan atur akses guru.</p>
             </div>
           </div>
 
@@ -339,20 +329,35 @@ function AdminApp() {
                       <td>
                         <div style="display:flex; gap:6px; justify-content:flex-end;">
                           ${actionLoading === user.id ? html`<${Loader2} class="spin" size=${18} color="var(--primary)" />` : html`
-                            ${user.status === 'pending' ? html`
-                              <button class="btn-icon btn-activate" onClick=${() => handleActivate(user)} title="Aktifkan"><${CheckCircle2} size=${16}/></button>
-                              <button class="btn-icon btn-delete" onClick=${() => handleDeleteUser(user)} title="Hapus"><${Trash2} size=${16}/></button>
-                            ` : ''}
-                            ${user.status === 'active' ? html`
-                              <button class=${'btn-icon btn-key ' + (user.can_publish_exam ? 'active' : '')} onClick=${() => handleTogglePublish(user)} title="Izin Kode">
-                                <${Key} size=${16}/>
+                            
+                            <!-- Tombol Edit -->
+                            <button class="btn-icon" onClick=${() => setEditData({...user})} title="Edit Profil">
+                              <${Pencil} size=${16}/>
+                            </button>
+
+                            <!-- Tombol Password / Aktifkan -->
+                            <button class="btn-icon btn-key" onClick=${() => handleGeneratePassword(user)} title=${user.status === 'active' ? 'Reset Password' : 'Aktifkan & Buat Password'}>
+                              <${Key} size=${16}/>
+                            </button>
+
+                            <!-- Tombol Izin Kode (Hanya untuk yang aktif) -->
+                            ${user.status === 'active' && html`
+                              <button class=${'btn-icon btn-key ' + (user.can_publish_exam ? 'active' : '')} onClick=${() => handleTogglePublish(user)} title="Izin Kode Latihan">
+                                <${BookOpen} size=${16}/>
                               </button>
-                              <button class="btn-icon btn-delete" onClick=${() => handleSuspend(user)} title="Suspend"><${XCircle} size=${16}/></button>
-                            ` : ''}
-                            ${user.status === 'suspended' ? html`
-                              <button class="btn-icon btn-activate" onClick=${() => handleActivate(user)} title="Aktifkan"><${CheckCircle2} size=${16}/></button>
-                              <button class="btn-icon btn-delete" onClick=${() => handleDeleteUser(user)} title="Hapus"><${Trash2} size=${16}/></button>
-                            ` : ''}
+                            `}
+
+                            <!-- Tombol Suspend -->
+                            ${user.status === 'active' && html`
+                              <button class="btn-icon btn-delete" onClick=${() => handleSuspend(user)} title="Tangguhkan">
+                                <${UserX} size=${16}/>
+                              </button>
+                            `}
+
+                            <!-- Tombol Hapus -->
+                            <button class="btn-icon btn-delete" onClick=${() => handleDeleteUser(user)} title="Hapus Permanen">
+                              <${Trash2} size=${16}/>
+                            </button>
                           `}
                         </div>
                       </td>
@@ -363,56 +368,9 @@ function AdminApp() {
             </div>
           </div>
         `}
-
-        ${currentMenu === 'pustaka' && html`
-          <div class="admin-header">
-            <div>
-              <h1 class="admin-title">Moderasi Pustaka</h1>
-              <p class="admin-subtitle">Awasi soal-soal publik yang dibagikan oleh guru.</p>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Mapel & Kelas</th>
-                    <th>Soal</th>
-                    <th>Penulis</th>
-                    <th style="text-align:right;">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${loading ? html`<tr><td colspan="4" style="text-align:center; padding:40px;"><${Loader2} class="spin" size=${24}/></td></tr>` :
-                    pustaka.length === 0 ? html`<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada soal publik.</td></tr>` :
-                    pustaka.map(item => html`
-                    <tr key=${item.id}>
-                      <td>
-                        <div style="font-weight:700;">${item.mapel}</div>
-                        <div style="font-size:12px; color:var(--text-muted);">${item.kelas || '-'} · ${item.tipe.toUpperCase()}</div>
-                      </td>
-                      <td>
-                        <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px;">
-                          ${item.q_text}
-                        </div>
-                      </td>
-                      <td>${item.contributor_nama || 'Anonim'}</td>
-                      <td style="text-align:right;">
-                        <button class="btn-icon btn-delete" onClick=${() => handleDeletePustaka(item)} title="Hapus Soal">
-                          <${Trash2} size=${16}/>
-                        </button>
-                      </td>
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `}
       </main>
 
-      <!-- MODALS -->
+      <!-- MODAL CONFIRM -->
       ${confirmData && html`
         <div class="modal-backdrop" onClick=${() => setConfirmData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -430,11 +388,12 @@ function AdminApp() {
         </div>
       `}
 
+      <!-- MODAL PASSWORD BARU -->
       ${passwordData && html`
         <div class="modal-backdrop" onClick=${() => setPasswordData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
             <div class="modal-header">
-              <div class="modal-title"><${Key} size=${20} color="var(--success)" /> Akun Berhasil Diaktifkan</div>
+              <div class="modal-title"><${Key} size=${20} color="var(--success)" /> Password Baru</div>
             </div>
             <div class="modal-body">
               <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Berikan password ini ke <b>${passwordData.name}</b> via WhatsApp.</p>
@@ -446,6 +405,44 @@ function AdminApp() {
               <button class="btn-cancel" onClick=${() => setPasswordData(null)}>Tutup</button>
               <button class="btn-success" onClick=${copyPassword}>${copied ? 'Tersalin!' : 'Salin Password'}</button>
             </div>
+          </div>
+        </div>
+      `}
+
+      <!-- MODAL EDIT PROFIL -->
+      ${editData && html`
+        <div class="modal-backdrop" onClick=${() => setEditData(null)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()}>
+            <div class="modal-header">
+              <div class="modal-title"><${Pencil} size=${20} color="var(--primary)" /> Edit Profil Guru</div>
+            </div>
+            <form onSubmit=${handleSaveEdit}>
+              <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Nama Lengkap</label>
+                  <input type="text" value=${editData.nama} onInput=${(e) => setEditData({...editData, nama: e.target.value})} required style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;" />
+                </div>
+                <div>
+                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Asal Sekolah</label>
+                  <input type="text" value=${editData.sekolah} onInput=${(e) => setEditData({...editData, sekolah: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;" />
+                </div>
+                <div>
+                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">No. WhatsApp</label>
+                  <input type="text" value=${editData.wa} onInput=${(e) => setEditData({...editData, wa: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;" />
+                </div>
+                <div>
+                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Role Akses</label>
+                  <select value=${editData.role} onInput=${(e) => setEditData({...editData, role: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;">
+                    <option value="user">Guru (User)</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" onClick=${() => setEditData(null)}>Batal</button>
+                <button type="submit" class="btn-primary" disabled=${actionLoading}>Simpan Perubahan</button>
+              </div>
+            </form>
           </div>
         </div>
       `}
