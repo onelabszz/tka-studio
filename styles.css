@@ -6316,3 +6316,49 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
   color: var(--text);
   font-weight: 700;
 }
+/* =========================================================
+   FIX EXAM UI (v12.1) — Sembunyikan Huruf A/B/C/D & Rapikan
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* 1. Sembunyikan huruf A, B, C, D */
+.exam-option-letter {
+  display: none !important;
+}
+
+/* 2. Rapikan jarak antar elemen di dalam opsi */
+.exam-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  /* Pastikan background bersih */
+  background: white;
+}
+
+/* 3. Teks jawaban agar mengisi sisa ruang */
+.exam-option-text {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* 4. Perbaiki ukuran bulatan/kotak agar proporsional */
+.exam-option::before {
+  width: 22px;
+  height: 22px;
+  margin-top: 0; /* Sejajarkan ke tengah */
+}
+
+/* 5. Khusus HP, beri sedikit ruang ekstra */
+@media (max-width: 640px) {
+  .exam-option {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .exam-option::before {
+    width: 20px;
+    height: 20px;
+  }
+}
