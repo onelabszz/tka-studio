@@ -10,8 +10,7 @@ import {
   FolderOpen, BookOpen, LogIn, LayoutDashboard, CheckCircle2, Image as ImageIcon,
   Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
   Save, ListChecks, MousePointerClick, Bot, Download, MonitorPlay, Heart, MapPin,
-  Github, MessageCircle, Repeat, Terminal, ShieldCheck, Share2, Library, Smartphone, History,
-  Menu, X, Loader2, ArrowLeft, Key
+  Github, MessageCircle, Repeat, Terminal, ShieldCheck, Share2, Library, Smartphone, History
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -231,7 +230,7 @@ function Landing({ profile }) {
                 <div class="bridge-arrow-line"></div>
                 <div class="bridge-arrow-label">
                   <${FileJson} size=${14} />
-                  <span>File .json</span>
+                  <span>File JSON</span>
                 </div>
                 <div class="bridge-arrow-line"></div>
               </div>
@@ -276,13 +275,13 @@ function Landing({ profile }) {
               <div class="feature-card tone-blue">
                 <div class="feature-icon-wrapper"><${Share2} size=${28} /></div>
                 <h3>Bagikan Kode Latihan</h3>
-                <p>Terbitkan soal ke server GitHub dan bagikan Kode 6 huruf ke siswa. Mereka bisa berlatih mandiri langsung dari HP tanpa perlu file .json.</p>
+                <p>Terbitkan soal ke server GitHub dan bagikan Kode 6 huruf ke siswa. Mereka bisa berlatih mandiri langsung dari HP tanpa perlu file.</p>
               </div>
 
               <div class="feature-card tone-amber">
                 <div class="feature-icon-wrapper"><${ImageIcon} size=${28} /></div>
                 <h3>Auto-Compress Gambar</h3>
-                <p>Unggah gambar di editor soal, dan sistem akan otomatis mengompresnya ke format WebP (max 500KB) agar file JSON tetap ringan.</p>
+                <p>Unggah gambar di editor soal, dan sistem akan otomatis mengompresnya ke format WebP (max 500KB) agar file tetap ringan.</p>
               </div>
 
               <div class="feature-card tone-purple">
@@ -342,7 +341,7 @@ function Landing({ profile }) {
                   <ul class="changelog-list">
                     <li>Rilis perdana TKA Studio (Mode Basic).</li>
                     <li>Parser pintar AI (JSON/CSV).</li>
-                    <li>Ekspor file `.json` untuk TKA Local Host.</li>
+                    <li>Ekspor file JSON untuk TKA Local Host.</li>
                   </ul>
                 </div>
               </div>
@@ -435,7 +434,6 @@ function App() {
   if (route === '/register') return html`<${RegisterPage} navigate=${navigate} />`;
   if (route === '/debug') return html`<${ErrorBoundary}><${DebugPageInner} /></${ErrorBoundary}>`;
   
-  // PLAY PAGE (Standalone, no header/footer)
   if (route === '/play') return html`<${PlayPage} />`;
   if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
 
