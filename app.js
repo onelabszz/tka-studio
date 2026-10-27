@@ -107,7 +107,7 @@ function Footer() {
           <div>
             <div class="footer-title">TKA Studio</div>
             <div class="footer-desc">
-              Alat bantu guru Indonesia untuk menyusun bank soal berkualitas. Langsung ekspor ke TKA Local Host.
+              Ekosistem pembuat soal TKA bertenaga AI. Gratis, tanpa API key, dan fokus pada kemudahan guru Indonesia.
             </div>
           </div>
         </div>
@@ -115,13 +115,13 @@ function Footer() {
           <div class="footer-col">
             <div class="footer-col-title">Produk</div>
             <a href="#/" onClick=${(e) => { e.preventDefault(); navigate('/'); }}>Beranda</a>
-            <a href="#/build" onClick=${(e) => { e.preventDefault(); navigate('/build'); }}>Buat Soal</a>
-            <a href="./panduan/">Panduan</a>
+            <a href="#/build" onClick=${(e) => { e.preventDefault(); navigate('/build'); }}>Buat Soal (Dapur)</a>
+            <a href="#/play" onClick=${(e) => { e.preventDefault(); navigate('/play'); }}>Player Siswa</a>
           </div>
           <div class="footer-col">
             <div class="footer-col-title">Ekosistem</div>
             <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank">TKA Local Host</a>
-            <a href="#/image-tool" onClick=${(e) => { e.preventDefault(); navigate('/image-tool'); }}>Embed Gambar</a>
+            <a href="./panduan/">Panduan Lengkap</a>
             <a href="#/debug" onClick=${(e) => { e.preventDefault(); navigate('/debug'); }}>Schema Tests</a>
           </div>
         </div>
@@ -130,23 +130,6 @@ function Footer() {
         © 2026 <b>Ekwan Nugroho</b> — Wonogiri · Dibuat untuk pendidikan Indonesia 🇮🇩
       </div>
     </footer>
-  `;
-}
-
-function CreatorAvatar() {
-  const [imgError, setImgError] = useState(false);
-  return html`
-    <div class="creator-avatar">
-      ${!imgError && html`
-        <img
-          src="./assets/avatar-ekwan.webp"
-          alt="Ekwan Nugroho"
-          onError=${() => setImgError(true)}
-          loading="lazy"
-        />
-      `}
-      ${imgError && html`<span>EN</span>`}
-    </div>
   `;
 }
 
@@ -163,37 +146,33 @@ function Landing({ profile }) {
 
         <div class="hero-container">
           <div class="hero-copy">
-            <div class="badge-hero"><span class="dot"></span> Gratis · Tanpa API Key · Tanpa Login</div>
+            <div class="badge-hero"><span class="dot"></span> Ekosistem TKA v1.2 Terbaru</div>
             <h1 class="hero-title">
-              Buat Paket Soal <br/>
-              <span class="highlight">Tryout TKA</span> dalam 15 Menit
+              Dapur Soal AI <br/>
+              <span class="highlight">Tanpa API Key.</span>
             </h1>
             <p class="hero-desc">
-              Alat bantu guru Indonesia untuk menyusun bank soal berkualitas. Langsung ekspor ke TKA Local Host.
+              Buat bank soal berkualitas dalam hitungan menit. Ekspor ke TKA Local Host untuk ujian resmi, atau bagikan Kode Latihan ke siswa untuk tryout mandiri di rumah.
             </p>
             <div class="hero-actions">
               <button class="cta-button" onClick=${() => navigate('/build')}>
-                <${Sparkles} size=${20} /> Buat Soal (Basic)
+                <${Sparkles} size=${20} /> Mulai Buat Soal
               </button>
-              <button class="cta-button-ghost" onClick=${() => navigate('/expert')}>
-                <${Star} size=${18} /> Mode Expert
+              <button class="cta-button-ghost" onClick=${() => navigate('/play')}>
+                <${PlayCircle} size=${18} /> Masuk Mode Siswa
               </button>
-            </div>
-            <div class="hero-guide-link">
-              Belum tahu cara pakai? <a href="./panduan/">Baca Panduan Lengkap →</a>
             </div>
             <div class="hero-trust">
-              <span><${Check} size=${16} /> Tanpa daftar</span>
-              <span><${Check} size=${16} /> Data aman</span>
+              <span><${Check} size=${16} /> 100% Gratis</span>
+              <span><${Check} size=${16} /> Tanpa Server Berat</span>
               <span><${Check} size=${16} /> Standar Asesmen</span>
             </div>
           </div>
 
           <div class="hero-visual">
             <div class="visual-glow"></div>
-
             <div class="hero-float-badge">
-              <${Zap} size=${13} /> ~15 menit / paket
+              <${Zap} size=${13} /> Auto-Compress Gambar
             </div>
 
             <div class="v-card v-card-math">
@@ -229,218 +208,143 @@ function Landing({ profile }) {
         <section class="section-ekosistem" id="ekosistem">
           <div class="section-container">
             <div class="section-header">
-              <div class="section-eyebrow"><${Repeat} size=${12} /> Ekosistem TKA</div>
-              <h2>Jembatan antara Guru & Aplikasi Ujian</h2>
-              <p>TKA Studio menyusun soal online. TKA Local Host menjalankannya offline. File JSON adalah jembatannya.</p>
+              <div class="section-eyebrow"><${Terminal} size=${12} /> Alur Kerja</div>
+              <h2>Bagaimana Ekosistem Ini Bekerja?</h2>
+              <p>Satu file JSON, dua cara mengeksekusi. Pilih sesuai kebutuhan Anda.</p>
             </div>
 
             <div class="bridge-flow">
+              <!-- Node 1 -->
               <div class="bridge-node">
                 <div class="bridge-icon is-primary"><${Sparkles} size=${28} /></div>
-                <h3>TKA Studio</h3>
-                <p>Menyusun soal dengan bantuan AI gratis.</p>
+                <h3>1. TKA Studio</h3>
+                <p>Dapur pembuatan soal dengan AI (Mode Basic & Expert).</p>
                 <div class="bridge-chips">
-                  <span class="config-chip">Mode Basic</span>
-                  <span class="config-chip">Mode Expert</span>
+                  <span class="config-chip">Prompt AI</span>
+                  <span class="config-chip">Validasi</span>
                 </div>
               </div>
 
+              <!-- Arrow -->
               <div class="bridge-arrow">
                 <div class="bridge-arrow-line"></div>
                 <div class="bridge-arrow-label">
                   <${FileJson} size=${14} />
-                  <span>JSON v1.1</span>
+                  <span>File .json</span>
                 </div>
                 <div class="bridge-arrow-line"></div>
               </div>
 
+              <!-- Node 2 -->
               <div class="bridge-node">
                 <div class="bridge-icon is-amber"><${MonitorPlay} size=${28} /></div>
-                <h3>TKA Local Host</h3>
-                <p>Menjalankan ujian secara offline di sekolah.</p>
+                <h3>2. TKA Local Host</h3>
+                <p>Aplikasi ujian offline di lab sekolah (dengan pengawasan ketat).</p>
                 <div class="bridge-chips">
+                  <span class="config-chip is-warning">Ujian Resmi</span>
                   <span class="config-chip is-warning">Offline</span>
-                  <span class="config-chip is-warning">Gratis</span>
                 </div>
               </div>
             </div>
 
-            <div class="section-cta-inline">
-              <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank" class="btn-secondary">
-                <${BookOpen} size=${16} /> Pelajari TKA Local Host <${ArrowRight} size=${14} />
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <!-- UNTUK SISWA -->
-        <section class="section-for-student" id="siswa">
-          <div class="section-container">
-            <div class="student-bridge-card">
-              <div class="student-bridge-icon"><${GraduationCap} size=${28} /></div>
-              <div class="student-bridge-body">
-                <div class="student-bridge-eyebrow">Untuk Siswa</div>
-                <h3>Dapat file <code>.json</code> dari guru?</h3>
-                <p>Upload → kerjakan tryout mandiri di HP → lihat skor & pembahasan instan.</p>
-              </div>
-              <button class="btn-primary student-bridge-cta" onClick=${() => navigate('/play')}>
-                <${PlayCircle} size=${18} /> Mulai Tryout
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3 LANGKAH -->
-        <section class="section-steps" id="cara">
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-eyebrow"><${Zap} size=${12} /> Alur Kerja</div>
-              <h2>Hanya 3 Langkah</h2>
-              <p>Tidak perlu keahlian IT. Guru biasa pun bisa menjalankannya.</p>
-            </div>
-
-            <div class="grid-3">
-              <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-form">
-                    <div class="mock-input"></div>
-                    <div class="mock-input"></div>
-                    <div class="mock-btn">Buat Prompt</div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num-hero">1</div>
-                  <h3>Susun Prompt</h3>
-                  <p>Isi form mapel, kelas, topik. Prompt khusus siap Anda copy.</p>
-                </div>
-              </div>
-
-              <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-chat">
-                    <div class="mock-chat-bubble user"></div>
-                    <div class="mock-chat-bubble bot"></div>
-                    <div class="mock-chat-bubble bot short"></div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num-hero">2</div>
-                  <h3>Tempel ke AI</h3>
-                  <p>Buka ChatGPT/Gemini. Paste prompt, copy hasil JSON-nya.</p>
-                </div>
-              </div>
-
-              <div class="step-card">
-                <div class="step-visual">
-                  <div class="mock-export">
-                    <${FileJson} size=${32} color="#1e40af" />
-                    <div class="mock-download-btn"><${Download} size=${14} /> .json</div>
-                  </div>
-                </div>
-                <div class="step-content">
-                  <div class="step-num-hero">3</div>
-                  <h3>Ekspor ke Local Host</h3>
-                  <p>Paste di TKA Studio, download .json, impor ke Local Host.</p>
+            <!-- Jalur Alternatif -->
+            <div class="bridge-flow" style="margin-top: 24px;">
+               <div class="bridge-node" style="background: var(--surface-muted); border-style: dashed;">
+                <div class="bridge-icon" style="background: #e2e8f0; color: #475569;"><${Smartphone} size=${28} /></div>
+                <h3>TKA Player (Online)</h3>
+                <p>Latihan mandiri di rumah. Siswa cukup mengetik Kode Latihan.</p>
+                <div class="bridge-chips">
+                  <span class="config-chip">Kode Akses</span>
+                  <span class="config-chip">Tanpa Install</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- FITUR -->
+        <!-- FITUR BARU -->
         <section class="section-features" id="fitur">
           <div class="section-container">
             <div class="section-header">
-              <div class="section-eyebrow"><${Star} size=${12} /> Fitur Unggulan</div>
-              <h2>Yang Membuat Berbeda</h2>
-              <p>Dirancang untuk guru, bukan untuk teknisi IT.</p>
+              <div class="section-eyebrow"><${Star} size=${12} /> Fitur Unggulan v1.2</div>
+              <h2>Dirancang untuk Guru Modern</h2>
+              <p>Tanpa biaya server, tanpa API Key, namun tetap bertenaga.</p>
             </div>
 
             <div class="grid-2">
               <div class="feature-card tone-blue">
-                <div class="feature-icon-wrapper"><${Star} size=${28} /></div>
-                <h3>Mode Expert</h3>
-                <p>Susun soal bertahap (5 soal per batch) agar kualitasnya maksimal. Cocok untuk ujian resmi.</p>
+                <div class="feature-icon-wrapper"><${Share2} size=${28} /></div>
+                <h3>Bagikan Kode Latihan</h3>
+                <p>Terbitkan soal ke server GitHub dan bagikan Kode 6 huruf ke siswa. Mereka bisa berlatih mandiri langsung dari HP tanpa perlu file .json.</p>
               </div>
 
               <div class="feature-card tone-amber">
-                <div class="feature-icon-wrapper"><${Users} size=${28} /></div>
-                <h3>Pustaka Kolaborasi</h3>
-                <p>Berbagi soal terbaik dengan guru lain. Nama Anda tercatat sebagai penulis soal.</p>
+                <div class="feature-icon-wrapper"><${Image} size=${28} /></div>
+                <h3>Auto-Compress Gambar</h3>
+                <p>Unggah gambar di editor soal, dan sistem akan otomatis mengompresnya ke format WebP (max 500KB) agar file JSON tetap ringan.</p>
               </div>
 
               <div class="feature-card tone-purple">
-                <div class="feature-icon-wrapper"><${FileJson} size=${28} /></div>
-                <h3>Dukungan Rumus (LaTeX)</h3>
-                <p>Pecahan, akar, pangkat tampil cantik di preview dan file ekspor.</p>
+                <div class="feature-icon-wrapper"><${Library} size=${28} /></div>
+                <h3>Pustaka Kolaborasi</h3>
+                <p>Berbagi soal terbaik ke Pustaka Publik. Guru lain di seluruh Indonesia bisa mengunduh dan merakitnya menjadi paket baru.</p>
               </div>
 
               <div class="feature-card tone-green">
-                <div class="feature-icon-wrapper"><${Save} size=${28} /></div>
-                <h3>Format Standar</h3>
-                <p>File JSON langsung terbaca. Mendukung soal wacana panjang dan soal bergambar.</p>
+                <div class="feature-icon-wrapper"><${FileJson} size=${28} /></div>
+                <h3>Ekspor JSON & CSV</h3>
+                <p>File JSON kompatibel 100% dengan TKA Local Host. Dilengkapi ekspor CSV 14 kolom untuk arsip Excel guru.</p>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- CREATOR -->
-        <section class="section-creator" id="creator">
-          <div class="section-container">
+        <!-- CHANGELOG / VERSI -->
+        <section class="section-changelog" id="changelog" style="padding: 80px 0; background: var(--surface); border-top: 1px solid var(--border);">
+          <div class="section-container" style="max-width: 800px;">
             <div class="section-header">
-              <div class="section-eyebrow"><${Heart} size=${12} /> Dibuat oleh</div>
-              <h2>Kenapa TKA Studio Ada</h2>
-              <p>Dibuat oleh guru, untuk guru. Satu orang, satu misi: hemat waktu guru Indonesia.</p>
+              <div class="section-eyebrow"><${History} size=${12} /> Timeline</div>
+              <h2>Riwayat Pembaruan</h2>
             </div>
-
-            <div class="creator-card">
-              <${CreatorAvatar} />
-              <div class="creator-info">
-                <h3>Ekwan Nugroho</h3>
-                <div class="creator-meta">
-                  <${MapPin} size=${13} /> Wonogiri, Jawa Tengah
-                </div>
-                <p class="creator-quote">
-                  "Menyusun soal Tryout TKA seharusnya tidak memakan waktu berhari-hari.
-                  Dengan AI gratis, siapa pun bisa membuat bank soal berkualitas dalam hitungan menit."
-                </p>
-                <div class="creator-links">
-                  <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank" class="config-chip">
-                    <${MonitorPlay} size=${12} /> TKA Local Host
-                  </a>
-                  <a href="./panduan/" class="config-chip">
-                    <${BookOpen} size=${12} /> Panduan
-                  </a>
+            
+            <div class="changelog-timeline">
+              <div class="changelog-item">
+                <div class="changelog-date">Oktober 2026</div>
+                <div class="changelog-content">
+                  <div class="changelog-version">v1.2 <span class="badge-done">Terbaru</span></div>
+                  <ul class="changelog-list">
+                    <li><b>TKA Player:</b> UI/UX ujian resmi (Radio, Checkbox, Tabel B/S).</li>
+                    <li><b>Kode Latihan:</b> Integrasi GitHub Edge Function untuk share tanpa file.</li>
+                    <li><b>Admin Panel:</b> Dashboard analitik, edit profil, dan reset password.</li>
+                    <li><b>Image Tool:</b> Auto-compress WebP dan embed base64.</li>
+                  </ul>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <!-- FAQ -->
-        <section class="section-faq" id="faq">
-          <div class="section-container">
-            <div class="section-header">
-              <div class="section-eyebrow"><${HelpCircle} size=${12} /> FAQ</div>
-              <h2>Pertanyaan Umum</h2>
-            </div>
-            <div class="faq-list">
-              <details class="faq-item">
-                <summary>Apakah ini benar-benar gratis?</summary>
-                <p>Ya, 100% gratis untuk fitur dasar. Tidak ada API key, tidak ada biaya tersembunyi. Anda hanya butuh akun AI gratis seperti ChatGPT atau Gemini.</p>
-              </details>
-              <details class="faq-item">
-                <summary>Apakah ini terafiliasi dengan instansi pemerintah?</summary>
-                <p>Tidak. TKA Studio adalah alat bantu independen. Namun prompt dirancang mengikuti standar asesmen Pusmendik Kemendikbud.</p>
-              </details>
-              <details class="faq-item">
-                <summary>Soal saya aman? Apakah dikirim ke server?</summary>
-                <p>Aman. Soal tersimpan di browser Anda (LocalStorage). Hanya yang Anda bagikan ke Pustaka Publik yang masuk server.</p>
-              </details>
-              <details class="faq-item">
-                <summary>Format file apa yang dihasilkan?</summary>
-                <p>File <code>.json v1.1</code> untuk TKA Local Host, dan <code>.csv 14 kolom</code> untuk arsip Excel.</p>
-              </details>
+              <div class="changelog-item">
+                <div class="changelog-date">September 2026</div>
+                <div class="changelog-content">
+                  <div class="changelog-version">v1.1</div>
+                  <ul class="changelog-list">
+                    <li>Peluncuran <b>Mode Expert</b> (Generate batch per 5 soal).</li>
+                    <li>Dukungan render rumus Matematika (KaTeX).</li>
+                    <li>Fitur validasi JSON v1.1 yang lebih ketat.</li>
+                    <li>Pustaka Soal Publik (Gotong Royong).</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="changelog-item">
+                <div class="changelog-date">Agustus 2026</div>
+                <div class="changelog-content">
+                  <div class="changelog-version">v1.0</div>
+                  <ul class="changelog-list">
+                    <li>Rilis perdana TKA Studio (Mode Basic).</li>
+                    <li>Parser pintar AI (JSON/CSV).</li>
+                    <li>Ekspor file `.json` untuk TKA Local Host.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -452,17 +356,14 @@ function Landing({ profile }) {
               <div class="final-cta-bg-1"></div>
               <div class="final-cta-bg-2"></div>
               <div class="final-cta-content">
-                <div class="badge-hero" style="margin: 0 auto 16px;">
-                  <span class="dot"></span> Mulai dalam 15 menit
-                </div>
                 <h2>Siap buat paket soal pertama Anda?</h2>
-                <p>Tidak perlu daftar. Tidak perlu bayar. Langsung coba.</p>
+                <p>Gunakan AI gratis (ChatGPT/Gemini) untuk menyusun soal. Kami yang merapikan formatnya.</p>
                 <div class="final-cta-actions">
                   <button class="cta-button" onClick=${() => navigate('/build')}>
-                    <${Sparkles} size=${20} /> Buat Soal Sekarang
+                    <${Sparkles} size=${20} /> Mulai Sekarang
                   </button>
-                  <button class="cta-button-ghost" onClick=${() => navigate('/expert')}>
-                    <${Star} size=${18} /> Coba Mode Expert
+                  <button class="cta-button-ghost" onClick=${() => navigate('/panduan/')}>
+                    <${BookOpen} size=${18} /> Baca Panduan
                   </button>
                 </div>
               </div>
