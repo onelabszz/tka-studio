@@ -31,7 +31,7 @@ const MENU_ITEMS = [
   {
     section: 'ARSIP ONLINE',
     items: [
-      { path: '/exam-list', label: 'Kode ujian saya', icon: Key },
+      { path: '/exam-list', label: 'Kode Ujian Saya', icon: Key },
     ],
   },
 ];
@@ -69,10 +69,17 @@ export function AppShell({ children, route, profile, onLogout }) {
     <div class="sidebar-divider"></div>
 
     <nav class="sidebar-nav">
-      ${MENU_ITEMS.map(group => html`
+      ${MENU_ITEMS.filter(group => {
+        // Sembunyikan grup ARSIP ONLINE jika tidak punya izin
+        if (group.section === 'ARSIP ONLINE') {
+          return profile?.role === 'admin' || profile?.can_publish_exam === true;
+        }
+        return true;
+      }).map(group => html`
         <div class="sidebar-section">
           <div class="sidebar-section-label">${group.section}</div>
           ${group.items.map(item => {
+            // ...
             const Icon = item.icon;
             const active = isActive(item.path);
             return html`
