@@ -5717,6 +5717,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
 }
 .player-code-input {
   flex: 1;
+  min-width: 0;
   padding: 10px 14px;
   border: 1.5px solid var(--border-strong);
   border-radius: 8px;
