@@ -2,18 +2,18 @@
  * TKA Studio — admin/admin.js
  * © 2026 Ekwan Nugroho — Wonogiri
  */
-import { h } from 'https://esm.sh/preact@10.24.3';
+import { h, render } from 'https://esm.sh/preact@10.24.3';
 import { useState, useEffect } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
-  Search, Shield, CheckCircle2, XCircle, Clock,
-  Trash2, Key, Loader2, AlertTriangle, User, Users, Copy, Check
+  Search, CheckCircle2, XCircle, Clock,
+  Trash2, Key, Loader2, AlertTriangle, Copy, Check
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getSupabase } from '../supabase/client.js';
 
 const html = htm.bind(h);
 
-export function AdminPanel() {
+function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pending'); // pending | active | suspended
@@ -38,6 +38,7 @@ export function AdminPanel() {
       setUsers(data || []);
     } catch (e) {
       if (window.showToast) window.showToast('Gagal memuat data: ' + e.message, 'error');
+      else alert('Gagal memuat data: ' + e.message);
     }
     setLoading(false);
   };
@@ -69,6 +70,7 @@ export function AdminPanel() {
           loadUsers();
         } catch (e) {
           if (window.showToast) window.showToast('Gagal aktivasi: ' + e.message, 'error');
+          else alert('Gagal aktivasi: ' + e.message);
         }
         setActionLoading(null);
       }
@@ -155,7 +157,6 @@ export function AdminPanel() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Filter data berdasarkan Tab dan Search
   const filteredUsers = users.filter(u => {
     if (tab === 'pending' && u.status !== 'pending') return false;
     if (tab === 'active' && u.status !== 'active') return false;
@@ -179,7 +180,6 @@ export function AdminPanel() {
   return html`
     <div class="admin-container">
       
-      <!-- Header -->
       <div class="admin-header">
         <div>
           <h1 class="admin-title">Panel Admin</h1>
@@ -187,20 +187,18 @@ export function AdminPanel() {
         </div>
       </div>
 
-      <!-- Tabs -->
       <div class="admin-tabs">
         <button class=${'admin-tab ' + (tab === 'pending' ? 'active' : '')} onClick=${() => setTab('pending')}>
-          <${Clock} size=${16} /> Menunggu Verifikasi <span class="badge">${counts.pending}</span>
+          <${Clock} size=${16} /> Menunggu <span class="badge">${counts.pending}</span>
         </button>
         <button class=${'admin-tab ' + (tab === 'active' ? 'active' : '')} onClick=${() => setTab('active')}>
-          <${CheckCircle2} size=${16} /> Akun Aktif <span class="badge">${counts.active}</span>
+          <${CheckCircle2} size=${16} /> Aktif <span class="badge">${counts.active}</span>
         </button>
         <button class=${'admin-tab ' + (tab === 'suspended' ? 'active' : '')} onClick=${() => setTab('suspended')}>
-          <${XCircle} size=${16} /> Ditangguhkan <span class="badge">${counts.suspended}</span>
+          <${XCircle} size=${16} /> Suspend <span class="badge">${counts.suspended}</span>
         </button>
       </div>
 
-      <!-- Search -->
       <div class="admin-search-bar">
         <${Search} size=${18} color="var(--text-muted)" />
         <input 
@@ -211,7 +209,6 @@ export function AdminPanel() {
         />
       </div>
 
-      <!-- Table -->
       <div class="admin-card">
         ${loading ? html`
           <div style="padding: 40px; text-align: center;"><${Loader2} class="spin" size=${32} color="var(--primary)" /></div>
@@ -285,7 +282,6 @@ export function AdminPanel() {
         `}
       </div>
 
-      <!-- Confirm Modal -->
       ${confirmData && html`
         <div class="modal-backdrop" onClick=${() => setConfirmData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 400px; text-align: center;">
@@ -308,7 +304,6 @@ export function AdminPanel() {
         </div>
       `}
 
-      <!-- Modal Password Baru -->
       ${passwordData && html`
         <div class="modal-backdrop" onClick=${() => setPasswordData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 400px;">
@@ -338,3 +333,6 @@ export function AdminPanel() {
     </div>
   `;
 }
+
+// Render ke DOM
+render(html`<${AdminPanel} />`, document.getElementById('app'));
