@@ -478,7 +478,7 @@ function App() {
     else if (route === '/expert/new') PageComponent = ExpertNewPage;
     else if (route.startsWith('/expert/')) { PageComponent = ExpertDetailPage; pageProps = { navigate, profile, id: route.split('/')[2] }; }
     else if (route === '/exam-list') {
-      if (profile?.role === 'admin' || profile?.can_publish_exam === true) {
+      if (['admin', 'superadmin'].includes(profile?.role) || profile?.can_publish_exam === true) {
         PageComponent = ExamListPage;
       } else {
         if (window.showToast) window.showToast('Anda tidak memiliki akses ke halaman ini.', 'error');
