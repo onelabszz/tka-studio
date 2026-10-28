@@ -121,7 +121,7 @@ function Footer() {
           </div>
           <div class="footer-col">
             <div class="footer-col-title">Ekosistem</div>
-            <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank">TKA Local Host</a>
+            <a href="https://onelabszz.github.io/tka-local/" target="_blank">TKA Local Host</a>
             <a href="./panduan/">Panduan Lengkap</a>
             <a href="#/debug" onClick=${(e) => { e.preventDefault(); navigate('/debug'); }}>Uji Sistem</a>
           </div>
