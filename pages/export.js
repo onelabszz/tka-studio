@@ -61,7 +61,7 @@ export function ExportPage({ navigate, profile }) {
   const [codeCopied, setCodeCopied] = useState(false);
   
   // Cek izin akses
-  const canPublishExam = profile?.role === 'admin' || profile?.can_publish_exam === true;
+  const canPublishExam = ['admin', 'superadmin'].includes(profile?.role) || profile?.can_publish_exam === true;
 
   if (!draft || !paket) {
     return html`
