@@ -48,7 +48,6 @@ function AdminApp() {
           setCurrentUserRole(profile.role);
           setAuthState('authorized');
           loadAllData();
-        }
         } else {
           setAuthState('unauthorized'); setLoading(false);
         }
@@ -317,7 +316,7 @@ function AdminApp() {
                         <div style="font-weight:700; color:var(--navy-900);">${user.nama}</div>
                         <div style="font-size:12px; color:var(--text-muted);">${user.email}</div>
                         ${user.role === 'admin' && html`<span class="badge badge-primary" style="margin-top:4px;">ADMIN</span>`}
-                        ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}                         ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}
+                        ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}
                       </td>
                       <td>
                         <div>${user.sekolah || '-'}</div>
