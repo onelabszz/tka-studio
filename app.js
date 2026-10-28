@@ -11,7 +11,7 @@ import {
   Check, Clock, Shield, Zap, FileJson, ChevronRight, PlayCircle, Star, Users, HelpCircle,
   Save, ListChecks, MousePointerClick, Bot, Download, MonitorPlay, Heart, MapPin,
   Github, MessageCircle, Repeat, Terminal, ShieldCheck, Share2, Library, Smartphone, History,
-  Fingerprint, Network
+  Fingerprint, Network, Calculator, Target
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 
 import { runSchemaTests } from './lib/tka-schema.test.js';
@@ -82,16 +82,16 @@ function Header({ profile, isLanding }) {
         
         ${isLanding && html`
           <nav class="header-nav">
-            <a href="#ekosistem" onClick=${(e) => { e.preventDefault(); document.getElementById('ekosistem')?.scrollIntoView({behavior: 'smooth'}); }}>Ekosistem</a>
             <a href="#fitur" onClick=${(e) => { e.preventDefault(); document.getElementById('fitur')?.scrollIntoView({behavior: 'smooth'}); }}>Fitur</a>
-            <a href="#changelog" onClick=${(e) => { e.preventDefault(); document.getElementById('changelog')?.scrollIntoView({behavior: 'smooth'}); }}>Changelog</a>
+            <a href="#ekosistem" onClick=${(e) => { e.preventDefault(); document.getElementById('ekosistem')?.scrollIntoView({behavior: 'smooth'}); }}>Ekosistem</a>
+            <a href="#changelog" onClick=${(e) => { e.preventDefault(); document.getElementById('changelog')?.scrollIntoView({behavior: 'smooth'}); }}>Pembaruan</a>
             <a href="./panduan/">Panduan</a>
           </nav>
         `}
 
         <div class="header-actions">
           ${profile 
-            ? html`<button class="btn-nav-login" onClick=${() => navigate('/build')}><${LayoutDashboard} size=${16} /> Dashboard</button>`
+            ? html`<button class="btn-nav-login" onClick=${() => navigate('/build')}><${LayoutDashboard} size=${16} /> Dasbor</button>`
             : html`<button class="btn-nav-login" onClick=${() => navigate('/login')}><${LogIn} size=${16} /> Masuk</button>`}
         </div>
       </div>
@@ -108,7 +108,7 @@ function Footer() {
           <div>
             <div class="footer-title">TKA Studio</div>
             <div class="footer-desc">
-              Ekosistem pembuat soal TKA bertenaga AI. Gratis, tanpa API key, dan fokus pada kemudahan guru Indonesia.
+              Platform penyusunan asesmen bertenaga AI. Membantu guru Indonesia menciptakan soal berkualitas dengan standar nasional.
             </div>
           </div>
         </div>
@@ -116,14 +116,14 @@ function Footer() {
           <div class="footer-col">
             <div class="footer-col-title">Produk</div>
             <a href="#/" onClick=${(e) => { e.preventDefault(); navigate('/'); }}>Beranda</a>
-            <a href="#/build" onClick=${(e) => { e.preventDefault(); navigate('/build'); }}>Buat Soal (Dapur)</a>
-            <a href="#/play" onClick=${(e) => { e.preventDefault(); navigate('/play'); }}>Player Siswa</a>
+            <a href="#/build" onClick=${(e) => { e.preventDefault(); navigate('/build'); }}>Studio Asesmen</a>
+            <a href="#/play" onClick=${(e) => { e.preventDefault(); navigate('/play'); }}>Ujian Mandiri</a>
           </div>
           <div class="footer-col">
             <div class="footer-col-title">Ekosistem</div>
             <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank">TKA Local Host</a>
             <a href="./panduan/">Panduan Lengkap</a>
-            <a href="#/debug" onClick=${(e) => { e.preventDefault(); navigate('/debug'); }}>Schema Tests</a>
+            <a href="#/debug" onClick=${(e) => { e.preventDefault(); navigate('/debug'); }}>Uji Sistem</a>
           </div>
         </div>
       </div>
@@ -147,39 +147,35 @@ function Landing({ profile }) {
 
         <div class="hero-container">
           <div class="hero-copy">
-            <div class="badge-hero"><span class="dot"></span> Ekosistem TKA Terpadu v1.3</div>
+            <div class="badge-hero"><span class="dot"></span> Platform Asesmen Terpadu</div>
             <h1 class="hero-title">
-              Satu Akun, <br/>
-              <span class="highlight">Dua Aplikasi.</span>
+              Ciptakan Soal Asesmen <br/>
+              <span class="highlight">Berkualitas Tinggi.</span>
             </h1>
             <p class="hero-desc">
-              Daftar sekali di TKA Studio. Gunakan akun yang sama untuk menyusun bank soal bertenaga AI di sini, dan mengerjakan ujian offline di <b>TKA Local Host</b>.
+              Susun bank soal HOTS (C1–C6) bertenaga AI dalam hitungan menit. Lengkap dengan dukungan rumus matematika, gambar, dan validasi format sesuai standar ujian nasional.
             </p>
             <div class="hero-actions">
-              ${profile ? html`
-                <button class="cta-button" onClick=${() => navigate('/build')}>
-                  <${LayoutDashboard} size=${20} /> Masuk Dasbor
-                </button>
-              ` : html`
-                <button class="cta-button" onClick=${() => navigate('/register')}>
-                  <${Fingerprint} size=${20} /> Daftar Akun Terpusat
+              <button class="cta-button" onClick=${() => navigate('/build')}>
+                <${Sparkles} size=${20} /> Mulai Susun Soal
+              </button>
+              ${!profile && html`
+                <button class="cta-button-ghost" onClick=${() => navigate('/register')}>
+                  <${Fingerprint} size=${18} /> Daftar Akun (SSO)
                 </button>
               `}
-              <button class="cta-button-ghost" onClick=${() => navigate('/play')}>
-                <${PlayCircle} size=${18} /> Coba Mode Siswa
-              </button>
             </div>
             <div class="hero-trust">
-              <span><${Check} size=${16} /> Single Sign-On (SSO)</span>
               <span><${Check} size=${16} /> 100% Gratis</span>
-              <span><${Check} size=${16} /> Standar Asesmen</span>
+              <span><${Check} size=${16} /> Tanpa API Key</span>
+              <span><${Check} size=${16} /> Siap Ekspor Local Host</span>
             </div>
           </div>
 
           <div class="hero-visual">
             <div class="visual-glow"></div>
             <div class="hero-float-badge">
-              <${Network} size=${13} /> Terintegrasi Local Host
+              <${Zap} size=${13} /> Optimasi Gambar Otomatis
             </div>
 
             <div class="v-card v-card-math">
@@ -210,85 +206,87 @@ function Landing({ profile }) {
       </section>
 
       <main class="landing-main">
-
-        <!-- EKOSISTEM SSO -->
-        <section class="section-ekosistem" id="ekosistem">
+        
+        <!-- FITUR KUALITAS SOAL -->
+        <section class="section-features" id="fitur">
           <div class="section-container">
             <div class="section-header">
-              <div class="section-eyebrow"><${Fingerprint} size=${12} /> Alur Terpadu</div>
-              <h2>Satu Identitas untuk Semua Kebutuhan</h2>
-              <p>Tidak perlu ingat banyak password. Akun yang Anda buat di sini adalah kunci untuk seluruh ekosistem.</p>
+              <div class="section-eyebrow"><${Star} size=${12} /> Standar Kualitas</div>
+              <h2>Dirancang untuk Standar Asesmen Nasional</h2>
+              <p>Fokus pada kualitas soal, bukan sekadar kuantitas.</p>
             </div>
 
-            <div class="bridge-flow">
-              <!-- Node 1 -->
-              <div class="bridge-node" style="border-color: var(--primary-mid); box-shadow: 0 10px 30px rgba(30,64,175,0.1);">
-                <div class="bridge-icon is-primary"><${Sparkles} size=${28} /></div>
-                <h3>1. TKA Studio</h3>
-                <p><b>Pintu Masuk Utama.</b> Daftar akun, buat soal dengan AI, dan atur izin akses.</p>
-                <div class="bridge-chips">
-                  <span class="config-chip">Registrasi SSO</span>
-                  <span class="config-chip">Buat Soal</span>
-                </div>
+            <div class="grid-2">
+              <div class="feature-card tone-blue">
+                <div class="feature-icon-wrapper"><${Target} size=${28} /></div>
+                <h3>Berbasis HOTS (C1–C6)</h3>
+                <p>Prompt AI telah dikalibrasi dengan standar Pusmendik Kemendikbud. Hasilkan soal yang mengukur hafalan hingga analisis tingkat tinggi.</p>
               </div>
 
-              <!-- Arrow -->
-              <div class="bridge-arrow">
-                <div class="bridge-arrow-line"></div>
-                <div class="bridge-arrow-label" style="background: var(--primary-light); border-color: var(--primary-mid);">
-                  <${ShieldCheck} size=${14} />
-                  <span>Akun Terhubung</span>
-                </div>
-                <div class="bridge-arrow-line"></div>
+              <div class="feature-card tone-amber">
+                <div class="feature-icon-wrapper"><${Calculator} size=${28} /></div>
+                <h3>Dukungan Rumus (KaTeX)</h3>
+                <p>Pecahan, matriks, atau persamaan kimia akan dirender dengan cantik dan presisi, baik di editor maupun saat ujian berlangsung.</p>
               </div>
 
-              <!-- Node 2 -->
-              <div class="bridge-node">
-                <div class="bridge-icon is-amber"><${MonitorPlay} size=${28} /></div>
-                <h3>2. TKA Local Host</h3>
-                <p>Aplikasi desktop untuk ujian offline. Langsung bisa diakses menggunakan akun Studio.</p>
-                <div class="bridge-chips">
-                  <span class="config-chip is-warning">Ujian Offline</span>
-                  <span class="config-chip is-warning">Pengawasan Ketat</span>
-                </div>
+              <div class="feature-card tone-purple">
+                <div class="feature-icon-wrapper"><${ImageIcon} size=${28} /></div>
+                <h3>Kompresi Gambar Otomatis</h3>
+                <p>Unggah gambar pendukung, dan sistem akan otomatis mengompresnya ke format WebP agar ukuran file tetap ringan dan cepat diakses.</p>
+              </div>
+
+              <div class="feature-card tone-green">
+                <div class="feature-icon-wrapper"><${FileJson} size=${28} /></div>
+                <h3>Validasi Format Ketat</h3>
+                <p>Tidak perlu pusing dengan format. Sistem akan memvalidasi setiap soal sebelum diekspor, memastikan 100% kompatibel dengan Local Host.</p>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- FITUR BARU -->
-        <section class="section-features" id="fitur">
+        <!-- EKOSISTEM & SSO -->
+        <section class="section-ekosistem" id="ekosistem">
           <div class="section-container">
             <div class="section-header">
-              <div class="section-eyebrow"><${Star} size=${12} /> Fitur Ekosistem</div>
-              <h2>Dirancang untuk Skala Sekolah & Kabupaten</h2>
+              <div class="section-eyebrow"><${Fingerprint} size=${12} /> Integrasi Sistem</div>
+              <h2>Sinergi Asesmen: Web & Desktop</h2>
+              <p>Alur kerja tanpa hambatan dari penyusunan soal hingga pelaksanaan ujian.</p>
             </div>
 
-            <div class="grid-2">
-              <div class="feature-card tone-blue">
-                <div class="feature-icon-wrapper"><${Fingerprint} size=${28} /></div>
-                <h3>Single Sign-On (SSO)</h3>
-                <p>Pendaftaran mandiri terpusat di TKA Studio. Admin sekolah cukup mengaktifkan satu kali, dan akun langsung bisa dipakai untuk aplikasi web maupun desktop.</p>
+            <div class="bridge-flow">
+              <div class="bridge-node" style="border-color: var(--primary-mid);">
+                <div class="bridge-icon is-primary"><${Sparkles} size=${28} /></div>
+                <h3>TKA Studio</h3>
+                <p>Pusat penyusunan soal bertenaga AI (Online).</p>
               </div>
 
-              <div class="feature-card tone-amber">
-                <div class="feature-icon-wrapper"><${ShieldCheck} size=${28} /></div>
-                <h3>Role Hierarchy</h3>
-                <p>Sistem keamanan berlapis. Superadmin mengawasi Admin, dan Admin mengelola Guru. Dilengkapi proteksi anti-promote role secara ilegal.</p>
+              <div class="bridge-arrow">
+                <div class="bridge-arrow-line"></div>
+                <div class="bridge-arrow-label" style="background: var(--primary-light); border-color: var(--primary-mid);">
+                  <${ShieldCheck} size=${14} />
+                  <span>Akun SSO Terhubung</span>
+                </div>
+                <div class="bridge-arrow-line"></div>
               </div>
 
-              <div class="feature-card tone-purple">
-                <div class="feature-icon-wrapper"><${Network} size=${28} /></div>
-                <h3>Sinkronisasi Database</h3>
-                <p>Data status (Pending/Aktif/Suspend) dan Role tersinkronisasi otomatis antara Studio dan Local Host secara *real-time* via trigger database.</p>
-              </div>
-
-              <div class="feature-card tone-green">
-                <div class="feature-icon-wrapper"><${Share2} size=${28} /></div>
-                <h3>Bagikan Kode Latihan</h3>
-                <p>Bagikan Kode 6 huruf ke siswa. Mereka bisa berlatih mandiri langsung dari HP tanpa perlu file JSON atau aplikasi tambahan.</p>
+              <div class="bridge-node" style="border-color: var(--warning);">
+                <div class="bridge-icon is-amber"><${MonitorPlay} size=${28} /></div>
+                <h3>TKA Local Host</h3>
+                <p>Eksekusi ujian offline dengan pengawasan (Desktop).</p>
               </div>
             </div>
+
+            <div style="margin-top: 40px; text-align: center;">
+              <div class="auth-info-box" style="display: inline-block; max-width: 640px; text-align: left; background: white; border: 1px solid var(--border-strong); box-shadow: var(--shadow-sm);">
+                <div class="auth-info-title" style="color: var(--primary); font-size: 15px; margin-bottom: 8px;">
+                  <${Fingerprint} size=${18} /> Single Sign-On (SSO) Terpusat
+                </div>
+                <p style="margin: 0; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+                  Cukup daftar satu kali di TKA Studio. Akun Anda akan otomatis dikenali oleh TKA Local Host. Tidak perlu membuat akun baru atau mengingat password tambahan saat berpindah aplikasi.
+                </p>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -297,7 +295,7 @@ function Landing({ profile }) {
           <div class="section-container" style="max-width: 800px;">
             <div class="section-header">
               <div class="section-eyebrow"><${History} size=${12} /> Timeline</div>
-              <h2>Riwayat Pembaruan</h2>
+              <h2>Pembaruan Platform</h2>
             </div>
             
             <div class="changelog-timeline">
@@ -306,10 +304,9 @@ function Landing({ profile }) {
                 <div class="changelog-content">
                   <div class="changelog-version">v1.3 <span class="badge-done">Terbaru</span></div>
                   <ul class="changelog-list">
-                    <li><b>Unifikasi Akun:</b> Studio menjadi Pintu Masuk Utama (SSO) untuk ekosistem TKA.</li>
-                    <li><b>Role Superadmin:</b> Penambahan hierarki role baru dan trigger anti-escalation.</li>
-                    <li><b>Sinkronisasi:</b> Profil dan status tersinkronisasi dua arah dengan Local Host.</li>
-                    <li><b>Admin Panel:</b> Peningkatan keamanan (tidak bisa hapus diri sendiri) dan UI Dashboard.</li>
+                    <li><b>Sistem SSO:</b> Satu akun untuk TKA Studio dan TKA Local Host.</li>
+                    <li><b>Manajemen Hak Akses:</b> Peningkatan keamanan data guru dan admin.</li>
+                    <li><b>Sinkronisasi Profil:</b> Status akun otomatis sinkron antar aplikasi.</li>
                   </ul>
                 </div>
               </div>
@@ -319,21 +316,9 @@ function Landing({ profile }) {
                 <div class="changelog-content">
                   <div class="changelog-version">v1.2</div>
                   <ul class="changelog-list">
-                    <li><b>TKA Player:</b> UI/UX ujian resmi (Radio, Checkbox, Tabel B/S).</li>
-                    <li><b>Kode Latihan:</b> Integrasi GitHub Edge Function untuk share tanpa file.</li>
-                    <li><b>Image Tool:</b> Auto-compress WebP dan embed base64.</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div class="changelog-item">
-                <div class="changelog-date">Agustus 2026</div>
-                <div class="changelog-content">
-                  <div class="changelog-version">v1.0 & v1.1</div>
-                  <ul class="changelog-list">
-                    <li>Rilis perdana TKA Studio (Mode Basic & Expert).</li>
-                    <li>Parser pintar AI (JSON/CSV) dan render KaTeX.</li>
-                    <li>Pustaka Soal Publik (Gotong Royong).</li>
+                    <li><b>Antarmuka Ujian:</b> Tampilan PG, MCMA, dan B/S yang menyerupai ujian resmi.</li>
+                    <li><b>Kode Latihan:</b> Distribusi soal ke siswa via kode 6 huruf.</li>
+                    <li><b>Manajemen Gambar:</b> Kompresi WebP otomatis.</li>
                   </ul>
                 </div>
               </div>
@@ -348,20 +333,14 @@ function Landing({ profile }) {
               <div class="final-cta-bg-1"></div>
               <div class="final-cta-bg-2"></div>
               <div class="final-cta-content">
-                <h2>Bergabung dengan Ekosistem TKA</h2>
-                <p>Satu pendaftaran, akses tanpa batas. Mulai dari membuat soal hingga ujian offline di sekolah.</p>
+                <h2>Tingkatkan Kualitas Asesmen Sekolah Anda</h2>
+                <p>Gunakan AI secara bijak untuk meringkas waktu penyusunan soal, tanpa mengorbankan standar pendidikan.</p>
                 <div class="final-cta-actions">
-                  ${profile ? html`
-                    <button class="cta-button" onClick=${() => navigate('/build')}>
-                      <${LayoutDashboard} size=${20} /> Ke Dasbor Studio
-                    </button>
-                  ` : html`
-                    <button class="cta-button" onClick=${() => navigate('/register')}>
-                      <${Fingerprint} size=${20} /> Daftar Akun Sekarang
-                    </button>
-                  `}
-                  <a href="https://onelabszz.github.io/tka-local/docs/" target="_blank" class="cta-button-ghost" style="text-decoration: none;">
-                    <${MonitorPlay} size=${18} /> Dokumentasi Local Host
+                  <button class="cta-button" onClick=${() => navigate('/build')}>
+                    <${Sparkles} size=${20} /> Mulai Susun Soal
+                  </button>
+                  <a href="./panduan/" class="cta-button-ghost" style="text-decoration: none;">
+                    <${BookOpen} size=${18} /> Lihat Panduan
                   </a>
                 </div>
               </div>
@@ -386,7 +365,7 @@ function DebugPageInner() {
       <${Header} isLanding=${false} />
       <main class="landing-main" style="padding: 40px 20px;">
         <div class="section-container" style="text-align: left; max-width: 900px; background: white; padding: 32px; border-radius: 16px;">
-          <h1>Schema Tests</h1>
+          <h1>Uji Sistem (Schema Tests)</h1>
           <p><b style="color: var(--success);">${result.passed} lulus</b> ${result.failed > 0 && html` · <b style="color: var(--danger);">${result.failed} gagal</b>`}</p>
           <button class="cta-button" style="margin-top: 20px;" onClick=${() => navigate('/')}>Kembali</button>
         </div>
