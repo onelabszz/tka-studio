@@ -16,6 +16,7 @@ const html = htm.bind(h);
 
 function AdminApp() {
   const [authState, setAuthState] = useState('loading');
+  const [currentUserRole, setCurrentUserRole] = useState('user');
   const [currentMenu, setCurrentMenu] = useState('users'); 
   
   // Data
@@ -44,8 +45,10 @@ function AdminApp() {
         
         const { data: profile } = await client.from('profiles').select('role').eq('id', session.user.id).single();
         if (profile && ['admin', 'superadmin'].includes(profile.role)) {
+          setCurrentUserRole(profile.role);
           setAuthState('authorized');
           loadAllData();
+        }
         } else {
           setAuthState('unauthorized'); setLoading(false);
         }
@@ -437,7 +440,7 @@ function AdminApp() {
                   <select value=${editData.role} onInput=${(e) => setEditData({...editData, role: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;">
                     <option value="user">Guru (User)</option>
                     <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
+                    ${currentUserRole === 'superadmin' && html`<option value="superadmin">Superadmin</option>`}
                   </select>
                 </div>
               </div>
