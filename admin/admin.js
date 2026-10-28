@@ -1,5 +1,5 @@
 /**
- * TKA Studio — admin/admin.js (Unified Admin Panel)
+ * TKA Studio — admin/admin.js (Final Dashboard + Moderasi)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h, render } from 'https://esm.sh/preact@10.24.3';
@@ -8,7 +8,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   LayoutDashboard, Users, BookOpen, Search, CheckCircle2,
   XCircle, Clock, Trash2, Key, Loader2, AlertTriangle, Copy, Check,
-  Shield, Download, LogOut, Pencil, UserX, MonitorPlay
+  Shield, Download, LogOut, Pencil, UserX, RefreshCw
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { getSupabase } from '../supabase/client.js';
 
@@ -45,7 +45,6 @@ function AdminApp() {
         if (!session) { setAuthState('unauthorized'); setLoading(false); return; }
         
         const { data: profile } = await client.from('profiles').select('role').eq('id', session.user.id).single();
-        
         if (profile && ['admin', 'superadmin'].includes(profile.role)) {
           setCurrentUserRole(profile.role);
           setCurrentUserId(session.user.id);
@@ -64,22 +63,18 @@ function AdminApp() {
     try {
       const client = await getSupabase();
       
-      // 1. Ambil data Studio (RLS otomatis menyembunyikan Superadmin dari Admin biasa)
+      // Load Users
       const { data: u } = await client.from('profiles').select('*').order('created_at', { ascending: false });
+      setUsers(u || []);
       
-      // 2. Ambil data TKA Local
-      const { data: lp } = await client.from('local_profiles').select('*');
-      
-      // 3. Gabungkan (Merge) data berdasarkan ID
-      const mergedUsers = (u || []).map(user => {
-        const localData = (lp || []).find(l => l.id === user.id) || null;
-        return { ...user, local: localData };
-      });
-
-      setUsers(mergedUsers);
-      
-      const { data: p } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
+      // Load Pustaka
+      const { data: p, error: pError } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
+      if (pError) {
+        console.error("Gagal memuat pustaka:", pError);
+        if (window.showToast) window.showToast('Gagal memuat Pustaka: ' + pError.message, 'error');
+      }
       setPustaka(p || []);
+      
     } catch (e) {
       if (window.showToast) window.showToast('Gagal memuat data: ' + e.message, 'error');
     }
@@ -87,7 +82,7 @@ function AdminApp() {
   };
 
   // ==========================================
-  // USER ACTIONS (TKA STUDIO)
+  // USER ACTIONS
   // ==========================================
   
   const handleGeneratePassword = (user) => {
@@ -120,13 +115,13 @@ function AdminApp() {
 
   const handleSuspend = (user) => {
     setConfirmData({
-      title: 'Tangguhkan Akun?', message: `Akun ${user.nama} tidak akan bisa login ke TKA Studio.`, confirmText: 'Ya, Tangguhkan', isDanger: true,
+      title: 'Tangguhkan Akun?', message: `Akun ${user.nama} tidak akan bisa login.`, confirmText: 'Ya, Tangguhkan', isDanger: true,
       onConfirm: async () => {
         setConfirmData(null); setActionLoading(user.id);
         try {
           const client = await getSupabase();
           await client.from('profiles').update({ status: 'suspended' }).eq('id', user.id);
-          if (window.showToast) window.showToast('Akun Studio ditangguhkan.', 'success');
+          if (window.showToast) window.showToast('Akun ditangguhkan.', 'success');
           loadAllData();
         } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
         setActionLoading(null);
@@ -166,18 +161,12 @@ function AdminApp() {
     setActionLoading(editData.id);
     try {
       const client = await getSupabase();
-      const payload = {
+      const { error } = await client.from('profiles').update({
         nama: editData.nama,
         sekolah: editData.sekolah,
         wa: editData.wa,
-      };
-      
-      // Hanya kirim role jika bukan mengedit diri sendiri
-      if (editData.id !== currentUserId) {
-        payload.role = editData.role;
-      }
-
-      const { error } = await client.from('profiles').update(payload).eq('id', editData.id);
+        role: editData.role
+      }).eq('id', editData.id);
       
       if (error) throw error;
       if (window.showToast) window.showToast('Profil berhasil diperbarui.', 'success');
@@ -190,31 +179,17 @@ function AdminApp() {
   };
 
   // ==========================================
-  // LOCAL ACTIONS (TKA LOCAL HOST)
+  // PUSTAKA ACTIONS
   // ==========================================
-
-  const handleExtendLocal = (user) => {
+  const handleDeletePustaka = (item) => {
     setConfirmData({
-      title: 'Perpanjang Akses Local?',
-      message: `Berikan akses TKA Local selama 1 tahun untuk ${user.nama}?`,
-      confirmText: 'Ya, Perpanjang',
-      isDanger: false,
+      title: 'Hapus Soal Publik?', message: 'Soal ini akan dihapus permanen dari Pustaka Publik.', confirmText: 'Ya, Hapus', isDanger: true,
       onConfirm: async () => {
-        setConfirmData(null); setActionLoading(user.id);
+        setConfirmData(null); setActionLoading(item.id);
         try {
           const client = await getSupabase();
-          const nextYear = new Date();
-          nextYear.setFullYear(nextYear.getFullYear() + 1);
-          
-          await client.from('local_profiles').upsert({
-            id: user.id,
-            email: user.email,
-            school_name: user.sekolah || 'Sekolah',
-            status: 'active',
-            role: user.role === 'admin' || user.role === 'superadmin' ? 'admin' : 'teacher',
-            expires_at: nextYear.toISOString()
-          });
-          if (window.showToast) window.showToast('Akses Local diperpanjang.', 'success');
+          await client.from('pustaka_soal').delete().eq('id', item.id);
+          if (window.showToast) window.showToast('Soal dihapus dari Pustaka.', 'success');
           loadAllData();
         } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
         setActionLoading(null);
@@ -222,29 +197,6 @@ function AdminApp() {
     });
   };
 
-  const handleSuspendLocal = (user) => {
-    setConfirmData({
-      title: 'Tangguhkan Akses Local?',
-      message: `Akun ${user.nama} tidak akan bisa login ke aplikasi desktop TKA Local.`,
-      confirmText: 'Ya, Tangguhkan',
-      isDanger: true,
-      onConfirm: async () => {
-        setConfirmData(null); setActionLoading(user.id);
-        try {
-          const client = await getSupabase();
-          await client.from('local_profiles').update({ status: 'suspended' }).eq('id', user.id);
-          if (window.showToast) window.showToast('Akses Local ditangguhkan.', 'success');
-          loadAllData();
-        } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
-        setActionLoading(null);
-      }
-    });
-  };
-
-
-  // ==========================================
-  // HELPERS
-  // ==========================================
   const copyPassword = () => {
     if (!passwordData) return;
     navigator.clipboard.writeText(passwordData.password);
@@ -286,13 +238,12 @@ function AdminApp() {
 
   return html`
     <div class="admin-layout">
-      <!-- SIDEBAR -->
       <aside class="admin-sidebar">
         <div class="admin-sidebar-brand">
           <div class="admin-sidebar-brand-icon"><${Shield} size=${20} /></div>
           <div class="admin-sidebar-brand-text">
             <h1>Admin Panel</h1>
-            <p>TKA Ekosistem</p>
+            <p>TKA Studio</p>
           </div>
         </div>
         <nav class="admin-menu">
@@ -301,9 +252,6 @@ function AdminApp() {
           </button>
           <button class=${'admin-menu-item ' + (currentMenu === 'users' ? 'active' : '')} onClick=${() => setCurrentMenu('users')}>
             <${Users} size=${18} /> <span>Kelola Guru</span>
-          </button>
-          <button class=${'admin-menu-item ' + (currentMenu === 'local' ? 'active' : '')} onClick=${() => setCurrentMenu('local')}>
-            <${MonitorPlay} size=${18} /> <span>Akses TKA Local</span>
           </button>
           <button class=${'admin-menu-item ' + (currentMenu === 'pustaka' ? 'active' : '')} onClick=${() => setCurrentMenu('pustaka')}>
             <${BookOpen} size=${18} /> <span>Moderasi Pustaka</span>
@@ -314,14 +262,14 @@ function AdminApp() {
         </nav>
       </aside>
 
-      <!-- MAIN CONTENT -->
       <main class="admin-main">
         
+        <!-- MENU: OVERVIEW -->
         ${currentMenu === 'overview' && html`
           <div class="admin-header">
             <div>
               <h1 class="admin-title">Ringkasan Sistem</h1>
-              <p class="admin-subtitle">Pantau aktivitas dan pertumbuhan pengguna TKA Ekosistem.</p>
+              <p class="admin-subtitle">Pantau aktivitas dan pertumbuhan pengguna TKA Studio.</p>
             </div>
           </div>
           <div class="admin-stats-grid">
@@ -340,11 +288,12 @@ function AdminApp() {
           </div>
         `}
 
+        <!-- MENU: KELOLA GURU -->
         ${currentMenu === 'users' && html`
           <div class="admin-header">
             <div>
-              <h1 class="admin-title">Kelola Guru (Studio)</h1>
-              <p class="admin-subtitle">Verifikasi akun, edit profil, reset password, dan atur akses Studio.</p>
+              <h1 class="admin-title">Kelola Guru</h1>
+              <p class="admin-subtitle">Verifikasi akun, edit profil, reset password, dan atur akses guru.</p>
             </div>
           </div>
 
@@ -384,7 +333,9 @@ function AdminApp() {
                     filteredUsers.map(user => html`
                     <tr key=${user.id}>
                       <td>
-                        <div style="font-weight:700; color:var(--navy-900);">${user.nama} ${user.id === currentUserId ? '(Anda)' : ''}</div>
+                        <div style="font-weight:700; color:var(--navy-900);">
+                          ${user.nama} ${user.id === currentUserId ? html`<span style="font-weight:400; color:var(--text-muted);">(Anda)</span>` : ''}
+                        </div>
                         <div style="font-size:12px; color:var(--text-muted);">${user.email}</div>
                         
                         ${user.role === 'admin' && html`<span class="badge badge-primary" style="margin-top:4px;">ADMIN</span>`}
@@ -422,7 +373,7 @@ function AdminApp() {
                             `}
 
                             ${user.status === 'active' && user.id !== currentUserId && html`
-                              <button class="btn-icon btn-delete" onClick=${() => handleSuspend(user)} title="Tangguhkan Studio">
+                              <button class="btn-icon btn-delete" onClick=${() => handleSuspend(user)} title="Tangguhkan">
                                 <${UserX} size=${16}/>
                               </button>
                             `}
@@ -443,12 +394,16 @@ function AdminApp() {
           </div>
         `}
 
-        ${currentMenu === 'local' && html`
-          <div class="admin-header">
+        <!-- MENU: MODERASI PUSTAKA -->
+        ${currentMenu === 'pustaka' && html`
+          <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <h1 class="admin-title">Akses TKA Local Host</h1>
-              <p class="admin-subtitle">Kelola lisensi aplikasi desktop, perpanjang masa aktif, atau tangguhkan akses.</p>
+              <h1 class="admin-title">Moderasi Pustaka</h1>
+              <p class="admin-subtitle">Awasi soal-soal publik yang dibagikan oleh guru.</p>
             </div>
+            <button class="btn-primary" onClick=${loadAllData} disabled=${loading}>
+              <${RefreshCw} size=${16} class=${loading ? 'spin' : ''} /> Refresh Data
+            </button>
           </div>
 
           <div class="admin-card">
@@ -456,49 +411,36 @@ function AdminApp() {
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Guru & Sekolah</th>
-                    <th>Status Local</th>
-                    <th>Masa Aktif (Expire)</th>
+                    <th>Mapel & Kelas</th>
+                    <th>Soal</th>
+                    <th>Penulis</th>
                     <th style="text-align:right;">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${loading ? html`<tr><td colspan="4" style="text-align:center; padding:40px;"><${Loader2} class="spin" size=${24}/></td></tr>` : 
-                    users.filter(u => u.local && u.local.status).length === 0 ? html`<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada guru yang diberi akses TKA Local.</td></tr>` :
-                    users.filter(u => u.local && u.local.status).map(user => {
-                      const isExpired = user.local.expires_at && new Date(user.local.expires_at) < new Date();
-                      return html`
-                      <tr key=${user.id}>
-                        <td>
-                          <div style="font-weight:700; color:var(--navy-900);">${user.nama} ${user.id === currentUserId ? '(Anda)' : ''}</div>
-                          <div style="font-size:12px; color:var(--text-muted);">${user.email}</div>
-                          <div style="font-size:12px; margin-top:2px;">${user.local.school_name || user.sekolah || '-'}</div>
-                        </td>
-                        <td>
-                          ${user.local.status === 'active' && !isExpired ? html`<span class="badge badge-success">Aktif</span>` : ''}
-                          ${user.local.status === 'pending' ? html`<span class="badge badge-warning">Pending</span>` : ''}
-                          ${user.local.status === 'suspended' ? html`<span class="badge badge-danger">Suspend</span>` : ''}
-                          ${isExpired ? html`<span class="badge badge-muted">Expired</span>` : ''}
-                        </td>
-                        <td>
-                          <div style="font-size:13px;">${user.local.expires_at ? new Date(user.local.expires_at).toLocaleDateString('id-ID') : '-'}</div>
-                        </td>
-                        <td>
-                          <div style="display:flex; gap:6px; justify-content:flex-end;">
-                            ${actionLoading === user.id ? html`<${Loader2} class="spin" size=${18} color="var(--primary)" />` : html`
-                              <button class="btn-icon btn-key" onClick=${() => handleExtendLocal(user)} title="Perpanjang 1 Tahun">
-                                <${Clock} size=${16}/>
-                              </button>
-                              ${user.local.status === 'active' && user.id !== currentUserId && html`
-                                <button class="btn-icon btn-delete" onClick=${() => handleSuspendLocal(user)} title="Tangguhkan Akses Local">
-                                  <${UserX} size=${16}/>
-                                </button>
-                              `}
-                            `}
-                          </div>
-                        </td>
-                      </tr>
-                    `})}
+                  ${loading ? html`<tr><td colspan="4" style="text-align:center; padding:40px;"><${Loader2} class="spin" size=${24}/></td></tr>` :
+                    pustaka.length === 0 ? html`<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada soal publik.</td></tr>` :
+                    pustaka.map(item => html`
+                    <tr key=${item.id}>
+                      <td>
+                        <div style="font-weight:700;">${item.mapel}</div>
+                        <div style="font-size:12px; color:var(--text-muted);">${item.kelas || '-'} · ${item.tipe.toUpperCase()}</div>
+                      </td>
+                      <td>
+                        <div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px;">
+                          ${item.q_text || item.konten?.q || '(Teks soal tidak terbaca)'}
+                        </div>
+                      </td>
+                      <td>${item.contributor_nama || 'Anonim'}</td>
+                      <td style="text-align:right;">
+                        ${actionLoading === item.id ? html`<${Loader2} class="spin" size=${16} />` : html`
+                          <button class="btn-icon btn-delete" onClick=${() => handleDeletePustaka(item)} title="Hapus Soal">
+                            <${Trash2} size=${16}/>
+                          </button>
+                        `}
+                      </td>
+                    </tr>
+                  `)}
                 </tbody>
               </table>
             </div>
@@ -567,11 +509,11 @@ function AdminApp() {
                   <input type="text" value=${editData.wa} onInput=${(e) => setEditData({...editData, wa: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;" />
                 </div>
                 <div>
-                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Role Akses Studio</label>
+                  <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Role Akses</label>
                   <select 
                     value=${editData.role} 
                     onInput=${(e) => setEditData({...editData, role: e.target.value})} 
-                    disabled=${editData.id === currentUserId} 
+                    disabled=${editData.id === currentUserId}
                     style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px; background: ${editData.id === currentUserId ? 'var(--surface-muted)' : 'white'};"
                   >
                     <option value="user">Guru (User)</option>
