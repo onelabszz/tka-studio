@@ -43,7 +43,7 @@ function AdminApp() {
         if (!session) { setAuthState('unauthorized'); setLoading(false); return; }
         
         const { data: profile } = await client.from('profiles').select('role').eq('id', session.user.id).single();
-        if (profile && profile.role === 'admin') {
+        if (profile && ['admin', 'superadmin'].includes(profile.role)) {
           setAuthState('authorized');
           loadAllData();
         } else {
@@ -314,6 +314,7 @@ function AdminApp() {
                         <div style="font-weight:700; color:var(--navy-900);">${user.nama}</div>
                         <div style="font-size:12px; color:var(--text-muted);">${user.email}</div>
                         ${user.role === 'admin' && html`<span class="badge badge-primary" style="margin-top:4px;">ADMIN</span>`}
+                        ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}                         ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}
                       </td>
                       <td>
                         <div>${user.sekolah || '-'}</div>
@@ -436,6 +437,7 @@ function AdminApp() {
                   <select value=${editData.role} onInput=${(e) => setEditData({...editData, role: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;">
                     <option value="user">Guru (User)</option>
                     <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
                   </select>
                 </div>
               </div>
