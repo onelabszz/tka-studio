@@ -1,5 +1,5 @@
 /**
- * TKA Studio — admin/admin.js (Premium Dashboard + Edit/Pass)
+ * TKA Studio — admin/admin.js (Final Handoff Edition)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h, render } from 'https://esm.sh/preact@10.24.3';
@@ -17,6 +17,7 @@ const html = htm.bind(h);
 function AdminApp() {
   const [authState, setAuthState] = useState('loading');
   const [currentUserRole, setCurrentUserRole] = useState('user');
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [currentMenu, setCurrentMenu] = useState('users'); 
   
   // Data
@@ -25,7 +26,7 @@ function AdminApp() {
   const [loading, setLoading] = useState(true);
   
   // UI States
-  const [userTab, setUserTab] = useState('active'); // Default ke aktif
+  const [userTab, setUserTab] = useState('active');
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   
@@ -46,6 +47,7 @@ function AdminApp() {
         const { data: profile } = await client.from('profiles').select('role').eq('id', session.user.id).single();
         if (profile && ['admin', 'superadmin'].includes(profile.role)) {
           setCurrentUserRole(profile.role);
+          setCurrentUserId(session.user.id);
           setAuthState('authorized');
           loadAllData();
         } else {
@@ -60,6 +62,7 @@ function AdminApp() {
     setLoading(true);
     try {
       const client = await getSupabase();
+      // RLS otomatis menyembunyikan superadmin jika admin biasa
       const { data: u } = await client.from('profiles').select('*').order('created_at', { ascending: false });
       setUsers(u || []);
       const { data: p } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
@@ -74,7 +77,6 @@ function AdminApp() {
   // USER ACTIONS
   // ==========================================
   
-  // 1. Generate Password / Aktifkan
   const handleGeneratePassword = (user) => {
     const isReset = user.status === 'active';
     setConfirmData({
@@ -86,7 +88,6 @@ function AdminApp() {
         setConfirmData(null); setActionLoading(user.id);
         try {
           const client = await getSupabase();
-          // Memanggil edge function 'activate' (bisa dipakai untuk reset juga)
           const { data, error } = await client.functions.invoke('activate', { 
             body: { userId: user.id, email: user.email } 
           });
@@ -104,7 +105,6 @@ function AdminApp() {
     });
   };
 
-  // 2. Suspend Akun
   const handleSuspend = (user) => {
     setConfirmData({
       title: 'Tangguhkan Akun?', message: `Akun ${user.nama} tidak akan bisa login.`, confirmText: 'Ya, Tangguhkan', isDanger: true,
@@ -121,7 +121,6 @@ function AdminApp() {
     });
   };
 
-  // 3. Hapus Akun
   const handleDeleteUser = (user) => {
     setConfirmData({
       title: 'Hapus Akun Permanen?', message: `Akun ${user.nama} beserta seluruh datanya akan dihapus. Tindakan ini tidak bisa dibatalkan.`, confirmText: 'Ya, Hapus', isDanger: true,
@@ -139,7 +138,6 @@ function AdminApp() {
     });
   };
 
-  // 4. Toggle Izin Kode
   const handleTogglePublish = async (user) => {
     setActionLoading(user.id);
     try {
@@ -150,7 +148,6 @@ function AdminApp() {
     setActionLoading(null);
   };
 
-  // 5. Simpan Edit Profil
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     setActionLoading(editData.id);
@@ -173,10 +170,6 @@ function AdminApp() {
     setActionLoading(null);
   };
 
-
-  // ==========================================
-  // HELPERS
-  // ==========================================
   const copyPassword = () => {
     if (!passwordData) return;
     navigator.clipboard.writeText(passwordData.password);
@@ -218,7 +211,6 @@ function AdminApp() {
 
   return html`
     <div class="admin-layout">
-      <!-- SIDEBAR -->
       <aside class="admin-sidebar">
         <div class="admin-sidebar-brand">
           <div class="admin-sidebar-brand-icon"><${Shield} size=${20} /></div>
@@ -243,9 +235,7 @@ function AdminApp() {
         </nav>
       </aside>
 
-      <!-- MAIN CONTENT -->
       <main class="admin-main">
-        
         ${currentMenu === 'overview' && html`
           <div class="admin-header">
             <div>
@@ -313,10 +303,15 @@ function AdminApp() {
                     filteredUsers.map(user => html`
                     <tr key=${user.id}>
                       <td>
-                        <div style="font-weight:700; color:var(--navy-900);">${user.nama}</div>
+                        <div style="font-weight:700; color:var(--navy-900);">
+                          ${user.nama} ${user.id === currentUserId ? html`<span style="font-weight:400; color:var(--text-muted);">(Anda)</span>` : ''}
+                        </div>
                         <div style="font-size:12px; color:var(--text-muted);">${user.email}</div>
+                        
+                        <!-- BADGES -->
                         ${user.role === 'admin' && html`<span class="badge badge-primary" style="margin-top:4px;">ADMIN</span>`}
                         ${user.role === 'superadmin' && html`<span class="badge badge-danger" style="margin-top:4px;">SUPERADMIN</span>`}
+                        ${user.role === 'user' && html`<span class="badge badge-muted" style="margin-top:4px;">GURU</span>`}
                       </td>
                       <td>
                         <div>${user.sekolah || '-'}</div>
@@ -334,34 +329,33 @@ function AdminApp() {
                         <div style="display:flex; gap:6px; justify-content:flex-end;">
                           ${actionLoading === user.id ? html`<${Loader2} class="spin" size=${18} color="var(--primary)" />` : html`
                             
-                            <!-- Tombol Edit -->
                             <button class="btn-icon" onClick=${() => setEditData({...user})} title="Edit Profil">
                               <${Pencil} size=${16}/>
                             </button>
 
-                            <!-- Tombol Password / Aktifkan -->
                             <button class="btn-icon btn-key" onClick=${() => handleGeneratePassword(user)} title=${user.status === 'active' ? 'Reset Password' : 'Aktifkan & Buat Password'}>
                               <${Key} size=${16}/>
                             </button>
 
-                            <!-- Tombol Izin Kode (Hanya untuk yang aktif) -->
                             ${user.status === 'active' && html`
                               <button class=${'btn-icon btn-key ' + (user.can_publish_exam ? 'active' : '')} onClick=${() => handleTogglePublish(user)} title="Izin Kode Latihan">
                                 <${BookOpen} size=${16}/>
                               </button>
                             `}
 
-                            <!-- Tombol Suspend -->
-                            ${user.status === 'active' && html`
+                            <!-- SEMBUNYIKAN JIKA DIRI SENDIRI -->
+                            ${user.status === 'active' && user.id !== currentUserId && html`
                               <button class="btn-icon btn-delete" onClick=${() => handleSuspend(user)} title="Tangguhkan">
                                 <${UserX} size=${16}/>
                               </button>
                             `}
 
-                            <!-- Tombol Hapus -->
-                            <button class="btn-icon btn-delete" onClick=${() => handleDeleteUser(user)} title="Hapus Permanen">
-                              <${Trash2} size=${16}/>
-                            </button>
+                            <!-- SEMBUNYIKAN JIKA DIRI SENDIRI -->
+                            ${user.id !== currentUserId && html`
+                              <button class="btn-icon btn-delete" onClick=${() => handleDeleteUser(user)} title="Hapus Permanen">
+                                <${Trash2} size=${16}/>
+                              </button>
+                            `}
                           `}
                         </div>
                       </td>
@@ -374,7 +368,7 @@ function AdminApp() {
         `}
       </main>
 
-      <!-- MODAL CONFIRM -->
+      <!-- MODALS (Confirm, Password, Edit) -->
       ${confirmData && html`
         <div class="modal-backdrop" onClick=${() => setConfirmData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -392,7 +386,6 @@ function AdminApp() {
         </div>
       `}
 
-      <!-- MODAL PASSWORD BARU -->
       ${passwordData && html`
         <div class="modal-backdrop" onClick=${() => setPasswordData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -413,7 +406,6 @@ function AdminApp() {
         </div>
       `}
 
-      <!-- MODAL EDIT PROFIL -->
       ${editData && html`
         <div class="modal-backdrop" onClick=${() => setEditData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -436,11 +428,17 @@ function AdminApp() {
                 </div>
                 <div>
                   <label style="font-size:12px; font-weight:700; color:var(--text-muted);">Role Akses</label>
-                  <select value=${editData.role} onInput=${(e) => setEditData({...editData, role: e.target.value})} style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px;">
+                  <select 
+                    value=${editData.role} 
+                    onInput=${(e) => setEditData({...editData, role: e.target.value})} 
+                    disabled=${editData.id === currentUserId}
+                    style="width:100%; padding:10px; border:1px solid var(--border-strong); border-radius:8px; margin-top:4px; background: ${editData.id === currentUserId ? 'var(--surface-muted)' : 'white'};"
+                  >
                     <option value="user">Guru (User)</option>
                     <option value="admin">Admin</option>
                     ${currentUserRole === 'superadmin' && html`<option value="superadmin">Superadmin</option>`}
                   </select>
+                  ${editData.id === currentUserId && html`<div style="font-size:11px; color:var(--warning); margin-top:4px;">Anda tidak dapat mengubah role Anda sendiri.</div>`}
                 </div>
               </div>
               <div class="modal-footer">
