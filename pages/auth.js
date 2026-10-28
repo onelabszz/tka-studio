@@ -7,7 +7,7 @@ import { useState } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   GraduationCap, ArrowLeft, Loader2, CheckCircle2, Clock,
-  Sparkles, Shield, CloudUpload, X, Check
+  Sparkles, Shield, X, Check, MonitorPlay
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { signIn, registerUser } from '../supabase/auth.js';
 
@@ -107,18 +107,18 @@ export function RegisterPage({ navigate }) {
           <div class="auth-status-icon is-success"><${CheckCircle2} size=${40} /></div>
           <h1 style="font-size: 22px; margin-bottom: 10px; color: var(--navy-900);">Pendaftaran Berhasil!</h1>
           <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.6; margin-bottom: 4px;">
-            Akun Anda sedang ditinjau oleh Admin.
+            Akun Anda sedang ditinjau oleh Admin Sekolah.
           </p>
           <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.6; margin-bottom: 0;">
             Password akan dikirim via <b style="color: var(--text);">WhatsApp</b> dalam 1×24 jam.
           </p>
 
           <div class="auth-info-box">
-            <div class="auth-info-title"><${Sparkles} size=${14} /> Sambil menunggu, Anda bisa:</div>
+            <div class="auth-info-title"><${Sparkles} size=${14} /> Satu Akun, Dua Aplikasi</div>
             <ul class="auth-info-list">
-              <li class="auth-info-item is-yes"><${Check} size=${14} /> Membuat soal dengan Mode Basic</li>
-              <li class="auth-info-item is-yes"><${Check} size=${14} /> Mendownload file .json</li>
-              <li class="auth-info-item is-no"><${X} size=${14} /> Belum bisa simpan ke Koleksi Saya</li>
+              <li class="auth-info-item is-yes"><${Check} size=${14} /> Membuat soal di TKA Studio</li>
+              <li class="auth-info-item is-yes"><${Check} size=${14} /> Mengerjakan ujian di TKA Local Host</li>
+              <li class="auth-info-item is-no"><${X} size=${14} /> Belum bisa simpan ke Koleksi (Tunggu aktif)</li>
             </ul>
           </div>
 
@@ -140,8 +140,18 @@ export function RegisterPage({ navigate }) {
 
         <h1 style="text-align: center; font-size: 20px; margin-bottom: 6px; color: var(--navy-900);">Daftar Akun Guru</h1>
         <p style="text-align: center; color: var(--text-muted); font-size: 13.5px; margin-bottom: 24px;">
-          Dapatkan akses penuh untuk menyimpan dan membagikan soal.
+          Satu akun untuk TKA Studio & TKA Local Host.
         </p>
+
+        <!-- Kotak Info SSO -->
+        <div class="auth-info-box" style="margin-top: 0; margin-bottom: 20px; background: var(--brand-50); border-color: rgba(30, 64, 175, 0.15);">
+          <div class="auth-info-title" style="color: var(--primary);">
+            <${Shield} size=${14} /> Akses Terpusat
+          </div>
+          <div style="font-size: 12px; color: var(--primary-dark); line-height: 1.5;">
+            Satu akun untuk membuat soal di <b>TKA Studio</b> dan mengerjakan ujian di <b>TKA Local Host</b>.
+          </div>
+        </div>
 
         ${error && html`<div class="alert alert-error">${error}</div>`}
 
@@ -157,7 +167,7 @@ export function RegisterPage({ navigate }) {
           <div class="form-field">
             <label class="form-label">No. WhatsApp</label>
             <input class="form-input" type="tel" required value=${form.wa} onInput=${(e) => setForm({...form, wa: e.target.value})} placeholder="08123456789" />
-            <div class="form-hint">Password akan dikirim ke nomor ini.</div>
+            <div class="form-hint">Password akan dikirim ke nomor ini setelah disetujui Admin.</div>
           </div>
           <div class="form-field">
             <label class="form-label">Asal Sekolah <span style="color:var(--text-muted); font-weight:400;">(Opsional)</span></label>
@@ -188,11 +198,11 @@ export function PendingPage({ navigate, onLogout }) {
         </p>
 
         <div class="auth-info-box">
-          <div class="auth-info-title"><${Sparkles} size=${14} /> Sambil menunggu, Anda bisa:</div>
+          <div class="auth-info-title"><${Sparkles} size=${14} /> Akses Anda Nanti</div>
           <ul class="auth-info-list">
             <li class="auth-info-item is-yes"><${Check} size=${14} /> Menyusun prompt soal (Mode Basic)</li>
             <li class="auth-info-item is-yes"><${Check} size=${14} /> Melihat preview & quality check</li>
-            <li class="auth-info-item is-yes"><${Check} size=${14} /> Download .json untuk Local Host</li>
+            <li class="auth-info-item is-yes"><${Check} size=${14} /> Ekspor JSON untuk TKA Local Host</li>
             <li class="auth-info-item is-no"><${X} size=${14} /> Belum bisa simpan ke Koleksi Saya</li>
             <li class="auth-info-item is-no"><${X} size=${14} /> Belum bisa akses Mode Expert</li>
           </ul>
