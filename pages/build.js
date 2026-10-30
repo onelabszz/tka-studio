@@ -9,7 +9,7 @@ import {
   ArrowRight, ArrowLeft, Copy, Check, X,
   BookOpen, Gauge, ListChecks, MessageSquareText, Settings2, Info, ExternalLink,
   ClipboardCheck, ChevronDown, ChevronUp, CircleDot, CheckCheck, Wand2, Image as ImageIcon,
-  Save, FolderOpen, Star, Sparkles, Target, Layers, Clock, CheckCircle2, Zap
+  Save, FolderOpen, Star, Crown, ChevronRight, Sparkles, Target, Layers, Clock, CheckCircle2, Zap
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { buildPrompt } from '../lib/prompt-template.js';
 import { Stepper } from '../components/Stepper.js';
@@ -217,8 +217,22 @@ export function BuildPage({ navigate }) {
         <!-- Build Top Nav -->
         <div class="build-topnav">
           <button class="btn-back" onClick=${() => navigate('/')}><${ArrowLeft} size=${16} /> Beranda</button>
-          <button class="btn-secondary btn-sm" onClick=${() => navigate('/expert')} style="border-color: var(--primary-mid); color: var(--primary);">
-            <${Star} size=${14} /> Mode Expert
+          <button class="btn-premium" onClick=${() => navigate('/expert')}>
+            <${Crown} size=${16} /> Mode Expert
+          </button>
+        </div>
+
+        <!-- BANNER PROMO EXPERT -->
+        <div class="expert-promo-banner">
+          <div class="epb-content">
+            <div class="epb-icon"><${Star} size=${24} /></div>
+            <div class="epb-text">
+              <h3>Ingin Kualitas Soal yang Lebih Terkontrol?</h3>
+              <p>Gunakan <b>Mode Expert</b> untuk menyusun soal secara bertahap (per 5 soal) dengan panduan standar asesmen nasional (HOTS C1–C6).</p>
+            </div>
+          </div>
+          <button class="btn-epb" onClick=${() => navigate('/expert')}>
+            Coba Mode Expert <${ChevronRight} size=${16} />
           </button>
         </div>
 
