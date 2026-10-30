@@ -1,5 +1,5 @@
 /**
- * TKA Studio — admin/admin.js (Premium Dashboard + Bulk Approve)
+ * TKA Studio — admin/admin.js (Premium Dashboard + Auto-Provisioning Note)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h, render } from 'https://esm.sh/preact@10.24.3';
@@ -33,7 +33,7 @@ function AdminApp() {
   // Bulk Actions State
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [bulkPasswords, setBulkPasswords] = useState(null); // Menyimpan hasil generate massal
+  const [bulkPasswords, setBulkPasswords] = useState(null);
 
   // Modals
   const [confirmData, setConfirmData] = useState(null);
@@ -92,42 +92,53 @@ function AdminApp() {
     else setSelectedUsers(filteredList.map(u => u.id));
   };
 
-  const handleBulkApprove = async () => {
+  const handleBulkApprove = () => {
     if (selectedUsers.length === 0) return;
-    setBulkLoading(true);
-    const results = [];
-    let successCount = 0;
-    let failCount = 0;
+    
+    // Konfirmasi Massal
+    setConfirmData({
+      title: 'Aktifkan Akun Massal?',
+      message: `${selectedUsers.length} akun akan diaktifkan dan mendapatkan password baru.\n\n✨ Bonus Otomatis: Semua akun ini juga akan langsung mendapatkan akses ke TKA Local Host selama 1 tahun.`,
+      confirmText: 'Ya, Aktifkan Semua',
+      isDanger: false,
+      onConfirm: async () => {
+        setConfirmData(null);
+        setBulkLoading(true);
+        const results = [];
+        let successCount = 0;
+        let failCount = 0;
 
-    for (const id of selectedUsers) {
-      const user = users.find(u => u.id === id);
-      if (!user) continue;
-      
-      try {
-        const client = await getSupabase();
-        const { data, error } = await client.functions.invoke('activate', { 
-          body: { userId: user.id, email: user.email } 
-        });
+        for (const id of selectedUsers) {
+          const user = users.find(u => u.id === id);
+          if (!user) continue;
+          
+          try {
+            const client = await getSupabase();
+            const { data, error } = await client.functions.invoke('activate', { 
+              body: { userId: user.id, email: user.email } 
+            });
+            
+            if (error) throw error;
+            if (data.error) throw new Error(data.error);
+            
+            results.push({ name: user.nama, email: user.email, password: data.password });
+            successCount++;
+          } catch (e) {
+            console.error("Gagal aktivasi massal:", user.nama, e);
+            failCount++;
+          }
+        }
         
-        if (error) throw error;
-        if (data.error) throw new Error(data.error);
+        setBulkPasswords(results);
+        setSelectedUsers([]);
+        loadAllData();
+        setBulkLoading(false);
         
-        results.push({ name: user.nama, email: user.email, password: data.password });
-        successCount++;
-      } catch (e) {
-        console.error("Gagal aktivasi massal:", user.nama, e);
-        failCount++;
+        if (window.showToast) {
+          window.showToast(`${successCount} akun diaktifkan. ${failCount} gagal.`, successCount > 0 ? 'success' : 'error');
+        }
       }
-    }
-    
-    setBulkPasswords(results);
-    setSelectedUsers([]);
-    loadAllData();
-    setBulkLoading(false);
-    
-    if (window.showToast) {
-      window.showToast(`${successCount} akun diaktifkan. ${failCount} gagal.`, successCount > 0 ? 'success' : 'error');
-    }
+    });
   };
 
   // ==========================================
@@ -138,7 +149,9 @@ function AdminApp() {
     const isReset = user.status === 'active';
     setConfirmData({
       title: isReset ? 'Reset Password?' : 'Aktifkan Akun?', 
-      message: `Sistem akan membuatkan password baru untuk ${user.nama}. Password lama tidak akan berlaku lagi.`, 
+      message: isReset 
+        ? `Sistem akan membuatkan password baru untuk ${user.nama}. Password lama tidak akan berlaku lagi.` 
+        : `Sistem akan membuatkan password baru untuk ${user.nama}.\n\n✨ Bonus Otomatis: Mengaktifkan akun ini juga akan langsung memberikan akses ke TKA Local Host selama 1 tahun.`, 
       confirmText: isReset ? 'Ya, Reset' : 'Ya, Aktifkan', 
       isDanger: isReset,
       onConfirm: async () => {
@@ -221,6 +234,22 @@ function AdminApp() {
       if (window.showToast) window.showToast('Gagal update: ' + e.message, 'error');
     }
     setActionLoading(null);
+  };
+
+  const handleDeletePustaka = (item) => {
+    setConfirmData({
+      title: 'Hapus Soal Publik?', message: 'Soal ini akan dihapus permanen dari Pustaka Publik.', confirmText: 'Ya, Hapus', isDanger: true,
+      onConfirm: async () => {
+        setConfirmData(null); setActionLoading(item.id);
+        try {
+          const client = await getSupabase();
+          await client.from('pustaka_soal').delete().eq('id', item.id);
+          if (window.showToast) window.showToast('Soal dihapus dari Pustaka.', 'success');
+          loadAllData();
+        } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
+        setActionLoading(null);
+      }
+    });
   };
 
   const copyPassword = () => {
@@ -522,7 +551,7 @@ function AdminApp() {
               <div class="modal-title"><${AlertTriangle} size=${20} color=${confirmData.isDanger ? 'var(--danger)' : 'var(--warning)'} /> ${confirmData.title}</div>
             </div>
             <div class="modal-body">
-              <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin:0;">${confirmData.message}</p>
+              <p style="font-size:14px; color:var(--text-muted); line-height:1.6; margin:0; white-space: pre-wrap;">${confirmData.message}</p>
             </div>
             <div class="modal-footer">
               <button class="btn-cancel" onClick=${() => setConfirmData(null)}>Batal</button>
