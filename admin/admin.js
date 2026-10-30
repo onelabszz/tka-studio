@@ -1,5 +1,5 @@
 /**
- * TKA Studio — admin/admin.js (Final Dashboard + Moderasi)
+ * TKA Studio — admin/admin.js (Premium Dashboard + Bulk Approve)
  * © 2026 Ekwan Nugroho — Wonogiri
  */
 import { h, render } from 'https://esm.sh/preact@10.24.3';
@@ -30,6 +30,11 @@ function AdminApp() {
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   
+  // Bulk Actions State
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkPasswords, setBulkPasswords] = useState(null); // Menyimpan hasil generate massal
+
   // Modals
   const [confirmData, setConfirmData] = useState(null);
   const [passwordData, setPasswordData] = useState(null);
@@ -63,16 +68,10 @@ function AdminApp() {
     try {
       const client = await getSupabase();
       
-      // Load Users
       const { data: u } = await client.from('profiles').select('*').order('created_at', { ascending: false });
       setUsers(u || []);
       
-      // Load Pustaka
-      const { data: p, error: pError } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
-      if (pError) {
-        console.error("Gagal memuat pustaka:", pError);
-        if (window.showToast) window.showToast('Gagal memuat Pustaka: ' + pError.message, 'error');
-      }
+      const { data: p } = await client.from('pustaka_soal').select('*').order('created_at', { ascending: false });
       setPustaka(p || []);
       
     } catch (e) {
@@ -82,7 +81,57 @@ function AdminApp() {
   };
 
   // ==========================================
-  // USER ACTIONS
+  // BULK ACTIONS
+  // ==========================================
+  const toggleSelect = (id) => {
+    setSelectedUsers(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = (filteredList) => {
+    if (selectedUsers.length === filteredList.length) setSelectedUsers([]);
+    else setSelectedUsers(filteredList.map(u => u.id));
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedUsers.length === 0) return;
+    setBulkLoading(true);
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const id of selectedUsers) {
+      const user = users.find(u => u.id === id);
+      if (!user) continue;
+      
+      try {
+        const client = await getSupabase();
+        const { data, error } = await client.functions.invoke('activate', { 
+          body: { userId: user.id, email: user.email } 
+        });
+        
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+        
+        results.push({ name: user.nama, email: user.email, password: data.password });
+        successCount++;
+      } catch (e) {
+        console.error("Gagal aktivasi massal:", user.nama, e);
+        failCount++;
+      }
+    }
+    
+    setBulkPasswords(results);
+    setSelectedUsers([]);
+    loadAllData();
+    setBulkLoading(false);
+    
+    if (window.showToast) {
+      window.showToast(`${successCount} akun diaktifkan. ${failCount} gagal.`, successCount > 0 ? 'success' : 'error');
+    }
+  };
+
+  // ==========================================
+  // SINGLE USER ACTIONS
   // ==========================================
   
   const handleGeneratePassword = (user) => {
@@ -106,7 +155,6 @@ function AdminApp() {
           loadAllData();
         } catch (e) { 
           alert('GAGAL RESET PASSWORD:\n\n' + (e.message || e));
-          console.error(e);
         }
         setActionLoading(null);
       }
@@ -162,10 +210,7 @@ function AdminApp() {
     try {
       const client = await getSupabase();
       const { error } = await client.from('profiles').update({
-        nama: editData.nama,
-        sekolah: editData.sekolah,
-        wa: editData.wa,
-        role: editData.role
+        nama: editData.nama, sekolah: editData.sekolah, wa: editData.wa, role: editData.role
       }).eq('id', editData.id);
       
       if (error) throw error;
@@ -178,29 +223,17 @@ function AdminApp() {
     setActionLoading(null);
   };
 
-  // ==========================================
-  // PUSTAKA ACTIONS
-  // ==========================================
-  const handleDeletePustaka = (item) => {
-    setConfirmData({
-      title: 'Hapus Soal Publik?', message: 'Soal ini akan dihapus permanen dari Pustaka Publik.', confirmText: 'Ya, Hapus', isDanger: true,
-      onConfirm: async () => {
-        setConfirmData(null); setActionLoading(item.id);
-        try {
-          const client = await getSupabase();
-          await client.from('pustaka_soal').delete().eq('id', item.id);
-          if (window.showToast) window.showToast('Soal dihapus dari Pustaka.', 'success');
-          loadAllData();
-        } catch (e) { if (window.showToast) window.showToast('Gagal: ' + e.message, 'error'); }
-        setActionLoading(null);
-      }
-    });
-  };
-
   const copyPassword = () => {
     if (!passwordData) return;
     navigator.clipboard.writeText(passwordData.password);
     setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyBulkPasswords = () => {
+    if (!bulkPasswords) return;
+    const text = bulkPasswords.map(p => `Nama: ${p.name}\nEmail: ${p.email}\nPassword: ${p.password}\n`).join('\n---\n');
+    navigator.clipboard.writeText(text);
+    if (window.showToast) window.showToast('Semua password disalin ke clipboard!', 'success');
   };
 
   if (authState === 'loading') return html`<div style="height:100vh; display:flex; align-items:center; justify-content:center;"><${Loader2} class="spin" size=${40} color="var(--primary)"/></div>`;
@@ -303,23 +336,46 @@ function AdminApp() {
                 <${Search} size=${16} color="var(--text-muted)" />
                 <input type="text" placeholder="Cari nama, email, sekolah..." value=${search} onInput=${(e) => setSearch(e.target.value)} />
               </div>
+              
               <div class="admin-tabs">
-                <button class=${'admin-tab ' + (userTab === 'pending' ? 'active' : '')} onClick=${() => setUserTab('pending')}>
+                <button class=${'admin-tab ' + (userTab === 'pending' ? 'active' : '')} onClick=${() => { setUserTab('pending'); setSelectedUsers([]); }}>
                   Pending <span class="badge" style="background:rgba(0,0,0,0.1);">${stats.pending}</span>
                 </button>
-                <button class=${'admin-tab ' + (userTab === 'active' ? 'active' : '')} onClick=${() => setUserTab('active')}>
+                <button class=${'admin-tab ' + (userTab === 'active' ? 'active' : '')} onClick=${() => { setUserTab('active'); setSelectedUsers([]); }}>
                   Aktif <span class="badge" style="background:rgba(0,0,0,0.1);">${stats.active}</span>
                 </button>
-                <button class=${'admin-tab ' + (userTab === 'suspended' ? 'active' : '')} onClick=${() => setUserTab('suspended')}>
+                <button class=${'admin-tab ' + (userTab === 'suspended' ? 'active' : '')} onClick=${() => { setUserTab('suspended'); setSelectedUsers([]); }}>
                   Suspend
                 </button>
               </div>
             </div>
 
+            <!-- BULK ACTION BAR -->
+            ${userTab === 'pending' && selectedUsers.length > 0 && html`
+              <div style="background: var(--primary-light); padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--primary-dark);">
+                  ${selectedUsers.length} guru terpilih
+                </div>
+                <button class="btn-primary" onClick=${handleBulkApprove} disabled=${bulkLoading}>
+                  ${bulkLoading ? html`<${Loader2} class="spin" size=${16} /> Memproses...` : html`<${CheckCircle2} size=${16} /> Aktifkan Semua`}
+                </button>
+              </div>
+            `}
+
             <div class="admin-table-wrap">
               <table class="admin-table">
                 <thead>
                   <tr>
+                    <!-- CHECKBOX HEADER -->
+                    <th width="40" style="text-align:center;">
+                      ${userTab === 'pending' && filteredUsers.length > 0 && html`
+                        <input type="checkbox" 
+                          checked=${selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                          onChange=${() => toggleSelectAll(filteredUsers)}
+                          style="width: 16px; height: 16px; cursor: pointer;"
+                        />
+                      `}
+                    </th>
                     <th>Nama & Email</th>
                     <th>Sekolah / WA</th>
                     <th>Status</th>
@@ -328,10 +384,20 @@ function AdminApp() {
                   </tr>
                 </thead>
                 <tbody>
-                  ${loading ? html`<tr><td colspan="5" style="text-align:center; padding:40px;"><${Loader2} class="spin" size=${24}/></td></tr>` : 
-                    filteredUsers.length === 0 ? html`<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted);">Tidak ada data ditemukan.</td></tr>` :
+                  ${loading ? html`<tr><td colspan="6" style="text-align:center; padding:40px;"><${Loader2} class="spin" size=${24}/></td></tr>` : 
+                    filteredUsers.length === 0 ? html`<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Tidak ada data ditemukan.</td></tr>` :
                     filteredUsers.map(user => html`
-                    <tr key=${user.id}>
+                    <tr key=${user.id} class=${selectedUsers.includes(user.id) ? 'row-selected' : ''}>
+                      <!-- CHECKBOX ROW -->
+                      <td style="text-align:center;">
+                        ${userTab === 'pending' && html`
+                          <input type="checkbox" 
+                            checked=${selectedUsers.includes(user.id)}
+                            onChange=${() => toggleSelect(user.id)}
+                            style="width: 16px; height: 16px; cursor: pointer;"
+                          />
+                        `}
+                      </td>
                       <td>
                         <div style="font-weight:700; color:var(--navy-900);">
                           ${user.nama} ${user.id === currentUserId ? html`<span style="font-weight:400; color:var(--text-muted);">(Anda)</span>` : ''}
@@ -466,7 +532,7 @@ function AdminApp() {
         </div>
       `}
 
-      <!-- MODAL PASSWORD BARU -->
+      <!-- MODAL PASSWORD BARU (SINGLE) -->
       ${passwordData && html`
         <div class="modal-backdrop" onClick=${() => setPasswordData(null)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
@@ -482,6 +548,37 @@ function AdminApp() {
             <div class="modal-footer">
               <button class="btn-cancel" onClick=${() => setPasswordData(null)}>Tutup</button>
               <button class="btn-success" onClick=${copyPassword}>${copied ? 'Tersalin!' : 'Salin Password'}</button>
+            </div>
+          </div>
+        </div>
+      `}
+
+      <!-- MODAL PASSWORD BARU (BULK) -->
+      ${bulkPasswords && html`
+        <div class="modal-backdrop" onClick=${() => setBulkPasswords(null)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()} style="max-width: 500px;">
+            <div class="modal-header">
+              <div class="modal-title"><${CheckCircle2} size=${20} color="var(--success)" /> Aktivasi Massal Berhasil</div>
+            </div>
+            <div class="modal-body">
+              <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                Berikut adalah daftar password baru untuk ${bulkPasswords.length} guru. Salin dan kirimkan via WhatsApp.
+              </p>
+              <div style="background:var(--surface-muted); padding:16px; border-radius:12px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px;">
+                ${bulkPasswords.map((p, i) => html`
+                  <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);">
+                    <div style="font-weight: 700; color: var(--navy-900);">${p.name}</div>
+                    <div style="color: var(--text-muted); font-size: 11px;">${p.email}</div>
+                    <div style="color: var(--primary); font-weight: 800; font-size: 16px; margin-top: 4px;">${p.password}</div>
+                  </div>
+                `)}
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn-cancel" onClick=${() => setBulkPasswords(null)}>Tutup</button>
+              <button class="btn-success" onClick=${copyBulkPasswords}>
+                <${Copy} size=${16}/> Salin Semua Password
+              </button>
             </div>
           </div>
         </div>
