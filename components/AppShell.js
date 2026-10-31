@@ -15,10 +15,11 @@ const html = htm.bind(h);
 
 const MENU_ITEMS = [
   {
-    section: 'DAPUR SOAL',
+    section: 'PUSAT SOAL',
     items: [
       { path: '/build', label: 'Buat Soal (Basic)', icon: Wand2 },
-      { path: '/expert', label: 'Mode Expert (Bertahap)', icon: Sparkles },
+      { path: '/import-doc', label: 'Import Dokumen', icon: FileText },
+      { path: '/expert', label: 'Mode Expert', icon: Sparkles },
     ],
   },
   {
