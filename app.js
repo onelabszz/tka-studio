@@ -29,6 +29,7 @@ import { ExpertDetailPage } from './pages/expert-detail.js';
 import { PlayPage } from './pages/play.js';
 import { ExamListPage } from './pages/exam-list.js';
 import { ImageToolPage } from './pages/image-tool.js';
+import { ImportDocPage } from './pages/import-doc.js';
 import { AppShell } from './components/AppShell.js';
 import { getSession, getProfile, signOut } from './supabase/auth.js';
 import './components/Toast.js';
@@ -413,6 +414,7 @@ function App() {
   
   if (route === '/play') return html`<${PlayPage} />`;
   if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
+  if (route === '/import-doc') return html`<${PublicLayout} profile=${profile}><${ImportDocPage} navigate=${navigate} /></${PublicLayout}>`;
 
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
