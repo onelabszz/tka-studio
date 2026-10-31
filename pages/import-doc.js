@@ -7,7 +7,7 @@ import { useState, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, Upload, FileText, Loader2, Sparkles,
-  Copy, Check, AlertTriangle, ExternalLink, ChevronDown, ChevronUp, BookOpen, ClipboardPaste
+  Copy, Check, AlertTriangle, ExternalLink, ChevronDown, ChevronUp, BookOpen, ClipboardPaste, Info
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { extractTextFromFile } from '../lib/doc-extractor.js';
 import { buildDocConversionPrompt } from '../lib/doc-prompt.js';
@@ -113,13 +113,13 @@ export function ImportDocPage({ navigate }) {
           `}
         />
 
-        <!-- TABS SELECTOR -->
-        <div class="admin-tabs" style="margin-bottom: 24px; background: white; padding: 6px; border-radius: var(--radius-card); border: 1px solid var(--border);">
-          <button class=${'admin-tab ' + (mode === 'upload' ? 'active' : '')} onClick=${() => setMode('upload')} style="flex: 1; justify-content: center; padding: 12px;">
-            <${Upload} size=${18} /> Cara Otomatis (Upload File)
+        <!-- SEGMENTED CONTROL (TABS) -->
+        <div class="doc-segmented-control">
+          <button class=${'doc-segmented-btn ' + (mode === 'upload' ? 'active' : '')} onClick=${() => setMode('upload')}>
+            <${Upload} size=${18} /> <span>Cara Otomatis</span>
           </button>
-          <button class=${'admin-tab ' + (mode === 'manual' ? 'active' : '')} onClick=${() => setMode('manual')} style="flex: 1; justify-content: center; padding: 12px;">
-            <${ClipboardPaste} size=${18} /> Cara Manual (Copy Prompt)
+          <button class=${'doc-segmented-btn ' + (mode === 'manual' ? 'active' : '')} onClick=${() => setMode('manual')}>
+            <${ClipboardPaste} size=${18} /> <span>Cara Manual</span>
           </button>
         </div>
 
@@ -131,18 +131,22 @@ export function ImportDocPage({ navigate }) {
               <h2>Pendekatan Manual (Zero Upload)</h2>
             </div>
             <div class="form-section-body">
-              <p class="text-muted text-sm" style="line-height: 1.6;">
+              <div class="doc-info-box">
                 Gunakan cara ini jika Anda tidak ingin mengunggah file ke browser. Anda hanya perlu <b>copy prompt di bawah ini</b>, lalu paste ke ChatGPT/Gemini/Claude.
-              </p>
+              </div>
               
-              <div class="result-card result-warning" style="margin: 0; padding: 12px 16px; background: #fffbeb; border-color: #fcd34d;">
-                <div style="font-size: 12.5px; color: #92400e; line-height: 1.5;">
-                  <b>Cara Pakai:</b><br/>
-                  1. Klik "Salin Prompt Manual".<br/>
-                  2. Buka AI, paste prompt tersebut.<br/>
-                  3. Di AI, lampirkan file PDF/Word Anda, ATAU copy-paste teks soalnya langsung ke dalam chat AI.<br/>
-                  4. Tunggu AI mengubahnya jadi JSON, lalu copy JSON-nya ke halaman Tempel Hasil.
+              <div class="doc-guide-box">
+                <div class="doc-guide-title">
+                  <${Info} size=${16} /> Panduan Penggunaan
                 </div>
+                <ol class="doc-guide-steps">
+                  <li>Klik tombol <b>Salin Prompt Manual</b> di bawah.</li>
+                  <li>Buka AI (ChatGPT / Gemini / Claude).</li>
+                  <li>Paste prompt tersebut di chat AI.</li>
+                  <li>Di chat AI, lampirkan file PDF/Word Anda, ATAU copy-paste teks soalnya langsung.</li>
+                  <li>Tunggu AI mengubahnya jadi JSON, lalu copy JSON-nya.</li>
+                  <li>Pergi ke halaman <b>Tempel Hasil</b> dan paste JSON tersebut.</li>
+                </ol>
               </div>
 
               <div class="form-row">
@@ -177,7 +181,7 @@ export function ImportDocPage({ navigate }) {
                   ${showManualPrompt ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} 
                   Lihat isi prompt manual
                 </button>
-                ${showManualPrompt && html`<textarea class="prompt-textarea" readonly value=${manualPromptText} style="min-height: 200px;" />`}
+                ${showManualPrompt && html`<textarea class="prompt-textarea" readonly value=${manualPromptText} />`}
               </div>
 
               <button class="btn-secondary w-full" onClick=${() => navigate('/paste')} style="margin-top: 16px;">
@@ -234,13 +238,13 @@ export function ImportDocPage({ navigate }) {
                   </div>
                 `}
 
-                <div class="result-card result-warning" style="margin-top: 16px; padding: 14px 16px;">
-                  <div style="display: flex; gap: 10px; font-size: 12.5px; color: #92400e; line-height: 1.5;">
-                    <${AlertTriangle} size=${16} style="flex-shrink: 0; margin-top: 1px;" />
-                    <div>
-                      <b>Catatan Penting:</b> Ekstraksi teks bekerja pada file PDF/DOCX yang berisi <b>teks asli</b> (bukan hasil scan gambar). 
-                      Jika hasil ekstraksi kosong atau berantakan, simpan ulang dokumen Anda sebagai PDF (bukan gambar) atau ketik ulang soalnya.
-                    </div>
+                <div class="doc-guide-box" style="margin-top: 16px; margin-bottom: 0;">
+                  <div class="doc-guide-title">
+                    <${AlertTriangle} size=${16} /> Catatan Penting
+                  </div>
+                  <div style="font-size: 12.5px; color: #92400e; line-height: 1.5;">
+                    Ekstraksi teks bekerja pada file PDF/DOCX yang berisi <b>teks asli</b> (bukan hasil scan gambar). 
+                    Jika hasil ekstraksi kosong atau berantakan, simpan ulang dokumen Anda sebagai PDF (bukan gambar) atau ketik ulang soalnya.
                   </div>
                 </div>
               </div>
@@ -325,7 +329,7 @@ export function ImportDocPage({ navigate }) {
                     ${showPrompt ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} 
                     Lihat prompt lengkap (${promptText.length.toLocaleString()} karakter)
                   </button>
-                  ${showPrompt && html`<textarea class="prompt-textarea" readonly value=${promptText} style="min-height: 200px;" />`}
+                  ${showPrompt && html`<textarea class="prompt-textarea" readonly value=${promptText} />`}
                 </div>
               </div>
             </div>
