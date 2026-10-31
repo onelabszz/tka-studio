@@ -6491,3 +6491,94 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; line-height: 1.2; color: va
     justify-content: center;
   }
 }
+/* =========================================================
+   IMPORT DOC PAGE POLISH (v14)
+   © 2026 Ekwan Nugroho — Wonogiri
+   ========================================================= */
+
+/* Segmented Control (Tab Menu Modern) */
+.doc-segmented-control {
+  display: flex;
+  background: var(--surface-muted);
+  padding: 6px;
+  border-radius: var(--radius-input);
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+.doc-segmented-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.doc-segmented-btn:hover {
+  color: var(--text);
+}
+.doc-segmented-btn.active {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* Perbaikan Textarea Sempit */
+.accordion .prompt-textarea {
+  width: 100% !important;
+  box-sizing: border-box;
+  min-height: 250px;
+  display: block;
+}
+
+/* Boks Panduan (Guide Box) */
+.doc-guide-box {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-input);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.doc-guide-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #92400e;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.doc-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #92400e;
+  line-height: 1.6;
+}
+.doc-guide-steps li {
+  margin-bottom: 4px;
+}
+
+/* Boks Info Biru */
+.doc-info-box {
+  background: var(--primary-light);
+  border: 1px solid rgba(30, 64, 175, 0.15);
+  border-radius: var(--radius-input);
+  padding: 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--primary-dark);
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .doc-segmented-btn span { display: none; }
+  .doc-segmented-btn { padding: 12px; }
+}
