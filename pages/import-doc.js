@@ -7,8 +7,7 @@ import { useState, useRef } from 'https://esm.sh/preact@10.24.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, Upload, FileText, Loader2, Sparkles,
-  Copy, Check, AlertTriangle, ExternalLink, Wand2, FileJson,
-  ChevronDown, ChevronUp, BookOpen
+  Copy, Check, AlertTriangle, ExternalLink, ChevronDown, ChevronUp, BookOpen, ClipboardPaste
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { extractTextFromFile } from '../lib/doc-extractor.js';
 import { buildDocConversionPrompt } from '../lib/doc-prompt.js';
@@ -25,16 +24,25 @@ async function copyToClipboard(text) {
 }
 
 export function ImportDocPage({ navigate }) {
-  const [step, setStep] = useState(1); // 1: upload, 2: preview + prompt, 3: cara pakai
+  const [mode, setMode] = useState('upload'); // 'upload' | 'manual'
+  
+  // Upload States
+  const [step, setStep] = useState(1); // 1: upload, 2: preview + prompt
   const [file, setFile] = useState(null);
   const [extracting, setExtracting] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [error, setError] = useState(null);
   
+  // Manual States
+  const [manualCopied, setManualCopied] = useState(false);
+  const [showManualPrompt, setShowManualPrompt] = useState(false);
+
+  // Metadata States
   const [mapel, setMapel] = useState('Umum');
   const [kelas, setKelas] = useState('-');
   const [judul, setJudul] = useState('Paket dari Dokumen');
   
+  // Prompt Preview States (Upload mode)
   const [showPrompt, setShowPrompt] = useState(false);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef(null);
@@ -70,6 +78,9 @@ export function ImportDocPage({ navigate }) {
   };
 
   const promptText = buildDocConversionPrompt(extractedText, { mapel, kelas, judul });
+  
+  // Prompt Manual (Placeholder text)
+  const manualPromptText = buildDocConversionPrompt('[TEMPELKAN TEKS DOKUMEN ANDA DI SINI]', { mapel, kelas, judul });
 
   const handleCopyPrompt = async () => {
     const ok = await copyToClipboard(promptText);
@@ -79,13 +90,21 @@ export function ImportDocPage({ navigate }) {
     }
   };
 
+  const handleCopyManualPrompt = async () => {
+    const ok = await copyToClipboard(manualPromptText);
+    if (ok) {
+      setManualCopied(true);
+      setTimeout(() => setManualCopied(false), 2500);
+    }
+  };
+
   return html`
     <div class="page">
       <div class="page-shell page-shell-wide">
         <${PageHero}
           icon=${FileText}
           title="Import Dokumen Bank Soal"
-          subtitle="Ekstrak teks dari PDF/Word, lalu konversi ke JSON menggunakan AI gratis."
+          subtitle="Ubah PDF/Word menjadi JSON TKA dengan bantuan AI secara otomatis atau manual."
           accent="primary"
           topnav=${html`
             <button class="btn-back" onClick=${() => navigate('/paste')}>
@@ -94,166 +113,243 @@ export function ImportDocPage({ navigate }) {
           `}
         />
 
-        <!-- STEP 1: UPLOAD -->
-        ${step === 1 && html`
+        <!-- TABS SELECTOR -->
+        <div class="admin-tabs" style="margin-bottom: 24px; background: white; padding: 6px; border-radius: var(--radius-card); border: 1px solid var(--border);">
+          <button class=${'admin-tab ' + (mode === 'upload' ? 'active' : '')} onClick=${() => setMode('upload')} style="flex: 1; justify-content: center; padding: 12px;">
+            <${Upload} size=${18} /> Cara Otomatis (Upload File)
+          </button>
+          <button class=${'admin-tab ' + (mode === 'manual' ? 'active' : '')} onClick=${() => setMode('manual')} style="flex: 1; justify-content: center; padding: 12px;">
+            <${ClipboardPaste} size=${18} /> Cara Manual (Copy Prompt)
+          </button>
+        </div>
+
+        <!-- MODE MANUAL -->
+        ${mode === 'manual' && html`
           <div class="form-section">
             <div class="form-section-header">
-              <${Upload} size=${18} strokeWidth=${2} />
-              <h2>Langkah 1: Upload Dokumen</h2>
+              <${ClipboardPaste} size=${18} strokeWidth=${2} />
+              <h2>Pendekatan Manual (Zero Upload)</h2>
             </div>
             <div class="form-section-body">
-              <div
-                class="upload-dropzone"
-                onClick=${() => fileRef.current?.click()}
-                onDragOver=${(e) => e.preventDefault()}
-                onDrop=${handleDrop}
-                style="padding: 60px 24px;"
-              >
-                ${extracting ? html`
-                  <div class="upload-dropzone-icon" style="background: var(--primary-light); color: var(--primary);">
-                    <${Loader2} size=${28} class="spin" />
-                  </div>
-                  <h3>Mengekstrak teks dari dokumen...</h3>
-                  <p>Proses ini berjalan di browser Anda, tidak ada file yang diunggah ke server.</p>
-                ` : html`
-                  <div class="upload-dropzone-icon"><${FileText} size=${28} /></div>
-                  <h3>Pilih Dokumen PDF, DOCX, atau TXT</h3>
-                  <p>Klik atau drag & drop file. Maks 20 MB.</p>
-                  <input
-                    type="file"
-                    accept=".pdf,.docx,.txt,.md"
-                    ref=${fileRef}
-                    onChange=${handleFileInput}
-                    style="display:none;"
-                  />
-                `}
-              </div>
-
-              ${error && html`
-                <div class="result-card result-error" style="margin-top: 16px;">
-                  <div class="result-header">
-                    <${AlertTriangle} size=${18} color="var(--danger)" />
-                    <h2>Gagal Ekstrak Teks</h2>
-                  </div>
-                  <p class="text-muted text-sm" style="margin: 0;">${error}</p>
-                </div>
-              `}
-
-              <div class="result-card result-warning" style="margin-top: 16px; padding: 14px 16px;">
-                <div style="display: flex; gap: 10px; font-size: 12.5px; color: #92400e; line-height: 1.5;">
-                  <${AlertTriangle} size=${16} style="flex-shrink: 0; margin-top: 1px;" />
-                  <div>
-                    <b>Catatan Penting:</b> Ekstraksi teks bekerja pada file PDF/DOCX yang berisi <b>teks asli</b> (bukan hasil scan gambar). 
-                    Jika hasil ekstraksi kosong atau berantakan, simpan ulang dokumen Anda sebagai PDF (bukan gambar) atau ketik ulang soalnya.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `}
-
-        <!-- STEP 2: PREVIEW + PROMPT -->
-        ${step === 2 && html`
-          <!-- File Info -->
-          <div class="result-card result-success mb-4" style="padding: 14px 16px;">
-            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
-              <${Check} size=${16} color="var(--success)" />
-              <span>Berhasil ekstrak <b>${file?.name}</b> (${extractedText.length.toLocaleString()} karakter).</span>
-              <button class="btn-back" onClick=${() => { setStep(1); setFile(null); setExtractedText(''); }} style="margin-left: auto; font-size: 12px;">
-                Ganti File
-              </button>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label">Judul Paket</label>
-              <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} />
-            </div>
-            <div class="form-field">
-              <label class="form-label">Mata Pelajaran</label>
-              <select class="form-select" value=${mapel} onChange=${(e) => setMapel(e.target.value)}>
-                ${MAPEL_OPTIONS.map(m => html`<option value=${m}>${m}</option>`)}
-              </select>
-            </div>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Kelas</label>
-            <select class="form-select" value=${kelas} onChange=${(e) => setKelas(e.target.value)}>
-              ${KELAS_OPTIONS.map(k => html`<option value=${k}>${k}</option>`)}
-            </select>
-          </div>
-
-          <!-- Preview Text -->
-          <div class="form-section" style="margin-top: 16px;">
-            <div class="form-section-header">
-              <${BookOpen} size=${18} strokeWidth=${2} />
-              <h2>Pratinjau Teks (Bisa Diedit)</h2>
-            </div>
-            <div class="form-section-body">
-              <textarea
-                class="paste-textarea"
-                value=${extractedText}
-                onInput=${(e) => setExtractedText(e.target.value)}
-                style="min-height: 300px; font-size: 13px;"
-              />
-            </div>
-          </div>
-
-          <!-- Prompt Card -->
-          <div class="form-section" style="border: 2px solid var(--primary-mid);">
-            <div class="form-section-header">
-              <${Sparkles} size=${18} strokeWidth=${2} />
-              <h2>Langkah 2: Salin Prompt ke AI</h2>
-            </div>
-            <div class="form-section-body">
-              <p class="text-muted text-sm" style="margin: 0 0 16px;">
-                Prompt di bawah sudah berisi <b>teks dokumen Anda</b> + <b>format JSON TKA v1.1</b>. Paste ke ChatGPT/Gemini/Claude.
+              <p class="text-muted text-sm" style="line-height: 1.6;">
+                Gunakan cara ini jika Anda tidak ingin mengunggah file ke browser. Anda hanya perlu <b>copy prompt di bawah ini</b>, lalu paste ke ChatGPT/Gemini/Claude.
               </p>
               
-              <div class="ai-links" style="margin-bottom: 12px;">
-                <a href="https://chat.openai.com" target="_blank" class="ai-link">ChatGPT <${ExternalLink} size=${12} /></a>
-                <a href="https://gemini.google.com" target="_blank" class="ai-link">Gemini <${ExternalLink} size=${12} /></a>
-                <a href="https://claude.ai" target="_blank" class="ai-link">Claude <${ExternalLink} size=${12} /></a>
+              <div class="result-card result-warning" style="margin: 0; padding: 12px 16px; background: #fffbeb; border-color: #fcd34d;">
+                <div style="font-size: 12.5px; color: #92400e; line-height: 1.5;">
+                  <b>Cara Pakai:</b><br/>
+                  1. Klik "Salin Prompt Manual".<br/>
+                  2. Buka AI, paste prompt tersebut.<br/>
+                  3. Di AI, lampirkan file PDF/Word Anda, ATAU copy-paste teks soalnya langsung ke dalam chat AI.<br/>
+                  4. Tunggu AI mengubahnya jadi JSON, lalu copy JSON-nya ke halaman Tempel Hasil.
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Judul Paket</label>
+                  <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Mata Pelajaran</label>
+                  <select class="form-select" value=${mapel} onChange=${(e) => setMapel(e.target.value)}>
+                    ${MAPEL_OPTIONS.map(m => html`<option value=${m}>${m}</option>`)}
+                  </select>
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Kelas</label>
+                <select class="form-select" value=${kelas} onChange=${(e) => setKelas(e.target.value)}>
+                  ${KELAS_OPTIONS.map(k => html`<option value=${k}>${k}</option>`)}
+                </select>
               </div>
 
               <button 
                 class="btn-primary btn-large" 
-                onClick=${handleCopyPrompt}
-                style="background: ${copied ? 'var(--success)' : 'var(--primary)'};"
+                onClick=${handleCopyManualPrompt}
+                style="margin-top: 8px; background: ${manualCopied ? 'var(--success)' : 'var(--primary)'};"
               >
-                ${copied ? html`<${Check} size=${18} /> Prompt Tersalin!` : html`<${Copy} size=${18} /> Salin Prompt untuk AI`}
+                ${manualCopied ? html`<${Check} size=${18} /> Prompt Tersalin!` : html`<${Copy} size=${18} /> Salin Prompt Manual`}
               </button>
 
-              <div class="accordion" style="margin-top: 16px;">
-                <button class="accordion-toggle" onClick=${() => setShowPrompt(!showPrompt)}>
-                  ${showPrompt ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} 
-                  Lihat prompt lengkap (${promptText.length.toLocaleString()} karakter)
+              <div class="accordion" style="margin-top: 12px;">
+                <button class="accordion-toggle" onClick=${() => setShowManualPrompt(!showManualPrompt)}>
+                  ${showManualPrompt ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} 
+                  Lihat isi prompt manual
                 </button>
-                ${showPrompt && html`<textarea class="prompt-textarea" readonly value=${promptText} style="min-height: 200px;" />`}
+                ${showManualPrompt && html`<textarea class="prompt-textarea" readonly value=${manualPromptText} style="min-height: 200px;" />`}
+              </div>
+
+              <button class="btn-secondary w-full" onClick=${() => navigate('/paste')} style="margin-top: 16px;">
+                Ke Halaman Tempel Hasil <${ArrowRight} size=${16} />
+              </button>
+            </div>
+          </div>
+        `}
+
+        <!-- MODE UPLOAD (OTOMATIS) -->
+        ${mode === 'upload' && html`
+          <!-- STEP 1: UPLOAD -->
+          ${step === 1 && html`
+            <div class="form-section">
+              <div class="form-section-header">
+                <${Upload} size=${18} strokeWidth=${2} />
+                <h2>Langkah 1: Upload Dokumen</h2>
+              </div>
+              <div class="form-section-body">
+                <div
+                  class="upload-dropzone"
+                  onClick=${() => fileRef.current?.click()}
+                  onDragOver=${(e) => e.preventDefault()}
+                  onDrop=${handleDrop}
+                  style="padding: 60px 24px;"
+                >
+                  ${extracting ? html`
+                    <div class="upload-dropzone-icon" style="background: var(--primary-light); color: var(--primary);">
+                      <${Loader2} size=${28} class="spin" />
+                    </div>
+                    <h3>Mengekstrak teks dari dokumen...</h3>
+                    <p>Proses ini berjalan di browser Anda, tidak ada file yang diunggah ke server.</p>
+                  ` : html`
+                    <div class="upload-dropzone-icon"><${FileText} size=${28} /></div>
+                    <h3>Pilih Dokumen PDF, DOCX, atau TXT</h3>
+                    <p>Klik atau drag & drop file. Maks 20 MB.</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.docx,.txt,.md"
+                      ref=${fileRef}
+                      onChange=${handleFileInput}
+                      style="display:none;"
+                    />
+                  `}
+                </div>
+
+                ${error && html`
+                  <div class="result-card result-error" style="margin-top: 16px;">
+                    <div class="result-header">
+                      <${AlertTriangle} size=${18} color="var(--danger)" />
+                      <h2>Gagal Ekstrak Teks</h2>
+                    </div>
+                    <p class="text-muted text-sm" style="margin: 0;">${error}</p>
+                  </div>
+                `}
+
+                <div class="result-card result-warning" style="margin-top: 16px; padding: 14px 16px;">
+                  <div style="display: flex; gap: 10px; font-size: 12.5px; color: #92400e; line-height: 1.5;">
+                    <${AlertTriangle} size=${16} style="flex-shrink: 0; margin-top: 1px;" />
+                    <div>
+                      <b>Catatan Penting:</b> Ekstraksi teks bekerja pada file PDF/DOCX yang berisi <b>teks asli</b> (bukan hasil scan gambar). 
+                      Jika hasil ekstraksi kosong atau berantakan, simpan ulang dokumen Anda sebagai PDF (bukan gambar) atau ketik ulang soalnya.
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          `}
 
-          <!-- Step 3: Guide -->
-          <div class="form-section">
-            <div class="form-section-header">
-              <${ArrowRight} size=${18} strokeWidth=${2} />
-              <h2>Langkah 3: Setelah AI Selesai</h2>
+          <!-- STEP 2: PREVIEW + PROMPT -->
+          ${step === 2 && html`
+            <!-- File Info -->
+            <div class="result-card result-success mb-4" style="padding: 14px 16px;">
+              <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+                <${Check} size=${16} color="var(--success)" />
+                <span>Berhasil ekstrak <b>${file?.name}</b> (${extractedText.length.toLocaleString()} karakter).</span>
+                <button class="btn-back" onClick=${() => { setStep(1); setFile(null); setExtractedText(''); }} style="margin-left: auto; font-size: 12px;">
+                  Ganti File
+                </button>
+              </div>
             </div>
-            <div class="form-section-body">
-              <ol class="steps-list">
-                <li><div class="step-line"><span class="step-num">1</span><div>Buka AI, paste prompt yang sudah Anda salin.</div></div></li>
-                <li><div class="step-line"><span class="step-num">2</span><div>Tunggu AI selesai (30-90 detik), lalu <b>copy seluruh hasil JSON</b>.</div></div></li>
-                <li><div class="step-line"><span class="step-num">3</span><div>Buka halaman <b>Tempel Hasil</b>, lalu paste JSON tersebut.</div></div></li>
-                <li><div class="step-line"><span class="step-num">4</span><div>TKA Studio akan otomatis memvalidasi dan menampilkan preview.</div></div></li>
-              </ol>
 
-              <button class="btn-primary btn-large" onClick=${() => navigate('/paste')} style="margin-top: 16px;">
-                <${FileJson} size=${18} /> Ke Halaman Tempel Hasil <${ArrowRight} size=${18} />
-              </button>
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Judul Paket</label>
+                <input class="form-input" value=${judul} onInput=${(e) => setJudul(e.target.value)} />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Mata Pelajaran</label>
+                <select class="form-select" value=${mapel} onChange=${(e) => setMapel(e.target.value)}>
+                  ${MAPEL_OPTIONS.map(m => html`<option value=${m}>${m}</option>`)}
+                </select>
+              </div>
             </div>
-          </div>
+            <div class="form-field">
+              <label class="form-label">Kelas</label>
+              <select class="form-select" value=${kelas} onChange=${(e) => setKelas(e.target.value)}>
+                ${KELAS_OPTIONS.map(k => html`<option value=${k}>${k}</option>`)}
+              </select>
+            </div>
+
+            <!-- Preview Text -->
+            <div class="form-section" style="margin-top: 16px;">
+              <div class="form-section-header">
+                <${BookOpen} size=${18} strokeWidth=${2} />
+                <h2>Pratinjau Teks (Bisa Diedit)</h2>
+              </div>
+              <div class="form-section-body">
+                <textarea
+                  class="paste-textarea"
+                  value=${extractedText}
+                  onInput=${(e) => setExtractedText(e.target.value)}
+                  style="min-height: 300px; font-size: 13px;"
+                />
+              </div>
+            </div>
+
+            <!-- Prompt Card -->
+            <div class="form-section" style="border: 2px solid var(--primary-mid);">
+              <div class="form-section-header">
+                <${Sparkles} size=${18} strokeWidth=${2} />
+                <h2>Langkah 2: Salin Prompt ke AI</h2>
+              </div>
+              <div class="form-section-body">
+                <p class="text-muted text-sm" style="margin: 0 0 16px;">
+                  Prompt di bawah sudah berisi <b>teks dokumen Anda</b> + <b>format JSON TKA v1.1</b>. Paste ke ChatGPT/Gemini/Claude.
+                </p>
+                
+                <div class="ai-links" style="margin-bottom: 12px;">
+                  <a href="https://chat.openai.com" target="_blank" class="ai-link">ChatGPT <${ExternalLink} size=${12} /></a>
+                  <a href="https://gemini.google.com" target="_blank" class="ai-link">Gemini <${ExternalLink} size=${12} /></a>
+                  <a href="https://claude.ai" target="_blank" class="ai-link">Claude <${ExternalLink} size=${12} /></a>
+                </div>
+
+                <button 
+                  class="btn-primary btn-large" 
+                  onClick=${handleCopyPrompt}
+                  style="background: ${copied ? 'var(--success)' : 'var(--primary)'};"
+                >
+                  ${copied ? html`<${Check} size=${18} /> Prompt Tersalin!` : html`<${Copy} size=${18} /> Salin Prompt untuk AI`}
+                </button>
+
+                <div class="accordion" style="margin-top: 16px;">
+                  <button class="accordion-toggle" onClick=${() => setShowPrompt(!showPrompt)}>
+                    ${showPrompt ? html`<${ChevronUp} size=${16} />` : html`<${ChevronDown} size=${16} />`} 
+                    Lihat prompt lengkap (${promptText.length.toLocaleString()} karakter)
+                  </button>
+                  ${showPrompt && html`<textarea class="prompt-textarea" readonly value=${promptText} style="min-height: 200px;" />`}
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Guide -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <${ArrowRight} size=${18} strokeWidth=${2} />
+                <h2>Langkah 3: Setelah AI Selesai</h2>
+              </div>
+              <div class="form-section-body">
+                <ol class="steps-list">
+                  <li><div class="step-line"><span class="step-num">1</span><div>Buka AI, paste prompt yang sudah Anda salin.</div></div></li>
+                  <li><div class="step-line"><span class="step-num">2</span><div>Tunggu AI selesai (30-90 detik), lalu <b>copy seluruh hasil JSON</b>.</div></div></li>
+                  <li><div class="step-line"><span class="step-num">3</span><div>Buka halaman <b>Tempel Hasil</b>, lalu paste JSON tersebut.</div></div></li>
+                  <li><div class="step-line"><span class="step-num">4</span><div>TKA Studio akan otomatis memvalidasi dan menampilkan preview.</div></div></li>
+                </ol>
+
+                <button class="btn-primary btn-large" onClick=${() => navigate('/paste')} style="margin-top: 16px;">
+                  <${FileText} size=${18} /> Ke Halaman Tempel Hasil <${ArrowRight} size=${18} />
+                </button>
+              </div>
+            </div>
+          `}
         `}
       </div>
     </div>
