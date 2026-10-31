@@ -8,7 +8,7 @@ import htm from 'https://esm.sh/htm@3.1.1';
 import {
   ArrowLeft, ArrowRight, ScanSearch, AlertTriangle,
   CircleCheck, CircleX, Loader2, Sparkles, ClipboardPaste,
-  FileJson, Zap, Info
+  FileJson, Zap, Info, FileText,
 } from 'https://esm.sh/lucide-preact@0.460.0?deps=preact@10.24.3';
 import { smartParse } from '../lib/parser/index.js';
 import { normalizePaket } from '../lib/tka-schema.js';
@@ -98,6 +98,17 @@ export function PastePage({ navigate }) {
         />
 
         ${!result && html`
+          <div class="result-card result-success mb-4" style="padding: 14px 16px; background: var(--primary-light); border-color: rgba(30, 64, 175, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <div style="font-size: 13px; color: var(--primary-dark);">
+                <b>Punya dokumen PDF/Word?</b> Konversi otomatis ke JSON dengan AI.
+              </div>
+              <button class="btn-primary btn-sm" onClick=${() => navigate('/import-doc')} style="flex-shrink: 0;">
+                <${FileText} size=${14} /> Import Dokumen
+              </button>
+            </div>
+          </div>
+          
           <div class="paste-box">
             <textarea
               class="paste-textarea"
