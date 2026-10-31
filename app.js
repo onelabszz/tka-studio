@@ -414,7 +414,6 @@ function App() {
   
   if (route === '/play') return html`<${PlayPage} />`;
   if (route === '/image-tool') return html`<${PublicLayout} profile=${profile}><${ImageToolPage} navigate=${navigate} /></${PublicLayout}>`;
-  if (route === '/import-doc') return html`<${PublicLayout} profile=${profile}><${ImportDocPage} navigate=${navigate} /></${PublicLayout}>`;
 
   if (route === '/build' || route === '/paste' || route === '/preview' || route === '/export') {
     let PageComponent = null;
@@ -443,7 +442,7 @@ function App() {
 
   if (route === '/pending') return html`<${PendingPage} navigate=${navigate} onLogout=${handleLogout} />`;
 
-  const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new', '/exam-list'];
+  const AUTH_ROUTES = ['/bank-soal', '/pustaka', '/kotak', '/expert', '/expert/new', '/exam-list', '/import-doc'];
   if (AUTH_ROUTES.some(r => route === r || route.startsWith(r + '/'))) {
     if (!user) { navigate('/login'); return html`<div style="padding: 40px; text-align: center;">Mengarahkan ke login...</div>`; }
     
@@ -451,6 +450,7 @@ function App() {
     let pageProps = { navigate, profile };
     
     if (route === '/bank-soal') PageComponent = BankSoalPage;
+    else if (route === '/import-doc') PageComponent = ImportDocPage;
     else if (route === '/pustaka') PageComponent = PustakaPage;
     else if (route === '/kotak') PageComponent = KotakPage;
     else if (route === '/expert') PageComponent = ExpertListPage;
